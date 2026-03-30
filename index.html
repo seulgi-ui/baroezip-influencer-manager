@@ -1,0 +1,2949 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BARO MCN - Influencer Manager</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<style>
+/* ===== CSS Variables / Design Tokens ===== */
+:root {
+  --primary: #4F46E5;
+  --primary-light: #EEF2FF;
+  --primary-dark: #4338CA;
+  --primary-hover: #E0E7FF;
+  --primary-glow: rgba(79,70,229,0.12);
+  --accent: #7C3AED;
+  --bg: #F9FAFB;
+  --surface: #FFFFFF;
+  --surface-2: #F3F4F6;
+  --surface-3: #E5E7EB;
+  --border: #E5E7EB;
+  --border-light: #F3F4F6;
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-muted: #9CA3AF;
+  --text-link: #4F46E5;
+  --status-recruiting: #F59E0B;
+  --status-recruited: #10B981;
+  --status-guide: #8B5CF6;
+  --status-producing: #3B82F6;
+  --status-confirmed: #06B6D4;
+  --status-scheduled: #EC4899;
+  --status-done: #64748B;
+  --youtube: #FF0000;
+  --instagram: #E1306C;
+  --danger: #EF4444;
+  --success: #059669;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 8px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+  --shadow-lg: 0 20px 40px -12px rgba(0,0,0,0.15);
+  --shadow-xl: 0 25px 50px -12px rgba(0,0,0,0.2);
+  --font: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --sidebar-w: 240px;
+  --transition: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg);
+  overflow: hidden;
+  height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+a { color: var(--text-link); text-decoration: none; }
+button { cursor: pointer; font-family: var(--font); border: none; background: none; font-size: 14px; }
+input, select, textarea { font-family: var(--font); font-size: 14px; }
+table { border-collapse: collapse; width: 100%; }
+
+/* ===== Layout ===== */
+.app { display: flex; height: 100vh; }
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: 60px;
+  max-width: 400px;
+  background: linear-gradient(180deg, #1E1B4B 0%, #312E81 100%);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 20;
+  transition: none;
+}
+.sidebar-header {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-logo {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+.sidebar-logo span { color: rgba(255,255,255,0.45); font-weight: 400; font-size: 12px; margin-left: 6px; }
+.sidebar-nav { flex: 1; padding: 12px 10px; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  color: rgba(255,255,255,0.6);
+  font-weight: 500;
+  transition: all 0.2s var(--transition);
+  user-select: none;
+  margin-bottom: 2px;
+}
+.nav-item:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); }
+.nav-item.active { background: rgba(255,255,255,0.12); color: #fff; font-weight: 600; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08); }
+.nav-item svg { width: 20px; height: 20px; flex-shrink: 0; opacity: 0.8; }
+.nav-item.active svg { opacity: 1; }
+.nav-item .nav-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Sidebar Resizer */
+#sidebar-resizer {
+  position: absolute;
+  right: -3px;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 25;
+  transition: background 0.15s;
+}
+#sidebar-resizer:hover, #sidebar-resizer.active { background: var(--primary); }
+
+/* Main Content */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+.main-header {
+  padding: 20px 32px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.main-header h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
+.main-body { flex: 1; overflow-y: auto; padding: 28px 32px; }
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: var(--radius-xs);
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.2s var(--transition);
+  white-space: nowrap;
+  letter-spacing: -0.1px;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(79,70,229,0.3), 0 1px 2px rgba(79,70,229,0.2);
+}
+.btn-primary:hover { box-shadow: 0 4px 12px rgba(79,70,229,0.35); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-secondary { background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--surface-2); border-color: #D1D5DB; }
+.btn-ghost { color: var(--text-secondary); padding: 6px 10px; }
+.btn-ghost:hover { background: var(--surface-2); color: var(--text-primary); }
+.btn-danger { background: #FEF2F2; color: var(--danger); border: 1px solid #FECACA; }
+.btn-danger:hover { background: #FEE2E2; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-xs { padding: 4px 10px; font-size: 11px; }
+.btn svg { width: 15px; height: 15px; }
+
+/* ===== Section Toggle ===== */
+.section { display: none; height: 100%; }
+.section.active { display: flex; flex-direction: column; }
+
+/* ===== Channel Tabs ===== */
+.ch-tabs { display: flex; gap: 6px; }
+.ch-tab {
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border: 1.5px solid transparent;
+  transition: all 0.2s var(--transition);
+}
+.ch-tab:hover { background: var(--surface-3); }
+.ch-tab.active {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: rgba(79,70,229,0.3);
+  font-weight: 600;
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+/* ===== Filter Bar ===== */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.filter-bar input[type="text"] {
+  padding: 8px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  min-width: 220px;
+  outline: none;
+  transition: all 0.2s var(--transition);
+  background: var(--surface);
+}
+.filter-bar input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+.filter-bar select {
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.filter-bar select:focus { border-color: var(--primary); }
+
+/* ===== Influencer Table ===== */
+.inf-table { table-layout: fixed; border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.inf-table th {
+  position: relative;
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  background: var(--surface-2);
+  border-bottom: 1.5px solid var(--border);
+  user-select: none;
+  white-space: nowrap;
+}
+.inf-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  font-size: 13px;
+}
+.inf-table tbody tr { transition: all 0.15s var(--transition); cursor: pointer; background: var(--surface); }
+.inf-table tbody tr:hover { background: var(--primary-light); }
+.inf-table tbody tr:active { background: var(--primary-hover); }
+
+/* Column Resizer */
+.th-resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  cursor: col-resize;
+  z-index: 5;
+}
+.th-resizer:hover { background: rgba(79,70,229,0.25); }
+
+/* ===== Badges ===== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+.badge-youtube { background: #FEF2F2; color: var(--youtube); border: 1px solid #FECACA; }
+.badge-instagram { background: #FDF2F8; color: var(--instagram); border: 1px solid #FBCFE8; }
+.badge-status {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* ===== Star / Favorite ===== */
+.star-btn { font-size: 18px; color: var(--text-muted); transition: all 0.2s var(--transition); background: none; border: none; padding: 2px; }
+.star-btn:hover { color: #F59E0B; transform: scale(1.15); }
+.star-btn.active { color: #F59E0B; }
+
+/* ===== Detail Panel ===== */
+.detail-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(4px);
+  z-index: 90;
+}
+.detail-overlay.open { display: block; }
+.detail-panel {
+  position: fixed;
+  right: -540px;
+  top: 0;
+  bottom: 0;
+  width: 520px;
+  background: var(--surface);
+  box-shadow: var(--shadow-xl);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  transition: right 0.3s var(--transition);
+  overflow-y: auto;
+}
+.detail-panel.open { right: 0; }
+.detail-header { padding: 28px 28px 18px; border-bottom: 1px solid var(--border-light); }
+.detail-header h2 { font-size: 22px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.3px; }
+.detail-body { flex: 1; padding: 24px 28px; overflow-y: auto; }
+.detail-footer {
+  padding: 18px 28px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  background: var(--surface-2);
+}
+.detail-section { margin-bottom: 24px; }
+.detail-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-light);
+}
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat-item {
+  padding: 12px;
+  background: linear-gradient(135deg, var(--surface-2) 0%, var(--surface) 100%);
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-light);
+}
+.stat-label { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+.stat-value { font-size: 17px; font-weight: 800; margin-top: 4px; letter-spacing: -0.3px; }
+
+/* ===== Modals ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(6px);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalIn 0.25s var(--transition);
+}
+@keyframes modalIn { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal-sm { max-width: 480px; }
+.modal-md { max-width: 640px; }
+.modal-header {
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-header h3 { font-size: 18px; font-weight: 800; letter-spacing: -0.2px; }
+.modal-body { padding: 28px; overflow-y: auto; flex: 1; }
+.modal-footer {
+  padding: 18px 28px;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  background: var(--surface-2);
+}
+.modal-close {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  color: var(--text-muted);
+  transition: all 0.15s;
+  font-size: 16px;
+}
+.modal-close:hover { background: var(--surface-2); color: var(--text-primary); }
+
+/* ===== Form ===== */
+.form-group { margin-bottom: 18px; }
+.form-label { display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  outline: none;
+  transition: all 0.2s var(--transition);
+  background: var(--surface);
+  font-size: 14px;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+.form-textarea { resize: vertical; min-height: 60px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.form-check { display: flex; align-items: center; gap: 8px; }
+.form-check input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); border-radius: 4px; }
+
+/* YouTube fetch result box */
+.yt-result-box {
+  background: linear-gradient(135deg, var(--surface-2) 0%, var(--surface) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-top: 10px;
+  font-size: 13px;
+  display: none;
+}
+.yt-result-box.show { display: block; }
+.yt-result-row { display: flex; justify-content: space-between; padding: 4px 0; }
+.yt-result-label { color: var(--text-muted); font-size: 12px; }
+.yt-result-value { font-weight: 700; }
+.yt-loading { color: var(--primary); font-size: 13px; display: none; align-items: center; gap: 6px; margin-top: 6px; }
+.yt-loading.show { display: flex; }
+
+/* ===== Project Cards ===== */
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+}
+.project-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  cursor: pointer;
+  transition: all 0.25s var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.project-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.project-card:hover { border-color: rgba(79,70,229,0.3); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.project-card:hover::before { opacity: 1; }
+.project-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.2px; }
+.project-card .meta { font-size: 13px; color: var(--text-secondary); }
+.project-card .meta-row { display: flex; justify-content: space-between; margin-top: 6px; }
+.project-card .tag-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+/* ===== Project Detail ===== */
+.proj-detail { display: none; flex-direction: column; height: 100%; }
+.proj-detail.active { display: flex; }
+.proj-detail-header {
+  padding: 18px 32px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+.proj-detail-header h2 { font-size: 20px; font-weight: 800; flex: 1; letter-spacing: -0.3px; }
+.proj-detail-body { flex: 1; overflow-y: auto; padding: 28px 32px; }
+
+/* Overview Bar */
+.overview-bar {
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+}
+.overview-item { display: flex; flex-direction: column; gap: 3px; }
+.overview-label { font-size: 10px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
+.overview-value { font-size: 15px; font-weight: 700; }
+.overview-divider { width: 1px; height: 40px; background: var(--border); }
+
+/* Timetable */
+.timetable {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.tt-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.tt-circle {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-muted);
+  background: var(--surface);
+  transition: all 0.25s var(--transition);
+}
+.tt-step.done .tt-circle { background: linear-gradient(135deg, var(--primary), var(--accent)); border-color: transparent; color: #fff; box-shadow: 0 2px 8px rgba(79,70,229,0.3); }
+.tt-step.current .tt-circle { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 0 5px var(--primary-glow); }
+.tt-label { font-size: 10px; color: var(--text-muted); white-space: nowrap; font-weight: 500; }
+.tt-date { font-size: 10px; color: var(--text-secondary); font-weight: 700; }
+.tt-arrow { color: var(--text-muted); font-size: 14px; margin: 0 2px; padding-bottom: 24px; }
+
+/* ===== Collapsible Panel ===== */
+.collapse-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin-bottom: 12px;
+  user-select: none;
+  transition: all 0.2s var(--transition);
+}
+.collapse-header:hover { border-color: rgba(79,70,229,0.2); background: var(--surface-2); }
+.collapse-header h3 { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.collapse-arrow { transition: transform 0.3s var(--transition); font-size: 12px; }
+.collapse-arrow.open { transform: rotate(180deg); }
+.collapse-body { display: none; margin-bottom: 20px; }
+.collapse-body.open { display: block; }
+
+/* Message Panel Tabs */
+.msg-tabs { display: flex; gap: 4px; margin-bottom: 14px; }
+.msg-tab {
+  padding: 7px 16px;
+  border-radius: var(--radius-xs);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  transition: all 0.2s var(--transition);
+}
+.msg-tab:hover { background: var(--surface-3); }
+.msg-tab.active { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; box-shadow: 0 2px 8px rgba(79,70,229,0.25); }
+
+/* Template Cards */
+.tpl-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+.tpl-card:hover { border-color: rgba(79,70,229,0.2); }
+.tpl-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.tpl-card-title { font-size: 14px; font-weight: 700; }
+.tpl-card-actions { display: flex; gap: 4px; }
+.tpl-card-content {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow-y: auto;
+  line-height: 1.6;
+  background: var(--surface-2);
+  padding: 12px;
+  border-radius: var(--radius-xs);
+}
+
+/* Guide Editor */
+.guide-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1.5px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: var(--surface-2);
+}
+.guide-toolbar button {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+  font-weight: 600;
+}
+.guide-toolbar button:hover { background: var(--surface); }
+.guide-toolbar button.active { background: var(--primary-light); color: var(--primary); }
+.guide-editor {
+  border: 1.5px solid var(--border);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  padding: 18px;
+  min-height: 200px;
+  outline: none;
+  line-height: 1.8;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+.guide-editor:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+.guide-editor mark { padding: 1px 4px; border-radius: 4px; }
+.guide-editor mark.pink { background: #FBCFE8; }
+.guide-editor mark.green { background: #BBF7D0; }
+.guide-editor mark.blue { background: #BFDBFE; }
+.highlight-dropdown {
+  position: absolute;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  padding: 6px;
+  display: none;
+  z-index: 50;
+}
+.highlight-dropdown.open { display: flex; gap: 5px; }
+.hl-btn { width: 26px; height: 26px; border-radius: 6px; border: 1.5px solid var(--border); cursor: pointer; transition: transform 0.15s; }
+.hl-btn:hover { transform: scale(1.15); }
+
+/* ===== Report Bar ===== */
+.report-bar {
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow);
+}
+.report-donut { flex-shrink: 0; }
+.report-legend { display: flex; flex-direction: column; gap: 5px; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+.report-metrics { display: flex; gap: 14px; flex-wrap: wrap; flex: 1; justify-content: flex-end; }
+.metric-card {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  min-width: 130px;
+  text-align: center;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow);
+}
+.metric-label { font-size: 10px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.metric-value { font-size: 22px; font-weight: 800; margin-top: 4px; letter-spacing: -0.5px; }
+.metric-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* Budget Bar */
+.budget-bar-wrap { width: 100%; margin-top: 6px; }
+.budget-bar-track { height: 10px; background: var(--surface-2); border-radius: 5px; overflow: hidden; border: 1px solid var(--border-light); }
+.budget-bar-fill { height: 100%; border-radius: 5px; transition: width 0.4s var(--transition); background: linear-gradient(90deg, var(--primary), var(--accent)); }
+.budget-bar-fill.warning { background: linear-gradient(90deg, #F59E0B, #D97706); }
+.budget-bar-fill.danger { background: linear-gradient(90deg, #EF4444, #DC2626); }
+
+/* ===== Track Table ===== */
+.track-table { table-layout: fixed; border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.track-table th {
+  position: relative;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border-bottom: 1.5px solid var(--border);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.track-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  background: var(--surface);
+}
+.track-table tbody tr { transition: background 0.15s; }
+.track-table tbody tr:hover td { background: var(--primary-light); }
+.track-group-header td {
+  background: var(--surface-2) !important;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 8px 12px;
+  letter-spacing: 0.3px;
+}
+.track-table select, .track-table input {
+  padding: 5px 8px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  background: var(--surface);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.track-table select:focus, .track-table input:focus { border-color: var(--primary); }
+
+/* ===== Assignment Panel ===== */
+.assign-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 18px;
+}
+.assign-side h4 { font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; text-transform: uppercase; letter-spacing: 0.4px; }
+.assign-list { max-height: 320px; overflow-y: auto; }
+.assign-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 13px;
+  transition: background 0.15s;
+  border-radius: 6px;
+  margin-bottom: 2px;
+}
+.assign-row:hover { background: var(--surface-2); }
+.assign-row .name { font-weight: 600; }
+.assign-row .info { font-size: 11px; color: var(--text-muted); }
+.assign-add-btn, .assign-remove-btn {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  transition: all 0.2s var(--transition);
+  flex-shrink: 0;
+}
+.assign-add-btn { color: var(--primary); background: var(--primary-light); }
+.assign-add-btn:hover { background: var(--primary); color: #fff; transform: scale(1.1); }
+.assign-remove-btn { color: var(--danger); background: #FEF2F2; }
+.assign-remove-btn:hover { background: var(--danger); color: #fff; transform: scale(1.1); }
+
+/* ===== Toast ===== */
+.toast-container {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+.toast {
+  background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--shadow-xl);
+  animation: toastIn 0.3s var(--transition), toastOut 0.3s ease 1.7s forwards;
+  letter-spacing: -0.1px;
+}
+@keyframes toastIn { from { opacity: 0; transform: translateY(16px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes toastOut { to { opacity: 0; transform: translateY(-10px) scale(0.95); } }
+
+/* ===== Connection Banner ===== */
+.conn-banner {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(90deg, #DC2626, #EF4444);
+  color: #fff;
+  text-align: center;
+  padding: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 600;
+  letter-spacing: -0.1px;
+}
+.conn-banner.show { display: block; }
+
+/* ===== Standalone Guide View ===== */
+.guide-standalone {
+  display: none;
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 48px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+}
+.guide-standalone.active { display: block; }
+.guide-standalone h1 { font-size: 26px; font-weight: 800; margin-bottom: 28px; color: var(--text-primary); letter-spacing: -0.5px; }
+.guide-standalone .guide-body { line-height: 1.9; font-size: 15px; color: var(--text-secondary); }
+.guide-standalone mark { padding: 1px 4px; border-radius: 4px; }
+.guide-standalone mark.pink { background: #FBCFE8; }
+.guide-standalone mark.green { background: #BBF7D0; }
+.guide-standalone mark.blue { background: #BFDBFE; }
+
+/* ===== Empty State ===== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+  color: var(--text-muted);
+}
+.empty-state svg { width: 56px; height: 56px; margin-bottom: 16px; opacity: 0.3; }
+.empty-state p { font-size: 15px; font-weight: 500; }
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .sidebar { width: 60px !important; }
+  .sidebar .nav-label, .sidebar-logo span { display: none; }
+  .sidebar-logo { font-size: 14px; text-align: center; }
+  .main-body { padding: 16px; }
+  .main-header { padding: 16px 20px; }
+  .detail-panel { width: 100%; right: -100%; }
+  .assign-panel { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  .report-bar { flex-direction: column; align-items: flex-start; }
+  .report-metrics { justify-content: flex-start; }
+  .overview-bar { flex-direction: column; }
+  .overview-divider { width: 100%; height: 1px; }
+}
+
+/* Number formatting helper */
+.num-comma::before { content: attr(data-value); }
+
+/* ===== Config Panel ===== */
+.config-panel {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+  border: 1.5px solid #FDE68A;
+  border-radius: var(--radius);
+  padding: 22px;
+  margin-bottom: 20px;
+}
+.config-panel h3 { font-size: 14px; font-weight: 700; color: #92400E; margin-bottom: 12px; }
+.config-panel .form-input { background: #fff; }
+.config-panel .btn-primary { background: linear-gradient(135deg, #D97706, #B45309); }
+.config-panel .btn-primary:hover { box-shadow: 0 4px 12px rgba(217,119,6,0.3); }
+</style>
+</head>
+<body>
+
+<!-- Connection Banner -->
+<div id="conn-banner" class="conn-banner">Firebase 연결이 끊어졌습니다. 인터넷 연결을 확인해주세요.</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- Standalone Guide View -->
+<div id="guide-standalone" class="guide-standalone">
+  <h1 id="guide-standalone-title"></h1>
+  <div id="guide-standalone-body" class="guide-body"></div>
+</div>
+
+<!-- Main App -->
+<div id="app" class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">BARO<span> MCN</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-section="influencer" onclick="navigate('influencer')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-label">인플루언서</span>
+      </div>
+      <div class="nav-item" data-section="projects" onclick="navigate('projects')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+        <span class="nav-label">프로젝트</span>
+      </div>
+    </nav>
+    <div id="sidebar-resizer"></div>
+  </aside>
+
+  <!-- Influencer Section -->
+  <section id="section-influencer" class="section active">
+    <div class="main-header">
+      <h1>인플루언서</h1>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div class="ch-tabs">
+          <button class="ch-tab active" data-ch="youtube" onclick="switchChannel('youtube')">YouTube</button>
+          <button class="ch-tab" data-ch="instagram" onclick="switchChannel('instagram')">인스타그램</button>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openInfluencerModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          추가
+        </button>
+      </div>
+    </div>
+    <div class="main-body">
+      <!-- Filter Bar -->
+      <div class="filter-bar" style="margin-bottom:16px;">
+        <input type="text" id="inf-search" placeholder="이름, 태그, 주제 검색..." oninput="renderInfluencers()">
+        <select id="inf-sort" onchange="renderInfluencers()">
+          <option value="name">이름순</option>
+          <option value="followers">구독자순</option>
+          <option value="avgViewsLong">조회수(L)순</option>
+          <option value="avgViewsShort">조회수(S)순</option>
+        </select>
+        <select id="inf-price" onchange="renderInfluencers()">
+          <option value="">가격대 전체</option>
+          <option value="0-100">~100만</option>
+          <option value="100-300">100~300만</option>
+          <option value="300-500">300~500만</option>
+          <option value="500-">500만~</option>
+        </select>
+        <select id="inf-topic" onchange="renderInfluencers()">
+          <option value="">주제 전체</option>
+        </select>
+      </div>
+
+      <!-- Table -->
+      <div style="overflow-x:auto;">
+        <table class="inf-table" id="inf-table">
+          <thead>
+            <tr>
+              <th style="width:36px;"></th>
+              <th style="width:140px;">이름<div class="th-resizer"></div></th>
+              <th style="width:80px;">채널<div class="th-resizer"></div></th>
+              <th style="width:100px;" id="th-followers">구독자<div class="th-resizer"></div></th>
+              <th style="width:100px;" id="th-views-long">조회수(L)<div class="th-resizer"></div></th>
+              <th style="width:100px;" id="th-views-short">조회수(S)<div class="th-resizer"></div></th>
+              <th style="width:80px;">좋아요<div class="th-resizer"></div></th>
+              <th style="width:80px;">댓글<div class="th-resizer"></div></th>
+              <th style="width:80px;">단가(만)<div class="th-resizer"></div></th>
+              <th style="width:120px;">주제<div class="th-resizer"></div></th>
+            </tr>
+          </thead>
+          <tbody id="inf-tbody"></tbody>
+        </table>
+      </div>
+      <div id="inf-empty" class="empty-state" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        <p>등록된 인플루언서가 없습니다</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects Section -->
+  <section id="section-projects" class="section">
+    <!-- Project List View -->
+    <div id="proj-list-view">
+      <div class="main-header">
+        <h1>프로젝트</h1>
+        <button class="btn btn-primary btn-sm" onclick="openProjectModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          새 프로젝트
+        </button>
+      </div>
+      <div class="main-body">
+        <div id="project-grid" class="project-grid"></div>
+        <div id="proj-empty" class="empty-state" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          <p>등록된 프로젝트가 없습니다</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project Detail View -->
+    <div id="proj-detail-view" class="proj-detail">
+      <div class="proj-detail-header">
+        <button class="btn btn-ghost btn-sm" onclick="showProjectList()">← 목록으로</button>
+        <h2 id="proj-detail-title"></h2>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-secondary btn-xs" onclick="editCurrentProject()">수정</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteCurrentProject()">삭제</button>
+        </div>
+      </div>
+      <div class="proj-detail-body">
+        <!-- Overview -->
+        <div id="proj-overview" class="overview-bar"></div>
+
+        <!-- Timetable -->
+        <div id="proj-timetable" style="margin-bottom:20px;"></div>
+
+        <!-- Message / Guide Panel -->
+        <div style="margin-bottom:20px;">
+          <div class="collapse-header" onclick="toggleMsgPanel()">
+            <h3>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              DM 발송 / 메일 발송 / 가이드라인
+            </h3>
+            <span id="msg-collapse-arrow" class="collapse-arrow">▼</span>
+          </div>
+          <div id="msg-collapse-body" class="collapse-body">
+            <div class="msg-tabs">
+              <button class="msg-tab active" data-tab="dm" onclick="switchMsgTab('dm')">DM 발송</button>
+              <button class="msg-tab" data-tab="email" onclick="switchMsgTab('email')">메일 발송</button>
+              <button class="msg-tab" data-tab="guide" onclick="switchMsgTab('guide')">가이드라인</button>
+              <button class="btn btn-ghost btn-xs" onclick="openTemplateModal()" style="margin-left:auto;">+ 템플릿 추가</button>
+            </div>
+            <div id="msg-tab-dm"></div>
+            <div id="msg-tab-email" style="display:none;"></div>
+            <div id="msg-tab-guide" style="display:none;">
+              <div style="position:relative;">
+                <div class="guide-toolbar">
+                  <button id="btn-bold" onclick="execBold()" title="굵게"><b>B</b></button>
+                  <button id="btn-highlight" onclick="toggleHighlightDropdown()" title="형광펜">🖊</button>
+                  <div id="highlight-dropdown" class="highlight-dropdown">
+                    <div class="hl-btn" style="background:#FEF08A;" onclick="execHighlight('#FEF08A','')"></div>
+                    <div class="hl-btn" style="background:#FBCFE8;" onclick="execHighlight('#FBCFE8','pink')"></div>
+                    <div class="hl-btn" style="background:#BBF7D0;" onclick="execHighlight('#BBF7D0','green')"></div>
+                    <div class="hl-btn" style="background:#BFDBFE;" onclick="execHighlight('#BFDBFE','blue')"></div>
+                    <div class="hl-btn" style="background:#fff;border:2px solid #ccc;font-size:10px;display:flex;align-items:center;justify-content:center;" onclick="execHighlight(null,'remove')">✕</div>
+                  </div>
+                </div>
+                <div id="guide-content-editor" class="guide-editor" contenteditable="true"></div>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:8px;">
+                <button class="btn btn-primary btn-sm" onclick="saveGuideContent()">저장</button>
+                <button class="btn btn-secondary btn-sm" onclick="copyGuideLink()">링크 복사</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report Bar -->
+        <div id="proj-report-bar" class="report-bar" style="display:none;"></div>
+
+        <!-- Budget Bar -->
+        <div id="proj-budget-bar" style="display:none; margin-bottom:20px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);margin-bottom:4px;">
+            <span>예산 사용률</span>
+            <span id="budget-percent">0%</span>
+          </div>
+          <div class="budget-bar-wrap">
+            <div class="budget-bar-track">
+              <div id="budget-bar-fill" class="budget-bar-fill" style="width:0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Track Table -->
+        <div style="overflow-x:auto; margin-bottom:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <h3 style="font-size:14px;font-weight:600;">진행 현황</h3>
+            <button class="btn btn-secondary btn-xs" id="btn-crawl-all" onclick="crawlAllUploads()" style="display:none;">전체 수집</button>
+          </div>
+          <table class="track-table" id="track-table">
+            <thead>
+              <tr>
+                <th style="width:120px;">인플루언서<div class="th-resizer"></div></th>
+                <th style="width:70px;">채널<div class="th-resizer"></div></th>
+                <th style="width:80px;">단가(만원)<div class="th-resizer"></div></th>
+                <th style="width:100px;">현황<div class="th-resizer"></div></th>
+                <th style="width:80px;">유형<div class="th-resizer"></div></th>
+                <th style="width:160px;">업로드 링크<div class="th-resizer"></div></th>
+                <th style="width:80px;">조회수<div class="th-resizer"></div></th>
+                <th style="width:70px;">좋아요<div class="th-resizer"></div></th>
+                <th style="width:60px;">댓글<div class="th-resizer"></div></th>
+                <th style="width:60px;">수집<div class="th-resizer"></div></th>
+              </tr>
+            </thead>
+            <tbody id="track-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Assignment Panel -->
+        <div style="margin-bottom:20px;">
+          <div class="collapse-header" onclick="toggleAssignPanel()">
+            <h3>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
+              인플루언서 배정 관리
+            </h3>
+            <span id="assign-collapse-arrow" class="collapse-arrow">▼</span>
+          </div>
+          <div id="assign-collapse-body" class="collapse-body">
+            <div class="assign-panel">
+              <div class="assign-side">
+                <h4>
+                  미배정 인플루언서
+                  <div style="display:flex;gap:4px;">
+                    <button class="ch-tab active btn-xs" data-ach="youtube" onclick="switchAssignChannel('youtube')">YT</button>
+                    <button class="ch-tab btn-xs" data-ach="instagram" onclick="switchAssignChannel('instagram')">IG</button>
+                  </div>
+                </h4>
+                <input type="text" id="assign-search" class="form-input" placeholder="검색..." oninput="renderAssignPanel()" style="margin-bottom:8px;padding:5px 8px;font-size:12px;">
+                <div id="assign-unassigned" class="assign-list"></div>
+              </div>
+              <div class="assign-side">
+                <h4>배정된 인플루언서 <span id="assign-count" style="color:var(--primary);"></span></h4>
+                <div id="assign-assigned" class="assign-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Detail Panel (Influencer) -->
+<div id="detail-overlay" class="detail-overlay" onclick="closeDetailPanel()"></div>
+<div id="detail-panel" class="detail-panel">
+  <div class="detail-header">
+    <h2 id="detail-name"></h2>
+    <div id="detail-channels" style="display:flex;gap:4px;"></div>
+  </div>
+  <div class="detail-body">
+    <div id="detail-urls" class="detail-section"></div>
+    <div class="detail-section">
+      <div class="detail-section-title">채널 분류</div>
+      <div id="detail-topic" style="margin-bottom:4px;"></div>
+      <div id="detail-analysis" style="font-size:13px;color:var(--text-secondary);white-space:pre-wrap;"></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">채널 통계</div>
+      <div id="detail-stats" class="stats-grid"></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">광고 단가</div>
+      <div id="detail-prices"></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">태그</div>
+      <div id="detail-tags" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">메모</div>
+      <textarea id="detail-memo" class="form-textarea" rows="3" placeholder="메모 입력..."></textarea>
+      <button class="btn btn-primary btn-xs" onclick="saveDetailMemo()" style="margin-top:6px;" id="btn-save-memo">저장</button>
+    </div>
+  </div>
+  <div class="detail-footer">
+    <button class="btn btn-danger btn-sm" onclick="deleteFromDetail()">삭제</button>
+    <div style="display:flex;gap:6px;">
+      <button class="btn btn-secondary btn-sm" onclick="closeDetailPanel()">닫기</button>
+      <button class="btn btn-primary btn-sm" onclick="editFromDetail()">수정</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Influencer Add/Edit -->
+<div id="modal-influencer" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-influencer')">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <h3 id="modal-inf-title">인플루언서 추가</h3>
+      <button class="modal-close" onclick="closeModal('modal-influencer')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">이름 *</label>
+        <input type="text" id="inf-name" class="form-input" placeholder="인플루언서 이름">
+      </div>
+      <div class="form-group">
+        <label class="form-label">채널</label>
+        <div style="display:flex;gap:12px;">
+          <label class="form-check"><input type="checkbox" id="ch-youtube" value="youtube" onchange="toggleChannelFields()"> YouTube</label>
+          <label class="form-check"><input type="checkbox" id="ch-instagram" value="instagram" onchange="toggleChannelFields()"> 인스타그램</label>
+        </div>
+      </div>
+
+      <!-- YouTube Fields -->
+      <div id="fields-youtube" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">YouTube URL</label>
+          <input type="text" id="inf-url-youtube" class="form-input" placeholder="https://youtube.com/@channel">
+          <div class="yt-loading" id="yt-loading">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            채널 정보 수집 중...
+          </div>
+          <div class="yt-result-box" id="yt-result"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">YouTube 단가 (만원)</label>
+            <input type="number" id="inf-price-youtube" class="form-input" placeholder="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Instagram Fields -->
+      <div id="fields-instagram" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Instagram URL</label>
+          <input type="text" id="inf-url-instagram" class="form-input" placeholder="https://instagram.com/username">
+          <div class="yt-loading" id="ig-loading">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            인스타 정보 수집 중...
+          </div>
+          <div class="yt-result-box" id="ig-result"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">인스타 단가 (만원)</label>
+            <input type="number" id="inf-price-instagram" class="form-input" placeholder="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Common Stats Fields -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">팔로워/구독자</label>
+          <input type="number" id="inf-followers" class="form-input" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">인게이지먼트율 (%)</label>
+          <input type="number" id="inf-engagement" class="form-input" placeholder="0" step="0.1">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">평균 조회수 (Long)</label>
+          <input type="number" id="inf-views-long" class="form-input" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">평균 조회수 (Short)</label>
+          <input type="number" id="inf-views-short" class="form-input" placeholder="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">평균 좋아요</label>
+          <input type="number" id="inf-likes" class="form-input" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">평균 댓글</label>
+          <input type="number" id="inf-comments" class="form-input" placeholder="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">주제</label>
+        <input type="text" id="inf-topic" class="form-input" placeholder="일상, 교육, 부동산 (쉼표 구분)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">채널 분석</label>
+        <textarea id="inf-analysis" class="form-textarea" rows="2" placeholder="채널 특성 분석..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">태그</label>
+        <input type="text" id="inf-tags" class="form-input" placeholder="태그1, 태그2 (쉼표 구분)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">메모</label>
+        <textarea id="inf-memo" class="form-textarea" rows="2" placeholder="메모..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-influencer')">취소</button>
+      <button class="btn btn-primary" onclick="saveInfluencer()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Project Add/Edit -->
+<div id="modal-project" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-project')">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <h3 id="modal-proj-title">새 프로젝트</h3>
+      <button class="modal-close" onclick="closeModal('modal-project')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">프로젝트명 *</label>
+        <input type="text" id="proj-name" class="form-input" placeholder="캠페인 이름">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">시작일</label>
+          <input type="date" id="proj-start" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">종료일</label>
+          <input type="date" id="proj-end" class="form-input">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">예산 (만원)</label>
+          <input type="number" id="proj-budget" class="form-input" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">목표</label>
+          <input type="text" id="proj-goal" class="form-input" placeholder="캠페인 목표">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">타임테이블</label>
+        <div id="proj-timetable-inputs" style="display:flex;flex-direction:column;gap:6px;">
+          <div class="form-row"><input type="date" class="form-input tt-date" data-idx="0"><input type="text" class="form-input" value="리스트업" disabled></div>
+          <div class="form-row"><input type="date" class="form-input tt-date" data-idx="1"><input type="text" class="form-input" value="리스트컨펌" disabled></div>
+          <div class="form-row"><input type="date" class="form-input tt-date" data-idx="2"><input type="text" class="form-input" value="섭외진행" disabled></div>
+          <div class="form-row"><input type="date" class="form-input tt-date" data-idx="3"><input type="text" class="form-input" value="가이드배포" disabled></div>
+          <div class="form-row"><input type="date" class="form-input tt-date" data-idx="4"><input type="text" class="form-input" value="릴리즈" disabled></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">메모</label>
+        <textarea id="proj-memo" class="form-textarea" rows="2" placeholder="메모..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-project')">취소</button>
+      <button class="btn btn-primary" onclick="saveProject()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Template Add/Edit -->
+<div id="modal-template" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-template')">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <h3 id="modal-tpl-title">템플릿 추가</h3>
+      <button class="modal-close" onclick="closeModal('modal-template')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">유형</label>
+        <select id="tpl-type" class="form-select">
+          <option value="recruit">DM (섭외 메시지)</option>
+          <option value="guideline">메일 (가이드라인)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">제목</label>
+        <input type="text" id="tpl-title" class="form-input" placeholder="템플릿 제목">
+      </div>
+      <div class="form-group">
+        <label class="form-label">내용</label>
+        <textarea id="tpl-content" class="form-textarea" rows="8" placeholder="템플릿 내용... {크리에이터명}, {담당자명} 등 플레이스홀더 사용 가능"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-template')">취소</button>
+      <button class="btn btn-primary" onclick="saveTemplate()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Progress Detail -->
+<div id="modal-progress" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-progress')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3>진행 상세</h3>
+      <button class="modal-close" onclick="closeModal('modal-progress')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">상태</label>
+        <select id="prog-status" class="form-select">
+          <option value="recruiting">섭외중</option>
+          <option value="recruited">섭외완료</option>
+          <option value="guide">가이드전달</option>
+          <option value="producing">제작중</option>
+          <option value="confirmed">컨펌완료</option>
+          <option value="scheduled">업로드예정</option>
+          <option value="done">완료</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">업로드 예정일</label>
+        <input type="date" id="prog-upload-date" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">업로드 URL</label>
+        <input type="text" id="prog-upload-url" class="form-input" placeholder="https://...">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">조회수</label>
+          <input type="number" id="prog-views" class="form-input" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">좋아요</label>
+          <input type="number" id="prog-likes" class="form-input" placeholder="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">댓글</label>
+        <input type="number" id="prog-comments" class="form-input" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">메모</label>
+        <textarea id="prog-memo" class="form-textarea" rows="2" placeholder="메모..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-progress')">취소</button>
+      <button class="btn btn-primary" onclick="saveProgressDetail()">저장</button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+/* =================================================================
+   BARO MCN Influencer Manager - Main Application Script
+   ================================================================= */
+
+// ===== Firebase Configuration =====
+// TODO: 아래 config를 본인의 Firebase 프로젝트 정보로 교체하세요
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDeUUYPcxtV-9FTzLmpHmb54Nbb6ULSiZU",
+  authDomain: "baroezip-mcn.firebaseapp.com",
+  databaseURL: "https://baroezip-mcn-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "baroezip-mcn",
+  storageBucket: "baroezip-mcn.firebasestorage.app",
+  messagingSenderId: "621339819867",
+  appId: "1:621339819867:web:ee866c63aab5457821647e"
+};
+
+// YouTube Data API Key
+// TODO: 본인의 YouTube API Key로 교체하세요
+const YOUTUBE_API_KEY = 'YOUR_YOUTUBE_API_KEY';
+
+// Instagram Crawl Endpoint (Cloud Functions)
+const INSTAGRAM_CRAWL_URL = '';  // TODO: Cloud Functions 배포 후 설정
+
+// ===== Firebase Init =====
+let db = null;
+let firebaseReady = false;
+
+function initFirebase() {
+  try {
+    if (FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
+      console.warn('Firebase config not set. Running in offline mode.');
+      return;
+    }
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+    firebaseReady = true;
+
+    // Connection monitoring
+    db.ref('.info/connected').on('value', snap => {
+      document.getElementById('conn-banner').classList.toggle('show', !snap.val());
+    });
+
+    initRealtimeListeners();
+  } catch (e) {
+    console.error('Firebase init error:', e);
+  }
+}
+
+// ===== Database Paths =====
+const PATHS = {
+  influencers: 'influencer-manager/influencers',
+  projects: 'influencer-manager/projects',
+  templates: 'influencer-manager/templates',
+  assignments: 'influencer-manager/assignments'
+};
+
+// ===== Application State =====
+let allInfluencers = {};
+let allProjects = {};
+let allTemplates = {};
+let allAssignments = {};
+let currentChannel = 'youtube';
+let currentSection = 'influencer';
+let currentProjectId = null;
+let editingInfluencerId = null;
+let editingProjectId = null;
+let editingTemplateId = null;
+let progressEditingProjId = null;
+let progressEditingInfId = null;
+let detailInfluencerId = null;
+let assignChannel = 'youtube';
+let msgTab = 'dm';
+
+const STATUS_MAP = {
+  recruiting: { label: '섭외중', color: '#F59E0B' },
+  recruited: { label: '섭외완료', color: '#10B981' },
+  guide: { label: '가이드전달', color: '#8B5CF6' },
+  producing: { label: '제작중', color: '#3B82F6' },
+  confirmed: { label: '컨펌완료', color: '#06B6D4' },
+  scheduled: { label: '업로드예정', color: '#EC4899' },
+  done: { label: '완료', color: '#64748B' }
+};
+
+const TT_LABELS = ['리스트업', '리스트컨펌', '섭외진행', '가이드배포', '릴리즈'];
+
+// ===== Utilities =====
+function fmt(n) {
+  if (n == null || isNaN(n)) return '-';
+  return Number(n).toLocaleString('ko-KR');
+}
+
+function showToast(msg) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 2100);
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ===== Navigation =====
+function navigate(section) {
+  currentSection = section;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.section === section));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  if (section === 'influencer') {
+    document.getElementById('section-influencer').classList.add('active');
+  } else if (section === 'projects') {
+    document.getElementById('section-projects').classList.add('active');
+    showProjectList();
+  }
+}
+
+// ===== Standalone Guide Check =====
+function checkGuideView() {
+  const params = new URLSearchParams(window.location.search);
+  const guideId = params.get('guide');
+  if (guideId && firebaseReady) {
+    document.getElementById('app').style.display = 'none';
+    db.ref(PATHS.projects + '/' + guideId).once('value', snap => {
+      const proj = snap.val();
+      if (proj) {
+        document.getElementById('guide-standalone-title').textContent = proj.name + ' - 가이드라인';
+        document.getElementById('guide-standalone-body').innerHTML = proj.guideContent || '<p>가이드라인이 아직 작성되지 않았습니다.</p>';
+        document.getElementById('guide-standalone').classList.add('active');
+      }
+    });
+    return true;
+  }
+  return false;
+}
+
+// ===== Channel Tab =====
+function switchChannel(ch) {
+  currentChannel = ch;
+  document.querySelectorAll('.ch-tab[data-ch]').forEach(t => t.classList.toggle('active', t.dataset.ch === ch));
+
+  // Update sort options
+  const sort = document.getElementById('inf-sort');
+  if (ch === 'youtube') {
+    sort.innerHTML = '<option value="name">이름순</option><option value="followers">구독자순</option><option value="avgViewsLong">조회수(L)순</option><option value="avgViewsShort">조회수(S)순</option>';
+    document.getElementById('th-followers').textContent = '구독자';
+    document.getElementById('th-views-long').textContent = '조회수(L)';
+    document.getElementById('th-views-short').textContent = '조회수(S)';
+  } else {
+    sort.innerHTML = '<option value="name">이름순</option><option value="followers">팔로워순</option><option value="avgViewsShort">릴스 조회수순</option>';
+    document.getElementById('th-followers').textContent = '팔로워';
+    document.getElementById('th-views-long').textContent = '-';
+    document.getElementById('th-views-short').textContent = '릴스 조회수';
+  }
+  // Re-add resizer divs to renamed ths
+  ['th-followers','th-views-long','th-views-short'].forEach(id => {
+    const th = document.getElementById(id);
+    if (th && !th.querySelector('.th-resizer')) {
+      const r = document.createElement('div');
+      r.className = 'th-resizer';
+      th.appendChild(r);
+    }
+  });
+  renderInfluencers();
+}
+
+function toggleChannelFields() {
+  document.getElementById('fields-youtube').style.display = document.getElementById('ch-youtube').checked ? 'block' : 'none';
+  document.getElementById('fields-instagram').style.display = document.getElementById('ch-instagram').checked ? 'block' : 'none';
+}
+
+// ===== Realtime Listeners =====
+function initRealtimeListeners() {
+  if (!firebaseReady) return;
+
+  db.ref(PATHS.influencers).on('value', snap => {
+    allInfluencers = snap.val() || {};
+    renderInfluencers();
+    populateTopicFilter();
+  });
+
+  db.ref(PATHS.projects).on('value', snap => {
+    allProjects = snap.val() || {};
+    renderProjects();
+    if (currentProjectId) renderProjectDetail(currentProjectId);
+  });
+
+  db.ref(PATHS.templates).on('value', snap => {
+    allTemplates = snap.val() || {};
+    if (Object.keys(allTemplates).length === 0) seedDefaultTemplates();
+    if (currentProjectId) renderTemplates();
+  });
+
+  db.ref(PATHS.assignments).on('value', snap => {
+    allAssignments = snap.val() || {};
+    if (currentProjectId) {
+      renderTrackTable();
+      renderAssignPanel();
+      renderReportBar();
+    }
+    renderProjects();
+  });
+}
+
+// ===== Influencer CRUD =====
+function openInfluencerModal(id) {
+  editingInfluencerId = id || null;
+  document.getElementById('modal-inf-title').textContent = id ? '인플루언서 수정' : '인플루언서 추가';
+
+  // Reset
+  ['inf-name','inf-url-youtube','inf-url-instagram','inf-price-youtube','inf-price-instagram',
+   'inf-followers','inf-engagement','inf-views-long','inf-views-short','inf-likes','inf-comments',
+   'inf-topic','inf-analysis','inf-tags','inf-memo'].forEach(f => document.getElementById(f).value = '');
+  document.getElementById('ch-youtube').checked = false;
+  document.getElementById('ch-instagram').checked = false;
+  document.getElementById('yt-result').classList.remove('show');
+  document.getElementById('ig-result').classList.remove('show');
+
+  if (id && allInfluencers[id]) {
+    const inf = allInfluencers[id];
+    document.getElementById('inf-name').value = inf.name || '';
+    const chs = inf.channels || [];
+    document.getElementById('ch-youtube').checked = chs.includes('youtube');
+    document.getElementById('ch-instagram').checked = chs.includes('instagram');
+    document.getElementById('inf-url-youtube').value = inf.urlYoutube || '';
+    document.getElementById('inf-url-instagram').value = inf.urlInstagram || '';
+    document.getElementById('inf-price-youtube').value = inf.priceYoutube || '';
+    document.getElementById('inf-price-instagram').value = inf.priceInstagram || '';
+    document.getElementById('inf-followers').value = inf.followers || '';
+    document.getElementById('inf-engagement').value = inf.engagement || '';
+    document.getElementById('inf-views-long').value = inf.avgViewsLong || '';
+    document.getElementById('inf-views-short').value = inf.avgViewsShort || '';
+    document.getElementById('inf-likes').value = inf.avgLikes || '';
+    document.getElementById('inf-comments').value = inf.avgComments || '';
+    document.getElementById('inf-topic').value = inf.topic || '';
+    document.getElementById('inf-analysis').value = inf.analysis || '';
+    document.getElementById('inf-tags').value = (inf.tags || []).join(', ');
+    document.getElementById('inf-memo').value = inf.memo || '';
+  }
+  toggleChannelFields();
+  openModal('modal-influencer');
+}
+
+function saveInfluencer() {
+  const name = document.getElementById('inf-name').value.trim();
+  if (!name) { showToast('이름을 입력해주세요'); return; }
+
+  const channels = [];
+  if (document.getElementById('ch-youtube').checked) channels.push('youtube');
+  if (document.getElementById('ch-instagram').checked) channels.push('instagram');
+
+  const data = {
+    name,
+    channels,
+    urlYoutube: document.getElementById('inf-url-youtube').value.trim(),
+    urlInstagram: document.getElementById('inf-url-instagram').value.trim(),
+    priceYoutube: Number(document.getElementById('inf-price-youtube').value) || 0,
+    priceInstagram: Number(document.getElementById('inf-price-instagram').value) || 0,
+    followers: Number(document.getElementById('inf-followers').value) || 0,
+    engagement: Number(document.getElementById('inf-engagement').value) || 0,
+    avgViewsLong: Number(document.getElementById('inf-views-long').value) || 0,
+    avgViewsShort: Number(document.getElementById('inf-views-short').value) || 0,
+    avgLikes: Number(document.getElementById('inf-likes').value) || 0,
+    avgComments: Number(document.getElementById('inf-comments').value) || 0,
+    topic: document.getElementById('inf-topic').value.trim(),
+    analysis: document.getElementById('inf-analysis').value.trim(),
+    tags: document.getElementById('inf-tags').value.split(',').map(t => t.trim()).filter(Boolean),
+    memo: document.getElementById('inf-memo').value.trim(),
+    updatedAt: Date.now()
+  };
+
+  if (!firebaseReady) {
+    // Offline mode - store in memory
+    const id = editingInfluencerId || 'local_' + Date.now();
+    if (!editingInfluencerId) data.createdAt = Date.now();
+    allInfluencers[id] = { ...allInfluencers[id], ...data };
+    renderInfluencers();
+    populateTopicFilter();
+    closeModal('modal-influencer');
+    showToast(editingInfluencerId ? '수정되었습니다' : '추가되었습니다');
+    return;
+  }
+
+  // Duplicate check for new entries
+  if (!editingInfluencerId) {
+    const dup = Object.values(allInfluencers).find(i =>
+      i.name === name || (data.urlYoutube && i.urlYoutube === data.urlYoutube) || (data.urlInstagram && i.urlInstagram === data.urlInstagram)
+    );
+    if (dup && !confirm(`"${dup.name}" 이름 또는 URL이 중복됩니다. 그래도 추가하시겠습니까?`)) return;
+    data.createdAt = Date.now();
+    db.ref(PATHS.influencers).push(data).then(() => {
+      closeModal('modal-influencer');
+      showToast('추가되었습니다');
+    });
+  } else {
+    db.ref(PATHS.influencers + '/' + editingInfluencerId).update(data).then(() => {
+      closeModal('modal-influencer');
+      showToast('수정되었습니다');
+    });
+  }
+}
+
+function deleteInfluencer(id) {
+  if (!confirm('정말 삭제하시겠습니까?')) return;
+  if (firebaseReady) {
+    db.ref(PATHS.influencers + '/' + id).remove().then(() => showToast('삭제되었습니다'));
+  } else {
+    delete allInfluencers[id];
+    renderInfluencers();
+    showToast('삭제되었습니다');
+  }
+  closeDetailPanel();
+}
+
+function toggleFavorite(id, current) {
+  const val = !current;
+  if (firebaseReady) {
+    db.ref(PATHS.influencers + '/' + id).update({ favorite: val });
+  } else {
+    allInfluencers[id].favorite = val;
+    renderInfluencers();
+  }
+}
+
+// ===== Render Influencer Table =====
+function renderInfluencers() {
+  const tbody = document.getElementById('inf-tbody');
+  const search = (document.getElementById('inf-search').value || '').toLowerCase();
+  const sortKey = document.getElementById('inf-sort').value;
+  const priceRange = document.getElementById('inf-price').value;
+  const topicFilter = document.getElementById('inf-topic').value;
+
+  let items = Object.entries(allInfluencers).map(([id, inf]) => ({ id, ...inf }));
+
+  // Filter by channel
+  items = items.filter(i => (i.channels || []).includes(currentChannel));
+
+  // Search
+  if (search) {
+    items = items.filter(i =>
+      (i.name || '').toLowerCase().includes(search) ||
+      (i.topic || '').toLowerCase().includes(search) ||
+      (i.tags || []).some(t => t.toLowerCase().includes(search))
+    );
+  }
+
+  // Price filter
+  if (priceRange) {
+    const priceKey = currentChannel === 'youtube' ? 'priceYoutube' : 'priceInstagram';
+    const [min, max] = priceRange.split('-').map(Number);
+    items = items.filter(i => {
+      const p = i[priceKey] || 0;
+      if (max) return p >= min && p < max;
+      return p >= min;
+    });
+  }
+
+  // Topic filter
+  if (topicFilter) {
+    items = items.filter(i => (i.topic || '').includes(topicFilter));
+  }
+
+  // Sort - favorites first, then by key
+  items.sort((a, b) => {
+    if (a.favorite && !b.favorite) return -1;
+    if (!a.favorite && b.favorite) return 1;
+    if (sortKey === 'name') return (a.name || '').localeCompare(b.name || '');
+    return (b[sortKey] || 0) - (a[sortKey] || 0);
+  });
+
+  document.getElementById('inf-empty').style.display = items.length ? 'none' : 'flex';
+
+  tbody.innerHTML = items.map(inf => {
+    const priceKey = currentChannel === 'youtube' ? 'priceYoutube' : 'priceInstagram';
+    const chBadges = (inf.channels || []).map(c =>
+      c === 'youtube' ? '<span class="badge badge-youtube">YT</span>' :
+      '<span class="badge badge-instagram">IG</span>'
+    ).join(' ');
+
+    return `<tr onclick="openDetailPanel('${inf.id}')">
+      <td><button class="star-btn ${inf.favorite ? 'active' : ''}" onclick="event.stopPropagation();toggleFavorite('${inf.id}',${!!inf.favorite})">★</button></td>
+      <td style="font-weight:600;">${inf.name || ''}</td>
+      <td>${chBadges}</td>
+      <td>${fmt(inf.followers)}</td>
+      <td>${currentChannel === 'youtube' ? fmt(inf.avgViewsLong) : '-'}</td>
+      <td>${fmt(inf.avgViewsShort)}</td>
+      <td>${fmt(inf.avgLikes)}</td>
+      <td>${fmt(inf.avgComments)}</td>
+      <td>${fmt(inf[priceKey])}</td>
+      <td title="${inf.topic || ''}">${inf.topic || '-'}</td>
+    </tr>`;
+  }).join('');
+
+  initColumnResize('inf-table');
+}
+
+function populateTopicFilter() {
+  const sel = document.getElementById('inf-topic');
+  const current = sel.value;
+  const topics = new Set();
+  Object.values(allInfluencers).forEach(inf => {
+    (inf.topic || '').split(',').forEach(t => { t = t.trim(); if (t) topics.add(t); });
+  });
+  sel.innerHTML = '<option value="">주제 전체</option>' + [...topics].sort().map(t =>
+    `<option value="${t}" ${t === current ? 'selected' : ''}>${t}</option>`
+  ).join('');
+}
+
+// ===== Detail Panel =====
+function openDetailPanel(id) {
+  detailInfluencerId = id;
+  const inf = allInfluencers[id];
+  if (!inf) return;
+
+  document.getElementById('detail-name').textContent = inf.name || '';
+
+  // Channel badges
+  const chDiv = document.getElementById('detail-channels');
+  chDiv.innerHTML = (inf.channels || []).map(c =>
+    c === 'youtube' ? '<span class="badge badge-youtube">YouTube</span>' :
+    '<span class="badge badge-instagram">Instagram</span>'
+  ).join(' ');
+
+  // URLs
+  const urlDiv = document.getElementById('detail-urls');
+  let urlHtml = '';
+  if (inf.urlYoutube) urlHtml += `<a href="${inf.urlYoutube}" target="_blank" style="display:block;color:var(--youtube);font-size:13px;margin-bottom:4px;">▶ YouTube</a>`;
+  if (inf.urlInstagram) urlHtml += `<a href="${inf.urlInstagram}" target="_blank" style="display:block;color:var(--instagram);font-size:13px;margin-bottom:4px;">📷 Instagram</a>`;
+  urlDiv.innerHTML = urlHtml || '<span style="color:var(--text-muted);font-size:13px;">등록된 URL 없음</span>';
+
+  // Topic & Analysis
+  document.getElementById('detail-topic').innerHTML = inf.topic ?
+    `<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;background:#F0FDF4;color:#059669;border:1px solid #A7F3D0;">${inf.topic}</span>` : '';
+  document.getElementById('detail-analysis').textContent = inf.analysis || '';
+
+  // Stats
+  const isYT = (inf.channels || []).includes('youtube');
+  document.getElementById('detail-stats').innerHTML = `
+    <div class="stat-item"><div class="stat-label">${isYT ? '구독자' : '팔로워'}</div><div class="stat-value">${fmt(inf.followers)}</div></div>
+    ${isYT ? `<div class="stat-item"><div class="stat-label">평균 조회수 (Long)</div><div class="stat-value" style="color:#3B82F6;">${fmt(inf.avgViewsLong)}</div></div>` : ''}
+    <div class="stat-item"><div class="stat-label">${isYT ? '평균 조회수 (Short)' : '평균 릴스 조회수'}</div><div class="stat-value" style="color:#EC4899;">${fmt(inf.avgViewsShort)}</div></div>
+    <div class="stat-item"><div class="stat-label">평균 좋아요</div><div class="stat-value">${fmt(inf.avgLikes)}</div></div>
+    <div class="stat-item"><div class="stat-label">평균 댓글</div><div class="stat-value">${fmt(inf.avgComments)}</div></div>
+    <div class="stat-item"><div class="stat-label">인게이지먼트율</div><div class="stat-value">${inf.engagement ? inf.engagement.toFixed(1) + '%' : '-'}</div></div>
+  `;
+
+  // Prices
+  let priceHtml = '';
+  if (inf.priceYoutube) priceHtml += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span>유튜브 PPL</span><span style="font-weight:700;">${fmt(inf.priceYoutube)}만원</span></div>`;
+  if (inf.priceInstagram) priceHtml += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span>인스타 피드</span><span style="font-weight:700;">${fmt(inf.priceInstagram)}만원</span></div>`;
+  document.getElementById('detail-prices').innerHTML = priceHtml || '<span style="color:var(--text-muted);font-size:13px;">-</span>';
+
+  // Tags
+  document.getElementById('detail-tags').innerHTML = (inf.tags || []).map(t =>
+    `<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:500;background:var(--primary-light);color:var(--primary);">${t}</span>`
+  ).join('') || '<span style="color:var(--text-muted);font-size:13px;">-</span>';
+
+  // Memo
+  document.getElementById('detail-memo').value = inf.memo || '';
+
+  document.getElementById('detail-overlay').classList.add('open');
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function closeDetailPanel() {
+  document.getElementById('detail-overlay').classList.remove('open');
+  document.getElementById('detail-panel').classList.remove('open');
+  detailInfluencerId = null;
+}
+
+function saveDetailMemo() {
+  if (!detailInfluencerId) return;
+  const memo = document.getElementById('detail-memo').value;
+  if (firebaseReady) {
+    db.ref(PATHS.influencers + '/' + detailInfluencerId).update({ memo });
+  } else {
+    allInfluencers[detailInfluencerId].memo = memo;
+  }
+  const btn = document.getElementById('btn-save-memo');
+  btn.textContent = '저장됨';
+  btn.style.background = '#059669';
+  setTimeout(() => { btn.textContent = '저장'; btn.style.background = ''; }, 1500);
+}
+
+function deleteFromDetail() { if (detailInfluencerId) deleteInfluencer(detailInfluencerId); }
+function editFromDetail() { if (detailInfluencerId) { closeDetailPanel(); openInfluencerModal(detailInfluencerId); } }
+
+// ===== YouTube API =====
+let ytDebounce = null;
+document.addEventListener('DOMContentLoaded', () => {
+  const urlInput = document.getElementById('inf-url-youtube');
+  if (urlInput) {
+    urlInput.addEventListener('input', () => {
+      clearTimeout(ytDebounce);
+      ytDebounce = setTimeout(() => fetchYouTubeData(urlInput.value.trim()), 800);
+    });
+  }
+  const igInput = document.getElementById('inf-url-instagram');
+  if (igInput) {
+    igInput.addEventListener('input', () => {
+      clearTimeout(ytDebounce);
+      ytDebounce = setTimeout(() => fetchInstagramData(igInput.value.trim()), 800);
+    });
+  }
+});
+
+async function fetchYouTubeData(url) {
+  if (!url || YOUTUBE_API_KEY === 'YOUR_YOUTUBE_API_KEY') return;
+  const loading = document.getElementById('yt-loading');
+  const resultBox = document.getElementById('yt-result');
+  loading.classList.add('show');
+  resultBox.classList.remove('show');
+
+  try {
+    let channelId = null;
+
+    // Extract channel ID or handle
+    const chMatch = url.match(/youtube\.com\/channel\/(UC[\w-]+)/);
+    if (chMatch) {
+      channelId = chMatch[1];
+    } else {
+      const handleMatch = url.match(/youtube\.com\/@([\w.-]+)/);
+      if (handleMatch) {
+        const res = await fetch(`https://www.googleapis.com/youtube/v3/channels?forHandle=${handleMatch[1]}&part=id&key=${YOUTUBE_API_KEY}`);
+        const data = await res.json();
+        if (data.items && data.items.length) channelId = data.items[0].id;
+      }
+    }
+
+    if (!channelId) {
+      // Search fallback
+      const q = url.replace(/https?:\/\/(www\.)?youtube\.com\/?/, '').replace(/[@/]/g, ' ').trim();
+      if (!q) { loading.classList.remove('show'); return; }
+      const res = await fetch(`https://www.googleapis.com/youtube/v3/search?type=channel&q=${encodeURIComponent(q)}&maxResults=1&part=snippet&key=${YOUTUBE_API_KEY}`);
+      const data = await res.json();
+      if (data.items && data.items.length) channelId = data.items[0].snippet.channelId || data.items[0].id.channelId;
+    }
+
+    if (!channelId) { loading.classList.remove('show'); showToast('채널을 찾을 수 없습니다'); return; }
+
+    // Get channel info
+    const chRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet,brandingSettings,topicDetails&id=${channelId}&key=${YOUTUBE_API_KEY}`);
+    const chData = await chRes.json();
+    if (!chData.items || !chData.items.length) { loading.classList.remove('show'); return; }
+
+    const ch = chData.items[0];
+    const stats = ch.statistics;
+    const subs = Number(stats.subscriberCount) || 0;
+
+    // Get recent videos
+    const vidRes = await fetch(`https://www.googleapis.com/youtube/v3/search?channelId=${channelId}&type=video&order=date&maxResults=50&part=id&key=${YOUTUBE_API_KEY}`);
+    const vidData = await vidRes.json();
+    const videoIds = (vidData.items || []).map(v => v.id.videoId).filter(Boolean);
+
+    let avgViewsLong = 0, avgViewsShort = 0, avgLikes = 0, avgComments = 0;
+
+    if (videoIds.length) {
+      const detRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${videoIds.join(',')}&key=${YOUTUBE_API_KEY}`);
+      const detData = await detRes.json();
+
+      const longs = [], shorts = [];
+      let totalLikes = 0, totalComments = 0;
+
+      (detData.items || []).forEach(v => {
+        const dur = v.contentDetails.duration;
+        const sec = parseDuration(dur);
+        const views = Number(v.statistics.viewCount) || 0;
+        totalLikes += Number(v.statistics.likeCount) || 0;
+        totalComments += Number(v.statistics.commentCount) || 0;
+        if (sec <= 60) shorts.push(views); else longs.push(views);
+      });
+
+      const total = detData.items.length;
+      avgViewsLong = longs.length ? Math.round(longs.reduce((a, b) => a + b, 0) / longs.length) : 0;
+      avgViewsShort = shorts.length ? Math.round(shorts.reduce((a, b) => a + b, 0) / shorts.length) : 0;
+      avgLikes = total ? Math.round(totalLikes / total) : 0;
+      avgComments = total ? Math.round(totalComments / total) : 0;
+    }
+
+    const engagement = subs ? ((avgLikes + avgComments) / subs * 100).toFixed(1) : 0;
+
+    // Extract topics
+    const topicMap = {
+      'Entertainment': '엔터', 'Music': '음악', 'Gaming': '게임', 'Sports': '스포츠',
+      'Education': '교육', 'Science': '과학', 'Technology': 'IT/테크', 'Lifestyle': '라이프스타일',
+      'Comedy': '코미디', 'Film': '영화', 'News': '뉴스', 'Pets': '반려동물',
+      'People': '인물', 'Fashion': '패션', 'Beauty': '뷰티', 'Food': '음식',
+      'Travel': '여행', 'Autos': '자동차', 'Society': '사회', 'Knowledge': '지식',
+      'How-to': '노하우', 'Howto': '노하우'
+    };
+    let topics = [];
+    if (ch.topicDetails && ch.topicDetails.topicCategories) {
+      ch.topicDetails.topicCategories.forEach(url => {
+        const key = url.split('/').pop();
+        if (topicMap[key]) topics.push(topicMap[key]);
+      });
+    }
+
+    // Get tags from branding
+    let analysis = (ch.snippet.description || '').replace(/\n{3,}/g, '\n\n').trim();
+    if (analysis.length > 300) analysis = analysis.substring(0, 300) + '...';
+
+    // Auto-fill form
+    document.getElementById('inf-followers').value = subs;
+    document.getElementById('inf-views-long').value = avgViewsLong;
+    document.getElementById('inf-views-short').value = avgViewsShort;
+    document.getElementById('inf-likes').value = avgLikes;
+    document.getElementById('inf-comments').value = avgComments;
+    document.getElementById('inf-engagement').value = engagement;
+    if (topics.length) document.getElementById('inf-topic').value = topics.join(', ');
+    if (analysis) document.getElementById('inf-analysis').value = analysis;
+    if (!document.getElementById('inf-name').value) document.getElementById('inf-name').value = ch.snippet.title;
+
+    // Show result box
+    resultBox.innerHTML = `
+      <div class="yt-result-row"><span class="yt-result-label">채널명</span><span class="yt-result-value">${ch.snippet.title}</span></div>
+      <div class="yt-result-row"><span class="yt-result-label">구독자</span><span class="yt-result-value">${fmt(subs)}</span></div>
+      <div class="yt-result-row"><span class="yt-result-label">평균 조회수 (Long)</span><span class="yt-result-value" style="color:#3B82F6;">${fmt(avgViewsLong)}</span></div>
+      <div class="yt-result-row"><span class="yt-result-label">평균 조회수 (Short)</span><span class="yt-result-value" style="color:#EC4899;">${fmt(avgViewsShort)}</span></div>
+      <div class="yt-result-row"><span class="yt-result-label">평균 좋아요</span><span class="yt-result-value">${fmt(avgLikes)}</span></div>
+      <div class="yt-result-row"><span class="yt-result-label">평균 댓글</span><span class="yt-result-value">${fmt(avgComments)}</span></div>
+      <div class="yt-result-row"><span class="yt-result-label">인게이지먼트</span><span class="yt-result-value">${engagement}%</span></div>
+    `;
+    resultBox.classList.add('show');
+
+  } catch (e) {
+    console.error('YouTube API error:', e);
+    showToast('YouTube 정보 수집에 실패했습니다');
+  }
+  loading.classList.remove('show');
+}
+
+function parseDuration(iso) {
+  const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!m) return 0;
+  return (Number(m[1]) || 0) * 3600 + (Number(m[2]) || 0) * 60 + (Number(m[3]) || 0);
+}
+
+// ===== Instagram Crawling =====
+async function fetchInstagramData(url) {
+  if (!url) return;
+  const loading = document.getElementById('ig-loading');
+  const resultBox = document.getElementById('ig-result');
+  loading.classList.add('show');
+  resultBox.classList.remove('show');
+
+  try {
+    let username = '';
+    const match = url.match(/instagram\.com\/([\w.]+)/);
+    if (match) username = match[1];
+    else if (url.startsWith('@')) username = url.substring(1);
+    else username = url;
+
+    if (!username) { loading.classList.remove('show'); return; }
+
+    let followers = 0, posts = 0, displayName = username;
+
+    if (INSTAGRAM_CRAWL_URL) {
+      const res = await fetch(`${INSTAGRAM_CRAWL_URL}?url=https://www.instagram.com/${username}/`);
+      const data = await res.json();
+      followers = data.followers || 0;
+      posts = data.posts || 0;
+      displayName = data.username || username;
+    } else {
+      // Fallback: try allorigins proxy
+      try {
+        const res = await fetch(`https://api.allorigins.win/raw?url=https://www.instagram.com/${username}/`);
+        const html = await res.text();
+        const descMatch = html.match(/content="([\d,.KMkm]+) Followers/i);
+        if (descMatch) {
+          followers = parseKM(descMatch[1]);
+        }
+        const titleMatch = html.match(/<title>([^(]+)/);
+        if (titleMatch) displayName = titleMatch[1].trim();
+      } catch (e) {
+        console.warn('Instagram proxy fetch failed:', e);
+      }
+    }
+
+    document.getElementById('inf-followers').value = followers || '';
+    if (!document.getElementById('inf-name').value) document.getElementById('inf-name').value = displayName;
+
+    resultBox.innerHTML = `
+      <div class="yt-result-row"><span class="yt-result-label">유저명</span><span class="yt-result-value">${displayName}</span></div>
+      <div class="yt-result-row"><span class="yt-result-label">팔로워</span><span class="yt-result-value">${fmt(followers)}</span></div>
+      <div class="yt-result-row"><span class="yt-result-label">게시물</span><span class="yt-result-value">${fmt(posts)}</span></div>
+      <div class="yt-result-row"><span class="yt-result-label">릴스 조회수</span><span class="yt-result-value">-</span></div>
+    `;
+    resultBox.classList.add('show');
+
+  } catch (e) {
+    console.error('Instagram crawl error:', e);
+    showToast('인스타 정보 수집에 실패했습니다');
+  }
+  loading.classList.remove('show');
+}
+
+function parseKM(str) {
+  str = str.replace(/,/g, '');
+  if (/[kK]$/i.test(str)) return Math.round(parseFloat(str) * 1000);
+  if (/[mM]$/i.test(str)) return Math.round(parseFloat(str) * 1000000);
+  return parseInt(str) || 0;
+}
+
+// ===== Project CRUD =====
+function openProjectModal(id) {
+  editingProjectId = id || null;
+  document.getElementById('modal-proj-title').textContent = id ? '프로젝트 수정' : '새 프로젝트';
+  ['proj-name','proj-start','proj-end','proj-budget','proj-goal','proj-memo'].forEach(f => document.getElementById(f).value = '');
+  document.querySelectorAll('.tt-date').forEach(i => i.value = '');
+
+  if (id && allProjects[id]) {
+    const p = allProjects[id];
+    document.getElementById('proj-name').value = p.name || '';
+    document.getElementById('proj-start').value = p.startDate || '';
+    document.getElementById('proj-end').value = p.endDate || '';
+    document.getElementById('proj-budget').value = p.budget || '';
+    document.getElementById('proj-goal').value = p.goal || '';
+    document.getElementById('proj-memo').value = p.memo || '';
+    if (p.timetable) {
+      p.timetable.forEach((tt, i) => {
+        const inp = document.querySelector(`.tt-date[data-idx="${i}"]`);
+        if (inp) inp.value = tt.date || '';
+      });
+    }
+  }
+  openModal('modal-project');
+}
+
+function saveProject() {
+  const name = document.getElementById('proj-name').value.trim();
+  if (!name) { showToast('프로젝트명을 입력해주세요'); return; }
+
+  const timetable = TT_LABELS.map((label, i) => ({
+    label,
+    date: document.querySelector(`.tt-date[data-idx="${i}"]`).value || ''
+  }));
+
+  const data = {
+    name,
+    startDate: document.getElementById('proj-start').value,
+    endDate: document.getElementById('proj-end').value,
+    budget: Number(document.getElementById('proj-budget').value) || 0,
+    goal: document.getElementById('proj-goal').value.trim(),
+    memo: document.getElementById('proj-memo').value.trim(),
+    timetable,
+    updatedAt: Date.now()
+  };
+
+  if (!firebaseReady) {
+    const id = editingProjectId || 'local_' + Date.now();
+    if (!editingProjectId) data.createdAt = Date.now();
+    allProjects[id] = { ...allProjects[id], ...data };
+    renderProjects();
+    closeModal('modal-project');
+    showToast(editingProjectId ? '수정되었습니다' : '생성되었습니다');
+    return;
+  }
+
+  if (!editingProjectId) {
+    data.createdAt = Date.now();
+    db.ref(PATHS.projects).push(data).then(() => {
+      closeModal('modal-project');
+      showToast('생성되었습니다');
+    });
+  } else {
+    db.ref(PATHS.projects + '/' + editingProjectId).update(data).then(() => {
+      closeModal('modal-project');
+      showToast('수정되었습니다');
+    });
+  }
+}
+
+function deleteProject(id) {
+  if (!confirm('프로젝트를 삭제하시겠습니까? 배정 정보도 함께 삭제됩니다.')) return;
+  if (firebaseReady) {
+    db.ref(PATHS.projects + '/' + id).remove();
+    db.ref(PATHS.assignments + '/' + id).remove();
+  } else {
+    delete allProjects[id];
+    delete allAssignments[id];
+  }
+  showProjectList();
+  showToast('삭제되었습니다');
+}
+
+// ===== Render Projects =====
+function renderProjects() {
+  const grid = document.getElementById('project-grid');
+  const items = Object.entries(allProjects).map(([id, p]) => ({ id, ...p }));
+  items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+  document.getElementById('proj-empty').style.display = items.length ? 'none' : 'flex';
+
+  grid.innerHTML = items.map(p => {
+    const assignCount = allAssignments[p.id] ? Object.keys(allAssignments[p.id]).length : 0;
+    return `<div class="project-card" onclick="openProjectDetail('${p.id}')">
+      <h3>${p.name || ''}</h3>
+      <div class="meta">
+        <div class="meta-row"><span>${p.startDate || '미정'} ~ ${p.endDate || '미정'}</span></div>
+        <div class="meta-row"><span>예산: ${p.budget ? fmt(p.budget) + '만원' : '-'}</span><span>${p.goal || ''}</span></div>
+      </div>
+      ${assignCount ? `<span class="tag-count"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> ${assignCount}명 배정</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function showProjectList() {
+  currentProjectId = null;
+  document.getElementById('proj-list-view').style.display = 'block';
+  document.getElementById('proj-detail-view').classList.remove('active');
+}
+
+// ===== Project Detail =====
+function openProjectDetail(id) {
+  currentProjectId = id;
+  document.getElementById('proj-list-view').style.display = 'none';
+  document.getElementById('proj-detail-view').classList.add('active');
+  renderProjectDetail(id);
+}
+
+function renderProjectDetail(id) {
+  const p = allProjects[id];
+  if (!p) return;
+
+  document.getElementById('proj-detail-title').textContent = p.name || '';
+
+  // Overview
+  const assigns = allAssignments[id] || {};
+  const assignCount = Object.keys(assigns).length;
+  document.getElementById('proj-overview').innerHTML = `
+    <div class="overview-item"><span class="overview-label">기간</span><span class="overview-value">${p.startDate || '미정'} ~ ${p.endDate || '미정'}</span></div>
+    <div class="overview-divider"></div>
+    <div class="overview-item"><span class="overview-label">예산</span><span class="overview-value">${p.budget ? fmt(p.budget) + '만원' : '-'}</span></div>
+    <div class="overview-divider"></div>
+    <div class="overview-item"><span class="overview-label">배정 인원</span><span class="overview-value">${assignCount}명</span></div>
+    <div class="overview-divider"></div>
+    <div class="overview-item"><span class="overview-label">목표</span><span class="overview-value">${p.goal || '-'}</span></div>
+  `;
+
+  // Timetable
+  if (p.timetable) {
+    const ttDiv = document.getElementById('proj-timetable');
+    let lastDone = -1;
+    p.timetable.forEach((tt, i) => { if (tt.date) lastDone = i; });
+    const currentStep = lastDone + 1;
+
+    ttDiv.innerHTML = '<div class="timetable">' + p.timetable.map((tt, i) => {
+      const isDone = i <= lastDone;
+      const isCurrent = i === currentStep && i < p.timetable.length;
+      return `${i > 0 ? '<span class="tt-arrow">→</span>' : ''}
+        <div class="tt-step ${isDone ? 'done' : ''} ${isCurrent ? 'current' : ''}">
+          <div class="tt-circle">${i + 1}</div>
+          <span class="tt-label">${tt.label}</span>
+          <span class="tt-date">${tt.date || '-'}</span>
+        </div>`;
+    }).join('') + '</div>';
+  }
+
+  // Guide editor content
+  document.getElementById('guide-content-editor').innerHTML = p.guideContent || '';
+
+  renderTrackTable();
+  renderAssignPanel();
+  renderReportBar();
+  renderTemplates();
+}
+
+function editCurrentProject() { if (currentProjectId) openProjectModal(currentProjectId); }
+function deleteCurrentProject() { if (currentProjectId) deleteProject(currentProjectId); }
+
+// ===== Track Table =====
+function renderTrackTable() {
+  if (!currentProjectId) return;
+  const assigns = allAssignments[currentProjectId] || {};
+  const tbody = document.getElementById('track-tbody');
+  const entries = Object.entries(assigns).map(([infId, a]) => ({
+    infId, ...a, inf: allInfluencers[infId] || {}
+  }));
+
+  if (!entries.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:20px;">배정된 인플루언서가 없습니다</td></tr>';
+    document.getElementById('btn-crawl-all').style.display = 'none';
+    return;
+  }
+
+  // Show crawl-all button if any has upload URL
+  document.getElementById('btn-crawl-all').style.display = entries.some(e => e.uploadUrl) ? 'inline-flex' : 'none';
+
+  // Group by channel
+  const groups = { youtube: [], instagram: [] };
+  entries.forEach(e => {
+    const chs = e.inf.channels || [];
+    if (chs.includes('youtube')) groups.youtube.push(e);
+    else if (chs.includes('instagram')) groups.instagram.push(e);
+    else groups.youtube.push(e); // default
+  });
+
+  let html = '';
+  [['youtube', '유튜브'], ['instagram', '인스타그램']].forEach(([key, label]) => {
+    if (!groups[key].length) return;
+    html += `<tr class="track-group-header"><td colspan="10">${label} (${groups[key].length})</td></tr>`;
+    groups[key].forEach(e => {
+      const st = STATUS_MAP[e.status] || STATUS_MAP.recruiting;
+      const chBadge = key === 'youtube' ? '<span class="badge badge-youtube">YT</span>' : '<span class="badge badge-instagram">IG</span>';
+      html += `<tr>
+        <td style="font-weight:600;cursor:pointer;" onclick="openDetailPanel('${e.infId}')">${e.inf.name || '(삭제됨)'}</td>
+        <td>${chBadge}</td>
+        <td><input type="number" value="${e.cost || 0}" style="width:60px;" onchange="saveTrackField('${currentProjectId}','${e.infId}','cost',Number(this.value))"></td>
+        <td><select onchange="saveTrackField('${currentProjectId}','${e.infId}','status',this.value)" style="color:#fff;background:${st.color};border-color:${st.color};border-radius:12px;padding:3px 8px;">
+          ${Object.entries(STATUS_MAP).map(([k, v]) => `<option value="${k}" ${k === e.status ? 'selected' : ''} style="color:#333;background:#fff;">${v.label}</option>`).join('')}
+        </select></td>
+        <td><select onchange="saveTrackField('${currentProjectId}','${e.infId}','contentType',this.value)">
+          <option value="">-</option>
+          <option value="feed" ${e.contentType === 'feed' ? 'selected' : ''}>피드</option>
+          <option value="long" ${e.contentType === 'long' ? 'selected' : ''}>롱폼</option>
+          <option value="short" ${e.contentType === 'short' ? 'selected' : ''}>숏폼</option>
+        </select></td>
+        <td><input type="text" value="${e.uploadUrl || ''}" placeholder="URL" onchange="saveTrackField('${currentProjectId}','${e.infId}','uploadUrl',this.value)" style="width:140px;"></td>
+        <td>${fmt(e.views)}</td>
+        <td>${fmt(e.likes)}</td>
+        <td>${fmt(e.comments)}</td>
+        <td><button class="btn btn-ghost btn-xs" onclick="crawlUploadUrl('${currentProjectId}','${e.infId}')" ${!e.uploadUrl ? 'disabled style="opacity:0.3;"' : ''}>수집</button></td>
+      </tr>`;
+    });
+  });
+
+  tbody.innerHTML = html;
+  initColumnResize('track-table');
+}
+
+function saveTrackField(projId, infId, field, value) {
+  if (firebaseReady) {
+    db.ref(PATHS.assignments + '/' + projId + '/' + infId).update({ [field]: value, updatedAt: Date.now() });
+  } else {
+    if (!allAssignments[projId]) allAssignments[projId] = {};
+    if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
+    allAssignments[projId][infId][field] = value;
+    renderTrackTable();
+    renderReportBar();
+  }
+}
+
+// ===== Upload URL Crawling =====
+async function crawlUploadUrl(projId, infId) {
+  const assign = (allAssignments[projId] || {})[infId];
+  if (!assign || !assign.uploadUrl) return;
+
+  const url = assign.uploadUrl;
+  try {
+    // YouTube video
+    const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([\w-]+)/);
+    if (ytMatch && YOUTUBE_API_KEY !== 'YOUR_YOUTUBE_API_KEY') {
+      const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${ytMatch[1]}&key=${YOUTUBE_API_KEY}`);
+      const data = await res.json();
+      if (data.items && data.items.length) {
+        const s = data.items[0].statistics;
+        const update = {
+          views: Number(s.viewCount) || 0,
+          likes: Number(s.likeCount) || 0,
+          comments: Number(s.commentCount) || 0,
+          lastCrawled: Date.now()
+        };
+        if (firebaseReady) {
+          db.ref(PATHS.assignments + '/' + projId + '/' + infId).update(update);
+        } else {
+          Object.assign(allAssignments[projId][infId], update);
+          renderTrackTable();
+          renderReportBar();
+        }
+        showToast('수집 완료');
+        return;
+      }
+    }
+    showToast('지원하지 않는 URL입니다');
+  } catch (e) {
+    console.error('Crawl error:', e);
+    showToast('수집에 실패했습니다');
+  }
+}
+
+async function crawlAllUploads() {
+  if (!currentProjectId) return;
+  const assigns = allAssignments[currentProjectId] || {};
+  let count = 0;
+  for (const [infId, a] of Object.entries(assigns)) {
+    if (a.uploadUrl) {
+      await crawlUploadUrl(currentProjectId, infId);
+      count++;
+    }
+  }
+  showToast(`${count}개 수집 완료`);
+}
+
+// ===== Assignment Panel =====
+function switchAssignChannel(ch) {
+  assignChannel = ch;
+  document.querySelectorAll('[data-ach]').forEach(t => t.classList.toggle('active', t.dataset.ach === ch));
+  renderAssignPanel();
+}
+
+function renderAssignPanel() {
+  if (!currentProjectId) return;
+  const assigns = allAssignments[currentProjectId] || {};
+  const assignedIds = new Set(Object.keys(assigns));
+  const search = (document.getElementById('assign-search').value || '').toLowerCase();
+
+  // Unassigned
+  let unassigned = Object.entries(allInfluencers)
+    .filter(([id, inf]) => !assignedIds.has(id) && (inf.channels || []).includes(assignChannel))
+    .filter(([id, inf]) => !search || (inf.name || '').toLowerCase().includes(search));
+
+  const unDiv = document.getElementById('assign-unassigned');
+  unDiv.innerHTML = unassigned.map(([id, inf]) => {
+    const price = assignChannel === 'youtube' ? inf.priceYoutube : inf.priceInstagram;
+    return `<div class="assign-row">
+      <div>
+        <div class="name">${inf.name}</div>
+        <div class="info">${fmt(inf.followers)} / ${price ? fmt(price) + '만' : '-'}</div>
+      </div>
+      <button class="assign-add-btn" onclick="addAssignment('${id}')">+</button>
+    </div>`;
+  }).join('') || '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">배정 가능한 인플루언서가 없습니다</div>';
+
+  // Assigned
+  const assigned = Object.entries(assigns).map(([infId, a]) => ({
+    infId, ...a, inf: allInfluencers[infId] || {}
+  }));
+
+  document.getElementById('assign-count').textContent = assigned.length ? `(${assigned.length})` : '';
+
+  const asDiv = document.getElementById('assign-assigned');
+  asDiv.innerHTML = assigned.map(e => {
+    const st = STATUS_MAP[e.status] || STATUS_MAP.recruiting;
+    const chBadges = (e.inf.channels || []).map(c =>
+      c === 'youtube' ? '<span class="badge badge-youtube" style="font-size:10px;">YT</span>' :
+      '<span class="badge badge-instagram" style="font-size:10px;">IG</span>'
+    ).join(' ');
+    return `<div class="assign-row">
+      <div>
+        <div class="name">${e.inf.name || '(삭제됨)'} ${chBadges}</div>
+        <span class="badge-status" style="background:${st.color};font-size:10px;padding:1px 6px;">${st.label}</span>
+      </div>
+      <button class="assign-remove-btn" onclick="removeAssignment('${e.infId}')">−</button>
+    </div>`;
+  }).join('') || '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">배정된 인플루언서가 없습니다</div>';
+}
+
+function addAssignment(infId) {
+  if (!currentProjectId) return;
+  const inf = allInfluencers[infId];
+  const cost = inf ? (assignChannel === 'youtube' ? inf.priceYoutube : inf.priceInstagram) || 0 : 0;
+  const data = { status: 'recruiting', cost, contentType: '', uploadUrl: '', views: 0, likes: 0, comments: 0, memo: '', createdAt: Date.now(), updatedAt: Date.now() };
+
+  if (firebaseReady) {
+    db.ref(PATHS.assignments + '/' + currentProjectId + '/' + infId).set(data);
+  } else {
+    if (!allAssignments[currentProjectId]) allAssignments[currentProjectId] = {};
+    allAssignments[currentProjectId][infId] = data;
+    renderAssignPanel();
+    renderTrackTable();
+    renderReportBar();
+    renderProjects();
+  }
+  showToast('배정되었습니다');
+}
+
+function removeAssignment(infId) {
+  if (!currentProjectId) return;
+  if (firebaseReady) {
+    db.ref(PATHS.assignments + '/' + currentProjectId + '/' + infId).remove();
+  } else {
+    if (allAssignments[currentProjectId]) delete allAssignments[currentProjectId][infId];
+    renderAssignPanel();
+    renderTrackTable();
+    renderReportBar();
+    renderProjects();
+  }
+  showToast('배정 해제되었습니다');
+}
+
+// ===== Collapsible Panels =====
+function toggleMsgPanel() {
+  const body = document.getElementById('msg-collapse-body');
+  const arrow = document.getElementById('msg-collapse-arrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+function toggleAssignPanel() {
+  const body = document.getElementById('assign-collapse-body');
+  const arrow = document.getElementById('assign-collapse-arrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+// ===== Message Tab =====
+function switchMsgTab(tab) {
+  msgTab = tab;
+  document.querySelectorAll('.msg-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('msg-tab-dm').style.display = tab === 'dm' ? 'block' : 'none';
+  document.getElementById('msg-tab-email').style.display = tab === 'email' ? 'block' : 'none';
+  document.getElementById('msg-tab-guide').style.display = tab === 'guide' ? 'block' : 'none';
+}
+
+// ===== Templates =====
+function renderTemplates() {
+  const dmDiv = document.getElementById('msg-tab-dm');
+  const emailDiv = document.getElementById('msg-tab-email');
+
+  const templates = Object.entries(allTemplates).map(([id, t]) => ({ id, ...t }));
+  const dm = templates.filter(t => t.type === 'recruit');
+  const email = templates.filter(t => t.type === 'guideline');
+
+  dmDiv.innerHTML = dm.map(t => templateCard(t)).join('') || '<div style="color:var(--text-muted);font-size:13px;padding:12px;">DM 템플릿이 없습니다</div>';
+  emailDiv.innerHTML = email.map(t => templateCard(t)).join('') || '<div style="color:var(--text-muted);font-size:13px;padding:12px;">메일 템플릿이 없습니다</div>';
+}
+
+function templateCard(t) {
+  return `<div class="tpl-card">
+    <div class="tpl-card-header">
+      <span class="tpl-card-title">${t.title || '제목없음'}</span>
+      <div class="tpl-card-actions">
+        <button class="btn btn-ghost btn-xs" onclick="copyTemplate('${t.id}')">복사</button>
+        <button class="btn btn-ghost btn-xs" onclick="openTemplateModal('${t.id}')">수정</button>
+        <button class="btn btn-ghost btn-xs" style="color:var(--danger);" onclick="deleteTemplate('${t.id}')">삭제</button>
+      </div>
+    </div>
+    <div class="tpl-card-content">${t.content || ''}</div>
+  </div>`;
+}
+
+function openTemplateModal(id) {
+  editingTemplateId = id || null;
+  document.getElementById('modal-tpl-title').textContent = id ? '템플릿 수정' : '템플릿 추가';
+  document.getElementById('tpl-type').value = 'recruit';
+  document.getElementById('tpl-title').value = '';
+  document.getElementById('tpl-content').value = '';
+
+  if (id && allTemplates[id]) {
+    const t = allTemplates[id];
+    document.getElementById('tpl-type').value = t.type || 'recruit';
+    document.getElementById('tpl-title').value = t.title || '';
+    document.getElementById('tpl-content').value = t.content || '';
+  }
+  openModal('modal-template');
+}
+
+function saveTemplate() {
+  const data = {
+    type: document.getElementById('tpl-type').value,
+    title: document.getElementById('tpl-title').value.trim(),
+    content: document.getElementById('tpl-content').value.trim(),
+    updatedAt: Date.now()
+  };
+  if (!data.title) { showToast('제목을 입력해주세요'); return; }
+
+  if (!firebaseReady) {
+    const id = editingTemplateId || 'local_' + Date.now();
+    if (!editingTemplateId) data.createdAt = Date.now();
+    allTemplates[id] = { ...allTemplates[id], ...data };
+    renderTemplates();
+    closeModal('modal-template');
+    showToast('저장되었습니다');
+    return;
+  }
+
+  if (!editingTemplateId) {
+    data.createdAt = Date.now();
+    db.ref(PATHS.templates).push(data).then(() => { closeModal('modal-template'); showToast('저장되었습니다'); });
+  } else {
+    db.ref(PATHS.templates + '/' + editingTemplateId).update(data).then(() => { closeModal('modal-template'); showToast('수정되었습니다'); });
+  }
+}
+
+function deleteTemplate(id) {
+  if (!confirm('템플릿을 삭제하시겠습니까?')) return;
+  if (firebaseReady) {
+    db.ref(PATHS.templates + '/' + id).remove();
+  } else {
+    delete allTemplates[id];
+    renderTemplates();
+  }
+  showToast('삭제되었습니다');
+}
+
+function copyTemplate(id) {
+  const t = allTemplates[id];
+  if (!t) return;
+  navigator.clipboard.writeText(t.content || '').then(() => showToast('복사됨!'));
+}
+
+function seedDefaultTemplates() {
+  const defaults = [
+    { type: 'recruit', title: '[DM] 릴스 크리에이터 섭외', content: '안녕하세요 {크리에이터명}님!\n\n바로이집에서 연락드립니다.\n{크리에이터명}님의 채널이 너무 좋아서 협업 제안드리고 싶습니다.\n\n관심 있으시면 답변 부탁드립니다!\n\n감사합니다.\n{담당자명}\n{연락처/이메일}' },
+    { type: 'recruit', title: '[DM] 경력 크리에이터 섭외', content: '안녕하세요 {크리에이터명}님,\n\n바로이집 마케팅팀입니다.\n\n현재 진행 중인 캠페인에 {크리에이터명}님을 모시고 싶어 연락드립니다.\n{구체적 콘텐츠}에 관한 협업이며, 상세 내용은 메일로 보내드리겠습니다.\n\n확인 부탁드립니다!\n{담당자명}' },
+    { type: 'recruit', title: '[DM] 프로필 기반 섭외', content: '{크리에이터명}님 안녕하세요!\n\n프로필 보고 연락드립니다. 최근 콘텐츠가 저희 브랜드와 잘 맞아 협업 의뢰드리고 싶습니다.\n\n관심 있으시면 편하게 답변 주세요!\n\n{담당자명} 드림' },
+    { type: 'guideline', title: '[메일] 인스타 릴스 협업 제안', content: '안녕하세요 {크리에이터명}님,\n\n바로이집 마케팅팀 {담당자명}입니다.\n\n인스타그램 릴스 협업을 제안드립니다.\n\n■ 브랜드: 바로이집\n■ 콘텐츠 유형: 인스타그램 릴스\n■ 내용: {구체적 콘텐츠}\n■ 일정: 가이드 전달 후 2주 내 업로드\n\n자세한 가이드는 별도로 전달드리겠습니다.\n긍정적 검토 부탁드립니다.\n\n감사합니다.\n{담당자명}\n{연락처/이메일}' },
+    { type: 'guideline', title: '[메일] 유튜브 PPL 제안', content: '{크리에이터명}님 안녕하세요,\n\n바로이집 {담당자명}입니다.\n\n유튜브 PPL 협업을 제안드립니다.\n\n■ 브랜드: 바로이집\n■ 콘텐츠 유형: 유튜브 PPL (롱폼/숏폼)\n■ 내용: {구체적 콘텐츠}\n■ 예상 일정: 가이드 전달 → 제작 → 컨펌 → 업로드\n\n세부 사항은 가이드라인으로 전달드리겠습니다.\n검토 후 회신 부탁드립니다.\n\n감사합니다.\n{담당자명}\n{연락처/이메일}' }
+  ];
+
+  if (firebaseReady) {
+    const updates = {};
+    defaults.forEach(d => {
+      const key = db.ref(PATHS.templates).push().key;
+      updates[key] = { ...d, createdAt: Date.now(), updatedAt: Date.now() };
+    });
+    db.ref(PATHS.templates).update(updates);
+  } else {
+    defaults.forEach((d, i) => {
+      allTemplates['default_' + i] = { ...d, createdAt: Date.now(), updatedAt: Date.now() };
+    });
+    renderTemplates();
+  }
+}
+
+// ===== Guide Editor =====
+function execBold() {
+  document.execCommand('bold');
+  document.getElementById('guide-content-editor').focus();
+  updateToolbarState();
+}
+
+function toggleHighlightDropdown() {
+  document.getElementById('highlight-dropdown').classList.toggle('open');
+}
+
+function execHighlight(color, cls) {
+  document.getElementById('highlight-dropdown').classList.remove('open');
+  if (cls === 'remove') {
+    document.execCommand('removeFormat');
+  } else {
+    const sel = window.getSelection();
+    if (sel.rangeCount) {
+      const range = sel.getRangeAt(0);
+      const mark = document.createElement('mark');
+      mark.style.background = color;
+      if (cls) mark.className = cls;
+      range.surroundContents(mark);
+    }
+  }
+  document.getElementById('guide-content-editor').focus();
+}
+
+function updateToolbarState() {
+  document.getElementById('btn-bold').classList.toggle('active', document.queryCommandState('bold'));
+}
+
+function saveGuideContent() {
+  if (!currentProjectId) return;
+  const content = document.getElementById('guide-content-editor').innerHTML;
+  if (firebaseReady) {
+    db.ref(PATHS.projects + '/' + currentProjectId).update({ guideContent: content });
+  } else {
+    allProjects[currentProjectId].guideContent = content;
+  }
+  showToast('가이드라인 저장됨');
+}
+
+function copyGuideLink() {
+  const url = window.location.origin + window.location.pathname + '?guide=' + currentProjectId;
+  navigator.clipboard.writeText(url).then(() => showToast('링크 복사됨!'));
+}
+
+// Paste handler for guide editor
+document.addEventListener('DOMContentLoaded', () => {
+  const editor = document.getElementById('guide-content-editor');
+  if (editor) {
+    editor.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const html = e.clipboardData.getData('text/html');
+      if (html) {
+        const clean = html.replace(/<(script|style|link|meta)[^>]*>[\s\S]*?<\/\1>/gi, '').replace(/<(script|style|link|meta)[^>]*\/?>/gi, '');
+        document.execCommand('insertHTML', false, clean);
+      } else {
+        document.execCommand('insertText', false, e.clipboardData.getData('text/plain'));
+      }
+    });
+    editor.addEventListener('keyup', updateToolbarState);
+    editor.addEventListener('mouseup', updateToolbarState);
+  }
+});
+
+// ===== Report Bar =====
+function renderReportBar() {
+  if (!currentProjectId) return;
+  const assigns = allAssignments[currentProjectId] || {};
+  const entries = Object.values(assigns);
+  const proj = allProjects[currentProjectId];
+
+  if (!entries.length) {
+    document.getElementById('proj-report-bar').style.display = 'none';
+    document.getElementById('proj-budget-bar').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('proj-report-bar').style.display = 'flex';
+
+  // Status counts
+  const statusCounts = {};
+  Object.keys(STATUS_MAP).forEach(k => statusCounts[k] = 0);
+  entries.forEach(e => { statusCounts[e.status || 'recruiting']++; });
+  const total = entries.length;
+
+  // Donut chart
+  let donutSegments = '';
+  let cumPercent = 0;
+  Object.entries(STATUS_MAP).forEach(([key, { color }]) => {
+    const count = statusCounts[key];
+    if (!count) return;
+    const percent = (count / total) * 100;
+    const dashArray = `${percent * 2.51327} ${251.327 - percent * 2.51327}`;
+    const dashOffset = -cumPercent * 2.51327;
+    donutSegments += `<circle cx="50" cy="50" r="40" fill="none" stroke="${color}" stroke-width="12" stroke-dasharray="${dashArray}" stroke-dashoffset="${dashOffset}" transform="rotate(-90 50 50)"/>`;
+    cumPercent += percent;
+  });
+
+  const donutSvg = `<svg width="100" height="100" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="40" fill="none" stroke="${'var(--surface-2)'}" stroke-width="12"/>
+    ${donutSegments}
+    <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="20" font-weight="800" fill="var(--text-primary)">${total}</text>
+  </svg>`;
+
+  // Legend
+  const legend = Object.entries(STATUS_MAP).map(([key, { label, color }]) => {
+    const count = statusCounts[key];
+    if (!count) return '';
+    return `<div class="legend-item"><div class="legend-dot" style="background:${color};"></div>${label}: ${count}</div>`;
+  }).join('');
+
+  // Metrics
+  const totalCost = entries.reduce((s, e) => s + (e.cost || 0), 0);
+  const totalViews = entries.reduce((s, e) => s + (e.views || 0), 0);
+  const totalLikes = entries.reduce((s, e) => s + (e.likes || 0), 0);
+  const totalComments = entries.reduce((s, e) => s + (e.comments || 0), 0);
+
+  document.getElementById('proj-report-bar').innerHTML = `
+    <div class="report-donut">${donutSvg}</div>
+    <div class="report-legend">${legend}</div>
+    <div class="report-metrics">
+      <div class="metric-card"><div class="metric-label">총 단가</div><div class="metric-value">${fmt(totalCost)}<span style="font-size:12px;font-weight:400;">만</span></div><div class="metric-sub">평균 ${total ? fmt(Math.round(totalCost / total)) : 0}만</div></div>
+      <div class="metric-card"><div class="metric-label">총 조회수</div><div class="metric-value">${fmt(totalViews)}</div><div class="metric-sub">평균 ${total ? fmt(Math.round(totalViews / total)) : 0}</div></div>
+      <div class="metric-card"><div class="metric-label">총 좋아요</div><div class="metric-value">${fmt(totalLikes)}</div><div class="metric-sub">평균 ${total ? fmt(Math.round(totalLikes / total)) : 0}</div></div>
+      <div class="metric-card"><div class="metric-label">총 댓글</div><div class="metric-value">${fmt(totalComments)}</div><div class="metric-sub">평균 ${total ? fmt(Math.round(totalComments / total)) : 0}</div></div>
+    </div>
+  `;
+
+  // Budget bar
+  if (proj && proj.budget) {
+    document.getElementById('proj-budget-bar').style.display = 'block';
+    const pct = Math.min(Math.round(totalCost / proj.budget * 100), 100);
+    document.getElementById('budget-percent').textContent = pct + '%';
+    const fill = document.getElementById('budget-bar-fill');
+    fill.style.width = pct + '%';
+    fill.className = 'budget-bar-fill' + (pct > 90 ? ' danger' : pct > 70 ? ' warning' : '');
+  } else {
+    document.getElementById('proj-budget-bar').style.display = 'none';
+  }
+}
+
+// ===== Progress Detail Modal =====
+function openProgressDetail(projId, infId) {
+  progressEditingProjId = projId;
+  progressEditingInfId = infId;
+  const a = (allAssignments[projId] || {})[infId] || {};
+  document.getElementById('prog-status').value = a.status || 'recruiting';
+  document.getElementById('prog-upload-date').value = a.uploadDate || '';
+  document.getElementById('prog-upload-url').value = a.uploadUrl || '';
+  document.getElementById('prog-views').value = a.views || '';
+  document.getElementById('prog-likes').value = a.likes || '';
+  document.getElementById('prog-comments').value = a.comments || '';
+  document.getElementById('prog-memo').value = a.memo || '';
+  openModal('modal-progress');
+}
+
+function saveProgressDetail() {
+  if (!progressEditingProjId || !progressEditingInfId) return;
+  const data = {
+    status: document.getElementById('prog-status').value,
+    uploadDate: document.getElementById('prog-upload-date').value,
+    uploadUrl: document.getElementById('prog-upload-url').value,
+    views: Number(document.getElementById('prog-views').value) || 0,
+    likes: Number(document.getElementById('prog-likes').value) || 0,
+    comments: Number(document.getElementById('prog-comments').value) || 0,
+    memo: document.getElementById('prog-memo').value,
+    updatedAt: Date.now()
+  };
+
+  if (firebaseReady) {
+    db.ref(PATHS.assignments + '/' + progressEditingProjId + '/' + progressEditingInfId).update(data);
+  } else {
+    if (!allAssignments[progressEditingProjId]) allAssignments[progressEditingProjId] = {};
+    if (!allAssignments[progressEditingProjId][progressEditingInfId]) allAssignments[progressEditingProjId][progressEditingInfId] = {};
+    Object.assign(allAssignments[progressEditingProjId][progressEditingInfId], data);
+    renderTrackTable();
+    renderReportBar();
+  }
+  closeModal('modal-progress');
+  showToast('저장되었습니다');
+}
+
+// ===== Sidebar Resize =====
+function initSidebarResize() {
+  const sidebar = document.getElementById('sidebar');
+  const resizer = document.getElementById('sidebar-resizer');
+  let startX, startW;
+
+  const saved = localStorage.getItem('baromcn-sidebar-width');
+  if (saved) sidebar.style.width = saved + 'px';
+
+  function onMouseDown(e) {
+    startX = e.clientX || (e.touches && e.touches[0].clientX);
+    startW = sidebar.offsetWidth;
+    resizer.classList.add('active');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('touchmove', onMouseMove);
+    document.addEventListener('touchend', onMouseUp);
+  }
+
+  function onMouseMove(e) {
+    const x = e.clientX || (e.touches && e.touches[0].clientX);
+    let w = startW + (x - startX);
+    w = Math.max(60, Math.min(400, w));
+    sidebar.style.width = w + 'px';
+  }
+
+  function onMouseUp() {
+    resizer.classList.remove('active');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    localStorage.setItem('baromcn-sidebar-width', sidebar.offsetWidth);
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    document.removeEventListener('touchmove', onMouseMove);
+    document.removeEventListener('touchend', onMouseUp);
+  }
+
+  resizer.addEventListener('mousedown', onMouseDown);
+  resizer.addEventListener('touchstart', onMouseDown);
+}
+
+// ===== Column Resize =====
+function initColumnResize(tableId) {
+  const table = document.getElementById(tableId);
+  if (!table) return;
+  const storageKey = 'baromcn-cols-' + tableId;
+  const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+
+  table.querySelectorAll('th').forEach((th, i) => {
+    if (saved[i]) th.style.width = saved[i] + 'px';
+
+    const resizer = th.querySelector('.th-resizer');
+    if (!resizer || resizer._init) return;
+    resizer._init = true;
+
+    let startX, startW;
+    resizer.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      startX = e.clientX;
+      startW = th.offsetWidth;
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+
+      function onMove(e2) {
+        const w = Math.max(40, startW + (e2.clientX - startX));
+        th.style.width = w + 'px';
+      }
+      function onUp() {
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        // Save
+        const widths = {};
+        table.querySelectorAll('th').forEach((t, j) => widths[j] = t.offsetWidth);
+        localStorage.setItem(storageKey, JSON.stringify(widths));
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  });
+}
+
+// ===== Initialization =====
+document.addEventListener('DOMContentLoaded', () => {
+  initFirebase();
+  if (!checkGuideView()) {
+    initSidebarResize();
+    renderInfluencers();
+    renderProjects();
+  }
+});
+</script>
+
+</body>
+</html>
