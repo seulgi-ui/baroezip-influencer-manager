@@ -1185,6 +1185,32 @@ table { border-collapse: collapse; width: 100%; }
   color: var(--text-muted); font-size: 16px; cursor: pointer; border: 1px solid transparent;
 }
 .inf-table .action-dots:hover { background: var(--surface-2); border-color: var(--border); }
+
+/* Table Notice */
+.table-notice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-light);
+}
+.table-notice strong { color: #7C3AED; font-weight: 700; }
+.table-notice svg { flex-shrink: 0; color: var(--text-muted); }
+
+/* Sortable Headers */
+.sortable { cursor: pointer; user-select: none; transition: color 0.15s; }
+.sortable:hover { color: #7C3AED; }
+.sortable.active { color: #7C3AED; }
+.sort-arrow { font-size: 10px; opacity: 0.3; margin-left: 2px; }
+.sort-arrow::after { content: '▼'; }
+.sortable.active .sort-arrow { opacity: 1; }
+.sortable.active.asc .sort-arrow::after { content: '▲'; }
+.sortable.active.desc .sort-arrow::after { content: '▼'; }
 </style>
 </head>
 <body>
@@ -1273,18 +1299,22 @@ table { border-collapse: collapse; width: 100%; }
 
       <!-- Table View -->
       <div id="inf-table-view">
+        <div class="table-notice">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          조회수·좋아요·댓글·인게이지먼트율은 <strong>최근 10개 영상</strong> 기준 평균값입니다
+        </div>
         <div class="table-card-wrap">
           <table class="inf-table" id="inf-table">
             <thead>
               <tr>
                 <th style="width:36px;"></th>
-                <th style="width:200px;">인플루언서</th>
+                <th style="width:200px;" class="sortable" data-sort="name" onclick="toggleSort('name')">인플루언서 <span class="sort-arrow"></span></th>
                 <th style="width:60px;">채널</th>
-                <th style="width:80px;" id="th-followers">구독자</th>
-                <th style="width:80px;" id="th-views-long">조회수(L)</th>
-                <th style="width:80px;" id="th-views-short">조회수(S)</th>
-                <th style="width:70px;">좋아요</th>
-                <th style="width:80px;">단가</th>
+                <th style="width:80px;" class="sortable" id="th-followers" data-sort="followers" onclick="toggleSort('followers')">구독자 <span class="sort-arrow"></span></th>
+                <th style="width:80px;" class="sortable" id="th-views-long" data-sort="avgViewsLong" onclick="toggleSort('avgViewsLong')">조회수(L) <span class="sort-arrow"></span></th>
+                <th style="width:80px;" class="sortable" id="th-views-short" data-sort="avgViewsShort" onclick="toggleSort('avgViewsShort')">조회수(S) <span class="sort-arrow"></span></th>
+                <th style="width:70px;" class="sortable" data-sort="avgLikes" onclick="toggleSort('avgLikes')">좋아요 <span class="sort-arrow"></span></th>
+                <th style="width:80px;" class="sortable" data-sort="price" onclick="toggleSort('price')">단가 <span class="sort-arrow"></span></th>
                 <th style="width:100px;">주제</th>
                 <th style="width:40px;"></th>
               </tr>
@@ -2184,6 +2214,27 @@ function fmtK(n) {
   return fmt(n);
 }
 
+// ===== Column Sort =====
+let columnSortKey = null;
+let columnSortDir = 'desc'; // 'asc' or 'desc'
+
+function toggleSort(key) {
+  if (columnSortKey === key) {
+    columnSortDir = columnSortDir === 'desc' ? 'asc' : 'desc';
+  } else {
+    columnSortKey = key;
+    columnSortDir = 'desc';
+  }
+  // Update header UI
+  document.querySelectorAll('.sortable').forEach(th => {
+    th.classList.remove('active', 'asc', 'desc');
+    if (th.dataset.sort === key) {
+      th.classList.add('active', columnSortDir);
+    }
+  });
+  renderInfluencers();
+}
+
 // ===== View Toggle =====
 let currentListView = 'card';
 function switchListView(mode) {
@@ -2232,12 +2283,21 @@ function renderInfluencers() {
     items = items.filter(i => (i.topic || '').includes(topicFilter));
   }
 
-  // Sort - favorites first, then by key
+  // Sort - column sort takes priority, then dropdown, favorites always first
+  const activeSortKey = columnSortKey || sortKey;
+  const activeSortDir = columnSortKey ? columnSortDir : 'desc';
+  const priceField = currentChannel === 'youtube' ? 'priceYoutube' : 'priceInstagram';
+
   items.sort((a, b) => {
     if (a.favorite && !b.favorite) return -1;
     if (!a.favorite && b.favorite) return 1;
-    if (sortKey === 'name') return (a.name || '').localeCompare(b.name || '');
-    return (b[sortKey] || 0) - (a[sortKey] || 0);
+    let key = activeSortKey === 'price' ? priceField : activeSortKey;
+    if (key === 'name') {
+      const cmp = (a.name || '').localeCompare(b.name || '');
+      return activeSortDir === 'asc' ? cmp : -cmp;
+    }
+    const diff = (a[key] || 0) - (b[key] || 0);
+    return activeSortDir === 'asc' ? diff : -diff;
   });
 
   document.getElementById('inf-empty').style.display = items.length ? 'none' : 'flex';
@@ -2474,7 +2534,7 @@ async function fetchYouTubeData(url) {
     const subs = Number(stats.subscriberCount) || 0;
 
     // Get recent videos
-    const vidRes = await fetch(`https://www.googleapis.com/youtube/v3/search?channelId=${channelId}&type=video&order=date&maxResults=50&part=id&key=${YOUTUBE_API_KEY}`);
+    const vidRes = await fetch(`https://www.googleapis.com/youtube/v3/search?channelId=${channelId}&type=video&order=date&maxResults=10&part=id&key=${YOUTUBE_API_KEY}`);
     const vidData = await vidRes.json();
     const videoIds = (vidData.items || []).map(v => v.id.videoId).filter(Boolean);
 
