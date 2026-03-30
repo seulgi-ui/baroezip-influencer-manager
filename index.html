@@ -1186,6 +1186,56 @@ table { border-collapse: collapse; width: 100%; }
 }
 .inf-table .action-dots:hover { background: var(--surface-2); border-color: var(--border); }
 
+/* Action Chips */
+.action-chip {
+  padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  border: 1.5px solid var(--border); background: var(--surface); color: var(--text-secondary);
+  cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px;
+}
+.action-chip:hover { border-color: rgba(168,85,247,0.3); color: #7C3AED; background: #F5F3FF; }
+
+.last-updated {
+  font-size: 11px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; margin-left: auto;
+}
+
+/* Contact Status Badge */
+.contact-badge {
+  padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 700;
+  display: inline-block; white-space: nowrap;
+}
+.contact-none { background: #F3F4F6; color: #9CA3AF; }
+.contact-contacting { background: #FEF3C7; color: #D97706; }
+.contact-waiting { background: #DBEAFE; color: #2563EB; }
+.contact-negotiating { background: #F3E8FF; color: #7C3AED; }
+.contact-confirmed { background: #D1FAE5; color: #059669; }
+.contact-rejected { background: #FEE2E2; color: #EF4444; }
+
+/* CPV Cell */
+.cpv-cell { font-size: 12px; font-weight: 700; }
+.cpv-good { color: #059669; }
+.cpv-mid { color: #D97706; }
+.cpv-high { color: #EF4444; }
+
+/* Compare Checkbox */
+.compare-check {
+  width: 18px; height: 18px; accent-color: #7C3AED; cursor: pointer;
+  border-radius: 4px;
+}
+.compare-active-only { }
+.action-chip.compare-on { background: #F5F3FF; border-color: rgba(168,85,247,0.3); color: #7C3AED; }
+
+/* Compare Modal */
+.compare-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); z-index:300; align-items:center; justify-content:center; }
+.compare-overlay.open { display:flex; }
+.compare-modal { background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow-xl); width:90%; max-width:900px; max-height:85vh; overflow-y:auto; padding:28px; animation: modalIn 0.25s var(--transition); }
+.compare-grid { display:grid; gap:16px; }
+.compare-card { border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:16px; }
+.compare-card h4 { font-size:15px; font-weight:700; margin-bottom:12px; }
+.compare-row { display:flex; justify-content:space-between; padding:6px 0; font-size:13px; border-bottom:1px solid var(--border-light); }
+.compare-label { color:var(--text-muted); }
+.compare-value { font-weight:700; }
+.compare-best { color:#059669; background:#ECFDF5; padding:1px 6px; border-radius:4px; }
+
 /* Table Notice */
 .table-notice {
   display: flex;
@@ -1274,7 +1324,7 @@ table { border-collapse: collapse; width: 100%; }
       <!-- Search & Filter -->
       <div class="search-filter-bar" style="margin-bottom:20px;">
         <div class="search-bar-wrap">
-          <input type="text" id="inf-search" class="search-input-new" placeholder="🔍 이름, 태그, 주제 검색..." oninput="renderInfluencers()">
+          <input type="text" id="inf-search" class="search-input-new" placeholder="🔍 이름, 태그, 주제, 메모 검색..." oninput="renderInfluencers()">
           <select id="inf-sort" class="filter-chip-new" onchange="renderInfluencers()">
             <option value="name">이름순</option>
             <option value="followers">구독자순</option>
@@ -1291,6 +1341,23 @@ table { border-collapse: collapse; width: 100%; }
           <select id="inf-topic" class="filter-chip-new" onchange="renderInfluencers()">
             <option value="">주제 전체</option>
           </select>
+          <select id="inf-contact" class="filter-chip-new" onchange="renderInfluencers()">
+            <option value="">컨택 전체</option>
+            <option value="none">미연락</option>
+            <option value="contacting">연락중</option>
+            <option value="waiting">회신대기</option>
+            <option value="negotiating">협의중</option>
+            <option value="confirmed">확정</option>
+            <option value="rejected">거절</option>
+          </select>
+        </div>
+        <div class="search-bar-wrap" style="margin-top:8px;">
+          <button class="action-chip" onclick="refreshAllInfluencers()" title="전체 인플루언서 YouTube 통계 갱신">🔄 전체 새로고침</button>
+          <button class="action-chip" onclick="exportCSV()">📥 CSV 내보내기</button>
+          <button class="action-chip" id="btn-compare-toggle" onclick="toggleCompareMode()">⚖️ 비교 모드</button>
+          <button class="action-chip compare-active-only" id="btn-compare-run" onclick="showCompareModal()" style="display:none;">📊 선택 비교 (<span id="compare-count">0</span>명)</button>
+          <button class="action-chip compare-active-only" id="btn-compare-cancel" onclick="toggleCompareMode()" style="display:none;">✕ 비교 취소</button>
+          <span id="last-updated-info" class="last-updated" style="display:none;"></span>
         </div>
       </div>
 
@@ -1307,16 +1374,19 @@ table { border-collapse: collapse; width: 100%; }
           <table class="inf-table" id="inf-table">
             <thead>
               <tr>
+                <th style="width:32px;"></th>
+                <th style="width:180px;" class="sortable" data-sort="name" onclick="toggleSort('name')">인플루언서 <span class="sort-arrow"></span></th>
+                <th style="width:36px;">CH</th>
+                <th style="width:70px;" class="sortable" id="th-followers" data-sort="followers" onclick="toggleSort('followers')">구독자 <span class="sort-arrow"></span></th>
+                <th style="width:70px;" class="sortable" id="th-views-long" data-sort="avgViewsLong" onclick="toggleSort('avgViewsLong')">조회(L) <span class="sort-arrow"></span></th>
+                <th style="width:70px;" class="sortable" id="th-views-short" data-sort="avgViewsShort" onclick="toggleSort('avgViewsShort')">조회(S) <span class="sort-arrow"></span></th>
+                <th style="width:60px;" class="sortable" data-sort="avgLikes" onclick="toggleSort('avgLikes')">좋아요 <span class="sort-arrow"></span></th>
+                <th style="width:55px;" class="sortable" data-sort="engagement" onclick="toggleSort('engagement')">ER <span class="sort-arrow"></span></th>
+                <th style="width:70px;" class="sortable" data-sort="price" onclick="toggleSort('price')">단가 <span class="sort-arrow"></span></th>
+                <th style="width:55px;" class="sortable" data-sort="cpv" onclick="toggleSort('cpv')">CPV <span class="sort-arrow"></span></th>
+                <th style="width:70px;">컨택</th>
+                <th style="width:80px;">주제</th>
                 <th style="width:36px;"></th>
-                <th style="width:200px;" class="sortable" data-sort="name" onclick="toggleSort('name')">인플루언서 <span class="sort-arrow"></span></th>
-                <th style="width:60px;">채널</th>
-                <th style="width:80px;" class="sortable" id="th-followers" data-sort="followers" onclick="toggleSort('followers')">구독자 <span class="sort-arrow"></span></th>
-                <th style="width:80px;" class="sortable" id="th-views-long" data-sort="avgViewsLong" onclick="toggleSort('avgViewsLong')">조회수(L) <span class="sort-arrow"></span></th>
-                <th style="width:80px;" class="sortable" id="th-views-short" data-sort="avgViewsShort" onclick="toggleSort('avgViewsShort')">조회수(S) <span class="sort-arrow"></span></th>
-                <th style="width:70px;" class="sortable" data-sort="avgLikes" onclick="toggleSort('avgLikes')">좋아요 <span class="sort-arrow"></span></th>
-                <th style="width:80px;" class="sortable" data-sort="price" onclick="toggleSort('price')">단가 <span class="sort-arrow"></span></th>
-                <th style="width:100px;">주제</th>
-                <th style="width:40px;"></th>
               </tr>
             </thead>
             <tbody id="inf-tbody"></tbody>
@@ -1596,9 +1666,22 @@ table { border-collapse: collapse; width: 100%; }
       <!-- 연락처 -->
       <div class="modal-section">
         <div class="modal-section-title">연락처</div>
-        <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">이메일</label>
-          <input type="email" id="inf-email" class="form-input" placeholder="business@example.com (YouTube 설명에서 자동 추출)">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">이메일</label>
+            <input type="email" id="inf-email" class="form-input" placeholder="YouTube 설명에서 자동 추출">
+          </div>
+          <div class="form-group">
+            <label class="form-label">컨택 상태</label>
+            <select id="inf-contact-status" class="form-select">
+              <option value="none">미연락</option>
+              <option value="contacting">연락중</option>
+              <option value="waiting">회신대기</option>
+              <option value="negotiating">협의중</option>
+              <option value="confirmed">확정</option>
+              <option value="rejected">거절</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -2073,6 +2156,7 @@ function openInfluencerModal(id) {
   ['inf-name','inf-email','inf-url-youtube','inf-url-instagram','inf-price-youtube','inf-price-instagram',
    'inf-followers','inf-engagement','inf-views-long','inf-views-short','inf-likes','inf-comments',
    'inf-topic','inf-analysis','inf-tags','inf-memo','inf-profile-image'].forEach(f => document.getElementById(f).value = '');
+  document.getElementById('inf-contact-status').value = 'none';
   document.querySelectorAll('.ch-type-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.topic-tag').forEach(t => t.classList.remove('active'));
@@ -2090,6 +2174,7 @@ function openInfluencerModal(id) {
       if (btn) btn.classList.add('active');
     });
     document.getElementById('inf-email').value = inf.email || '';
+    document.getElementById('inf-contact-status').value = inf.contactStatus || 'none';
     document.getElementById('inf-profile-image').value = inf.profileImage || '';
     document.getElementById('inf-url-youtube').value = inf.urlYoutube || '';
     document.getElementById('inf-url-instagram').value = inf.urlInstagram || '';
@@ -2135,6 +2220,7 @@ function saveInfluencer() {
     name,
     channels,
     email: document.getElementById('inf-email').value.trim(),
+    contactStatus: document.getElementById('inf-contact-status').value,
     profileImage: document.getElementById('inf-profile-image').value.trim(),
     urlYoutube: document.getElementById('inf-url-youtube').value.trim(),
     urlInstagram: document.getElementById('inf-url-instagram').value.trim(),
@@ -2252,17 +2338,20 @@ function renderInfluencers() {
   const sortKey = document.getElementById('inf-sort').value;
   const priceRange = document.getElementById('inf-price').value;
   const topicFilter = document.getElementById('inf-topic').value;
+  const contactFilter = document.getElementById('inf-contact') ? document.getElementById('inf-contact').value : '';
 
   let items = Object.entries(allInfluencers).map(([id, inf]) => ({ id, ...inf }));
 
   // Filter by channel
   items = items.filter(i => (i.channels || []).includes(currentChannel));
 
-  // Search
+  // Search (includes memo)
   if (search) {
     items = items.filter(i =>
       (i.name || '').toLowerCase().includes(search) ||
       (i.topic || '').toLowerCase().includes(search) ||
+      (i.memo || '').toLowerCase().includes(search) ||
+      (i.email || '').toLowerCase().includes(search) ||
       (i.tags || []).some(t => t.toLowerCase().includes(search))
     );
   }
@@ -2283,15 +2372,29 @@ function renderInfluencers() {
     items = items.filter(i => (i.topic || '').includes(topicFilter));
   }
 
-  // Sort - column sort takes priority, then dropdown, favorites always first
+  // Contact status filter
+  if (contactFilter) {
+    items = items.filter(i => (i.contactStatus || 'none') === contactFilter);
+  }
+
+  // Calculate CPV for each item
+  const priceField = currentChannel === 'youtube' ? 'priceYoutube' : 'priceInstagram';
+  items.forEach(i => {
+    const price = i[priceField] || 0;
+    const views = Math.max(i.avgViewsLong || 0, i.avgViewsShort || 0);
+    i._cpv = (price && views) ? Math.round(price * 10000 / views) : 0; // 원 단위
+  });
+
+  // Sort
   const activeSortKey = columnSortKey || sortKey;
   const activeSortDir = columnSortKey ? columnSortDir : 'desc';
-  const priceField = currentChannel === 'youtube' ? 'priceYoutube' : 'priceInstagram';
 
   items.sort((a, b) => {
     if (a.favorite && !b.favorite) return -1;
     if (!a.favorite && b.favorite) return 1;
-    let key = activeSortKey === 'price' ? priceField : activeSortKey;
+    let key = activeSortKey;
+    if (key === 'price') key = priceField;
+    if (key === 'cpv') key = '_cpv';
     if (key === 'name') {
       const cmp = (a.name || '').localeCompare(b.name || '');
       return activeSortDir === 'asc' ? cmp : -cmp;
@@ -2299,6 +2402,10 @@ function renderInfluencers() {
     const diff = (a[key] || 0) - (b[key] || 0);
     return activeSortDir === 'asc' ? diff : -diff;
   });
+
+  // Show compare button if 2+ selected
+  const compareBtn = document.getElementById('btn-compare');
+  if (compareBtn) compareBtn.style.display = items.length >= 2 ? 'inline-flex' : 'none';
 
   document.getElementById('inf-empty').style.display = items.length ? 'none' : 'flex';
 
@@ -2348,15 +2455,30 @@ function renderInfluencers() {
       ? `<div class="name-avatar"><img src="${inf.profileImage}" alt=""></div>`
       : `<div class="name-avatar">${initial}</div>`;
 
+    // CPV formatting
+    const cpv = inf._cpv;
+    const cpvClass = cpv === 0 ? '' : cpv <= 50 ? 'cpv-good' : cpv <= 150 ? 'cpv-mid' : 'cpv-high';
+    const cpvText = cpv ? cpv + '원' : '-';
+
+    // Contact status
+    const cs = inf.contactStatus || 'none';
+    const csMap = { none:'미연락', contacting:'연락중', waiting:'회신대기', negotiating:'협의중', confirmed:'확정', rejected:'거절' };
+
     return `<tr onclick="openDetailPanel('${inf.id}')">
-      <td><button class="star-btn ${inf.favorite ? 'active' : ''}" onclick="event.stopPropagation();toggleFavorite('${inf.id}',${!!inf.favorite})">★</button></td>
-      <td><div class="name-cell">${avatarHtml}<div><div class="name-text">${inf.name || ''}</div><div class="name-sub">${inf.analysis ? inf.analysis.substring(0, 30) : ''}</div></div></div></td>
+      <td>${compareMode
+        ? `<input type="checkbox" class="compare-check" ${compareSelected.has(inf.id) ? 'checked' : ''} onclick="event.stopPropagation();toggleCompareSelect('${inf.id}', this)">`
+        : `<button class="star-btn ${inf.favorite ? 'active' : ''}" onclick="event.stopPropagation();toggleFavorite('${inf.id}',${!!inf.favorite})">★</button>`
+      }</td>
+      <td><div class="name-cell">${avatarHtml}<div><div class="name-text">${inf.name || ''}</div><div class="name-sub">${inf.analysis ? inf.analysis.substring(0, 25) + '...' : ''}</div></div></div></td>
       <td>${badge}</td>
       <td class="num">${fmtK(inf.followers)}</td>
       <td class="num">${isYT ? fmtK(inf.avgViewsLong) : '-'}</td>
       <td class="num">${fmtK(inf.avgViewsShort)}</td>
       <td class="num">${fmtK(inf.avgLikes)}</td>
+      <td class="num">${inf.engagement ? inf.engagement.toFixed(1) + '%' : '-'}</td>
       <td class="price-cell">${inf[priceKey] ? fmt(inf[priceKey]) + '<span class="num-unit">만</span>' : '-'}</td>
+      <td class="cpv-cell ${cpvClass}">${cpvText}</td>
+      <td><span class="contact-badge contact-${cs}">${csMap[cs] || '미연락'}</span></td>
       <td><div class="tp-row">${topics.map(t => `<span class="tp">${t}</span>`).join('')}</div></td>
       <td><span class="action-dots" onclick="event.stopPropagation();openInfluencerModal('${inf.id}')">⋮</span></td>
     </tr>`;
@@ -3399,6 +3521,216 @@ function saveProgressDetail() {
   }
   closeModal('modal-progress');
   showToast('저장되었습니다');
+}
+
+// ===== Refresh All Influencers =====
+async function refreshAllInfluencers() {
+  if (YOUTUBE_API_KEY === 'YOUR_YOUTUBE_API_KEY') { showToast('YouTube API 키를 설정해주세요'); return; }
+  const ytInfs = Object.entries(allInfluencers).filter(([id, inf]) => inf.urlYoutube);
+  if (!ytInfs.length) { showToast('YouTube 채널이 없습니다'); return; }
+  if (!confirm(`${ytInfs.length}개 YouTube 채널 통계를 갱신하시겠습니까?\nAPI 할당량이 소모됩니다.`)) return;
+
+  showToast(`${ytInfs.length}개 채널 갱신 시작...`);
+  let done = 0;
+  for (const [id, inf] of ytInfs) {
+    try {
+      const url = inf.urlYoutube;
+      const chMatch = url.match(/youtube\.com\/channel\/(UC[\w-]+)/);
+      if (!chMatch) continue;
+      const channelId = chMatch[1];
+
+      // Fetch channel info
+      const chRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=${channelId}&key=${YOUTUBE_API_KEY}`);
+      const chData = await chRes.json();
+      if (!chData.items || !chData.items.length) continue;
+      const ch = chData.items[0];
+      const subs = Number(ch.statistics.subscriberCount) || 0;
+      const profileImg = (ch.snippet.thumbnails || {}).medium || {};
+
+      // Fetch recent 10 videos
+      const vidRes = await fetch(`https://www.googleapis.com/youtube/v3/search?channelId=${channelId}&type=video&order=date&maxResults=10&part=id&key=${YOUTUBE_API_KEY}`);
+      const vidData = await vidRes.json();
+      const videoIds = (vidData.items || []).map(v => v.id.videoId).filter(Boolean);
+
+      let avgViewsLong = 0, avgViewsShort = 0, avgLikes = 0, avgComments = 0;
+      if (videoIds.length) {
+        const detRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${videoIds.join(',')}&key=${YOUTUBE_API_KEY}`);
+        const detData = await detRes.json();
+        const longs = [], shorts = [];
+        let totalLikes = 0, totalComments = 0;
+        (detData.items || []).forEach(v => {
+          const sec = parseDuration(v.contentDetails.duration);
+          const views = Number(v.statistics.viewCount) || 0;
+          totalLikes += Number(v.statistics.likeCount) || 0;
+          totalComments += Number(v.statistics.commentCount) || 0;
+          if (sec <= 60) shorts.push(views); else longs.push(views);
+        });
+        const total = detData.items.length;
+        avgViewsLong = longs.length ? Math.round(longs.reduce((a, b) => a + b, 0) / longs.length) : 0;
+        avgViewsShort = shorts.length ? Math.round(shorts.reduce((a, b) => a + b, 0) / shorts.length) : 0;
+        avgLikes = total ? Math.round(totalLikes / total) : 0;
+        avgComments = total ? Math.round(totalComments / total) : 0;
+      }
+
+      const engagement = subs ? Number(((avgLikes + avgComments) / subs * 100).toFixed(1)) : 0;
+      const update = { followers: subs, avgViewsLong, avgViewsShort, avgLikes, avgComments, engagement, updatedAt: Date.now() };
+      if (profileImg.url) update.profileImage = profileImg.url;
+
+      // Extract email
+      const emailMatch = (ch.snippet.description || '').match(/[\w.-]+@[\w.-]+\.\w{2,}/);
+      if (emailMatch && !inf.email) update.email = emailMatch[0];
+
+      if (firebaseReady) {
+        await db.ref(PATHS.influencers + '/' + id).update(update);
+      } else {
+        Object.assign(allInfluencers[id], update);
+      }
+      done++;
+    } catch (e) { console.error('Refresh error for', inf.name, e); }
+  }
+  if (!firebaseReady) { renderInfluencers(); }
+  // Show last updated
+  const el = document.getElementById('last-updated-info');
+  if (el) { el.textContent = '마지막 갱신: ' + new Date().toLocaleString('ko-KR'); el.style.display = 'inline-flex'; }
+  showToast(`${done}개 채널 갱신 완료!`);
+}
+
+// ===== CSV Export =====
+function exportCSV() {
+  const isYT = currentChannel === 'youtube';
+  const priceKey = isYT ? 'priceYoutube' : 'priceInstagram';
+  let items = Object.values(allInfluencers).filter(i => (i.channels || []).includes(currentChannel));
+
+  const headers = ['이름','채널','구독자','조회수(Long)','조회수(Short)','평균좋아요','평균댓글','인게이지먼트율(%)','단가(만원)','CPV(원)','컨택상태','주제','이메일','메모'];
+  const csMap = { none:'미연락', contacting:'연락중', waiting:'회신대기', negotiating:'협의중', confirmed:'확정', rejected:'거절' };
+
+  const rows = items.map(inf => {
+    const price = inf[priceKey] || 0;
+    const views = Math.max(inf.avgViewsLong || 0, inf.avgViewsShort || 0);
+    const cpv = (price && views) ? Math.round(price * 10000 / views) : 0;
+    return [
+      inf.name || '',
+      currentChannel,
+      inf.followers || 0,
+      inf.avgViewsLong || 0,
+      inf.avgViewsShort || 0,
+      inf.avgLikes || 0,
+      inf.avgComments || 0,
+      inf.engagement || 0,
+      price,
+      cpv,
+      csMap[inf.contactStatus || 'none'] || '미연락',
+      inf.topic || '',
+      inf.email || '',
+      (inf.memo || '').replace(/\n/g, ' ')
+    ];
+  });
+
+  const BOM = '\uFEFF';
+  const csv = BOM + [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `influencer_${currentChannel}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV 다운로드 완료');
+}
+
+// ===== Compare Mode =====
+let compareMode = false;
+let compareSelected = new Set();
+
+function toggleCompareMode() {
+  compareMode = !compareMode;
+  compareSelected.clear();
+  document.getElementById('btn-compare-toggle').classList.toggle('compare-on', compareMode);
+  document.querySelectorAll('.compare-active-only').forEach(el => el.style.display = compareMode ? 'inline-flex' : 'none');
+  document.getElementById('compare-count').textContent = '0';
+  document.getElementById('btn-compare-run').style.display = compareMode ? 'inline-flex' : 'none';
+  document.getElementById('btn-compare-cancel').style.display = compareMode ? 'inline-flex' : 'none';
+  renderInfluencers();
+  if (!compareMode) showToast('비교 모드 해제');
+}
+
+function toggleCompareSelect(id, el) {
+  if (compareSelected.has(id)) {
+    compareSelected.delete(id);
+  } else {
+    if (compareSelected.size >= 4) { showToast('최대 4명까지 비교 가능'); return; }
+    compareSelected.add(id);
+  }
+  if (el) el.checked = compareSelected.has(id);
+  document.getElementById('compare-count').textContent = compareSelected.size;
+}
+
+function showCompareModal() {
+  if (compareSelected.size < 2) { showToast('2명 이상 선택해주세요'); return; }
+
+  const compareList = [...compareSelected].map(id => ({ id, ...allInfluencers[id] }));
+  const priceKey = currentChannel === 'youtube' ? 'priceYoutube' : 'priceInstagram';
+  const isYT = currentChannel === 'youtube';
+
+  const metrics = [
+    { key: 'followers', label: isYT ? '구독자' : '팔로워', fmt: fmtK, higher: true },
+    { key: 'avgViewsLong', label: '조회수(Long)', fmt: fmtK, higher: true },
+    { key: 'avgViewsShort', label: '조회수(Short)', fmt: fmtK, higher: true },
+    { key: 'avgLikes', label: '평균 좋아요', fmt: fmtK, higher: true },
+    { key: 'avgComments', label: '평균 댓글', fmt: fmtK, higher: true },
+    { key: 'engagement', label: '인게이지먼트율', fmt: v => v ? v.toFixed(1) + '%' : '-', higher: true },
+    { key: priceKey, label: '단가', fmt: v => v ? fmt(v) + '만원' : '-', higher: false },
+  ];
+
+  // Calculate CPV for comparison
+  compareList.forEach(inf => {
+    const price = inf[priceKey] || 0;
+    const views = Math.max(inf.avgViewsLong || 0, inf.avgViewsShort || 0);
+    inf._cpv = (price && views) ? Math.round(price * 10000 / views) : 0;
+  });
+  metrics.push({ key: '_cpv', label: 'CPV (조회당 단가)', fmt: v => v ? v + '원' : '-', higher: false });
+
+  // Remove old overlay if exists
+  document.querySelectorAll('.compare-overlay').forEach(el => el.remove());
+
+  let html = `<div class="compare-overlay open" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="compare-modal">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <h3 style="font-size:18px;font-weight:800;">⚖️ 인플루언서 비교</h3>
+        <button class="btn btn-ghost" onclick="this.closest('.compare-overlay').remove()">✕</button>
+      </div>
+      <div class="compare-grid" style="grid-template-columns:repeat(${compareList.length}, 1fr);">`;
+
+  compareList.forEach(inf => {
+    const avatar = inf.profileImage
+      ? `<img src="${inf.profileImage}" style="width:44px;height:44px;border-radius:12px;object-fit:cover;border:2px solid var(--border);">`
+      : `<div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#A855F7,#6366F1);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;">${(inf.name||'?')[0]}</div>`;
+
+    html += `<div class="compare-card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        ${avatar}
+        <div>
+          <h4 style="margin:0;font-size:14px;font-weight:700;">${inf.name}</h4>
+          <div style="font-size:11px;color:var(--text-muted);">${inf.topic || ''}</div>
+        </div>
+      </div>`;
+
+    metrics.forEach(m => {
+      const val = inf[m.key] || 0;
+      const allVals = compareList.map(c => c[m.key] || 0).filter(v => v > 0);
+      const best = m.higher ? Math.max(...allVals) : Math.min(...allVals);
+      const isBest = allVals.length > 1 && val === best && val !== 0;
+      html += `<div class="compare-row">
+        <span class="compare-label">${m.label}</span>
+        <span class="compare-value ${isBest ? 'compare-best' : ''}">${m.fmt(val)}</span>
+      </div>`;
+    });
+
+    html += '</div>';
+  });
+
+  html += '</div></div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
 }
 
 // ===== Sidebar Resize =====
