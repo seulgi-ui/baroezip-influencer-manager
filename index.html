@@ -2133,30 +2133,46 @@ function checkGuideView() {
 // ===== Channel Tab =====
 function switchChannel(ch) {
   currentChannel = ch;
+  columnSortKey = null; columnSortDir = 'desc';
+  document.querySelectorAll('.sortable').forEach(th => th.classList.remove('active','asc','desc'));
   document.querySelectorAll('.ch-tab[data-ch]').forEach(t => t.classList.toggle('active', t.dataset.ch === ch));
 
-  // Update sort options
+  // Update sort options & table headers per channel
   const sort = document.getElementById('inf-sort');
+  const thead = document.querySelector('#inf-table thead tr');
+
   if (ch === 'youtube') {
     sort.innerHTML = '<option value="name">이름순</option><option value="followers">구독자순</option><option value="avgViewsLong">조회수(L)순</option><option value="avgViewsShort">조회수(S)순</option>';
-    document.getElementById('th-followers').textContent = '구독자';
-    document.getElementById('th-views-long').textContent = '조회수(L)';
-    document.getElementById('th-views-short').textContent = '조회수(S)';
+    thead.innerHTML = `
+      <th style="width:32px;"></th>
+      <th style="width:180px;" class="sortable" data-sort="name" onclick="toggleSort('name')">인플루언서 <span class="sort-arrow"></span></th>
+      <th style="width:36px;">CH</th>
+      <th style="width:70px;" class="sortable" data-sort="followers" onclick="toggleSort('followers')">구독자 <span class="sort-arrow"></span></th>
+      <th style="width:70px;" class="sortable" data-sort="avgViewsLong" onclick="toggleSort('avgViewsLong')">조회(L) <span class="sort-arrow"></span></th>
+      <th style="width:70px;" class="sortable" data-sort="avgViewsShort" onclick="toggleSort('avgViewsShort')">조회(S) <span class="sort-arrow"></span></th>
+      <th style="width:60px;" class="sortable" data-sort="avgLikes" onclick="toggleSort('avgLikes')">좋아요 <span class="sort-arrow"></span></th>
+      <th style="width:55px;" class="sortable" data-sort="engagement" onclick="toggleSort('engagement')">ER <span class="sort-arrow"></span></th>
+      <th style="width:70px;" class="sortable" data-sort="price" onclick="toggleSort('price')">단가 <span class="sort-arrow"></span></th>
+      <th style="width:55px;" class="sortable" data-sort="cpv" onclick="toggleSort('cpv')">CPV <span class="sort-arrow"></span></th>
+      <th style="width:70px;">컨택</th>
+      <th style="width:80px;">주제</th>
+      <th style="width:36px;"></th>`;
   } else {
-    sort.innerHTML = '<option value="name">이름순</option><option value="followers">팔로워순</option><option value="avgViewsShort">릴스 조회수순</option>';
-    document.getElementById('th-followers').textContent = '팔로워';
-    document.getElementById('th-views-long').textContent = '-';
-    document.getElementById('th-views-short').textContent = '릴스 조회수';
+    sort.innerHTML = '<option value="name">이름순</option><option value="followers">팔로워순</option><option value="avgViewsShort">릴스 조회수순</option><option value="avgLikes">좋아요순</option>';
+    thead.innerHTML = `
+      <th style="width:32px;"></th>
+      <th style="width:200px;" class="sortable" data-sort="name" onclick="toggleSort('name')">인플루언서 <span class="sort-arrow"></span></th>
+      <th style="width:36px;">CH</th>
+      <th style="width:80px;" class="sortable" data-sort="followers" onclick="toggleSort('followers')">팔로워 <span class="sort-arrow"></span></th>
+      <th style="width:80px;" class="sortable" data-sort="avgViewsShort" onclick="toggleSort('avgViewsShort')">릴스 조회수 <span class="sort-arrow"></span></th>
+      <th style="width:70px;" class="sortable" data-sort="avgLikes" onclick="toggleSort('avgLikes')">좋아요 <span class="sort-arrow"></span></th>
+      <th style="width:55px;" class="sortable" data-sort="engagement" onclick="toggleSort('engagement')">ER <span class="sort-arrow"></span></th>
+      <th style="width:70px;" class="sortable" data-sort="price" onclick="toggleSort('price')">단가 <span class="sort-arrow"></span></th>
+      <th style="width:55px;" class="sortable" data-sort="cpv" onclick="toggleSort('cpv')">CPV <span class="sort-arrow"></span></th>
+      <th style="width:70px;">컨택</th>
+      <th style="width:80px;">주제</th>
+      <th style="width:36px;"></th>`;
   }
-  // Re-add resizer divs to renamed ths
-  ['th-followers','th-views-long','th-views-short'].forEach(id => {
-    const th = document.getElementById(id);
-    if (th && !th.querySelector('.th-resizer')) {
-      const r = document.createElement('div');
-      r.className = 'th-resizer';
-      th.appendChild(r);
-    }
-  });
   renderInfluencers();
 }
 
@@ -2534,24 +2550,36 @@ function renderInfluencers() {
     const cs = inf.contactStatus || 'none';
     const csMap = { none:'미연락', contacting:'연락중', waiting:'회신대기', negotiating:'협의중', confirmed:'확정', rejected:'거절' };
 
-    return `<tr onclick="openDetailPanel('${inf.id}')">
-      <td>${compareMode
-        ? `<input type="checkbox" class="compare-check" ${compareSelected.has(inf.id) ? 'checked' : ''} onclick="event.stopPropagation();toggleCompareSelect('${inf.id}', this)">`
-        : `<button class="star-btn ${inf.favorite ? 'active' : ''}" onclick="event.stopPropagation();toggleFavorite('${inf.id}',${!!inf.favorite})">★</button>`
-      }</td>
-      <td><div class="name-cell">${avatarHtml}<div><div class="name-text">${inf.name || ''}</div><div class="name-sub">${inf.analysis ? inf.analysis.substring(0, 25) + '...' : ''}</div></div></div></td>
-      <td>${badge}</td>
-      <td class="num">${fmtK(inf.followers)}</td>
-      <td class="num">${isYT ? fmtK(inf.avgViewsLong) : '-'}</td>
-      <td class="num">${fmtK(inf.avgViewsShort)}</td>
-      <td class="num">${fmtK(inf.avgLikes)}</td>
+    // Build columns based on channel
+    const starTd = `<td>${compareMode
+      ? `<input type="checkbox" class="compare-check" ${compareSelected.has(inf.id) ? 'checked' : ''} onclick="event.stopPropagation();toggleCompareSelect('${inf.id}', this)">`
+      : `<button class="star-btn ${inf.favorite ? 'active' : ''}" onclick="event.stopPropagation();toggleFavorite('${inf.id}',${!!inf.favorite})">★</button>`
+    }</td>`;
+    const nameTd = `<td><div class="name-cell">${avatarHtml}<div><div class="name-text">${inf.name || ''}</div><div class="name-sub">${inf.analysis ? inf.analysis.substring(0, 25) + '...' : ''}</div></div></div></td>`;
+    const commonTds = `
       <td class="num">${inf.engagement ? inf.engagement.toFixed(1) + '%' : '-'}</td>
       <td class="price-cell">${inf[priceKey] ? fmt(inf[priceKey]) + '<span class="num-unit">만</span>' : '-'}</td>
       <td class="cpv-cell ${cpvClass}">${cpvText}</td>
       <td><span class="contact-badge contact-${cs}">${csMap[cs] || '미연락'}</span></td>
       <td><div class="tp-row">${topics.map(t => `<span class="tp">${t}</span>`).join('')}</div></td>
-      <td><span class="action-dots" onclick="event.stopPropagation();openInfluencerModal('${inf.id}')">⋮</span></td>
-    </tr>`;
+      <td><span class="action-dots" onclick="event.stopPropagation();openInfluencerModal('${inf.id}')">⋮</span></td>`;
+
+    if (isYT) {
+      return `<tr onclick="openDetailPanel('${inf.id}')">${starTd}${nameTd}
+        <td>${badge}</td>
+        <td class="num">${fmtK(inf.followers)}</td>
+        <td class="num">${fmtK(inf.avgViewsLong)}</td>
+        <td class="num">${fmtK(inf.avgViewsShort)}</td>
+        <td class="num">${fmtK(inf.avgLikes)}</td>
+        ${commonTds}</tr>`;
+    } else {
+      return `<tr onclick="openDetailPanel('${inf.id}')">${starTd}${nameTd}
+        <td>${badge}</td>
+        <td class="num">${fmtK(inf.followers)}</td>
+        <td class="num">${fmtK(inf.avgViewsShort)}</td>
+        <td class="num">${fmtK(inf.avgLikes)}</td>
+        ${commonTds}</tr>`;
+    }
   }).join('');
 
   initColumnResize('inf-table');
