@@ -2313,7 +2313,6 @@ function saveInfluencer() {
     priceYoutube: Number(document.getElementById('inf-price-youtube').value) || 0,
     priceInstagram: Number(document.getElementById('inf-price-instagram').value) || 0,
     followers: Number(document.getElementById('inf-followers').value) || 0,
-    engagement: Number(document.getElementById('inf-engagement').value) || 0,
     avgViewsLong: Number(document.getElementById('inf-views-long').value) || 0,
     avgViewsShort: Number(document.getElementById('inf-views-short').value) || 0,
     avgLikes: Number(document.getElementById('inf-likes').value) || 0,
@@ -2324,6 +2323,16 @@ function saveInfluencer() {
     memo: document.getElementById('inf-memo').value.trim(),
     updatedAt: Date.now()
   };
+
+  // Auto-calculate ER if followers and likes/comments exist
+  const manualER = Number(document.getElementById('inf-engagement').value);
+  if (manualER) {
+    data.engagement = manualER;
+  } else if (data.followers > 0 && (data.avgLikes > 0 || data.avgComments > 0)) {
+    data.engagement = Number(((data.avgLikes + data.avgComments) / data.followers * 100).toFixed(2));
+  } else {
+    data.engagement = 0;
+  }
 
   if (!firebaseReady) {
     // Offline mode - store in memory
