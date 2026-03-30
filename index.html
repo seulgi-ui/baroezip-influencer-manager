@@ -366,8 +366,9 @@ table { border-collapse: collapse; width: 100%; }
   white-space: nowrap;
   letter-spacing: 0.2px;
 }
-.badge-youtube { background: #FEF2F2; color: var(--youtube); border: 1px solid #FECACA; }
-.badge-instagram { background: #FDF2F8; color: var(--instagram); border: 1px solid #FBCFE8; }
+.badge-youtube { background: #FEF2F2; border: 1px solid #FECACA; padding: 4px 8px; }
+.badge-instagram { background: #FDF2F8; border: 1px solid #FBCFE8; padding: 4px 8px; }
+.badge-youtube svg, .badge-instagram svg { display: block; }
 .badge-status {
   padding: 3px 10px;
   border-radius: 12px;
@@ -430,13 +431,15 @@ table { border-collapse: collapse; width: 100%; }
 }
 .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .stat-item {
-  padding: 12px;
-  background: linear-gradient(135deg, var(--surface-2) 0%, var(--surface) 100%);
+  padding: 14px;
+  background: var(--surface);
   border-radius: var(--radius-xs);
-  border: 1px solid var(--border-light);
+  border: 1.5px solid var(--border);
+  transition: all 0.2s var(--transition);
 }
-.stat-label { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
-.stat-value { font-size: 17px; font-weight: 800; margin-top: 4px; letter-spacing: -0.3px; }
+.stat-item:hover { border-color: rgba(168,85,247,0.2); box-shadow: 0 2px 8px rgba(168,85,247,0.06); }
+.stat-label { font-size: 10px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-value { font-size: 18px; font-weight: 800; margin-top: 4px; letter-spacing: -0.3px; }
 
 /* ===== Modals ===== */
 .modal-overlay {
@@ -986,6 +989,202 @@ table { border-collapse: collapse; width: 100%; }
 .config-panel .form-input { background: #fff; }
 .config-panel .btn-primary { background: linear-gradient(135deg, #D97706, #B45309); }
 .config-panel .btn-primary:hover { box-shadow: 0 4px 12px rgba(217,119,6,0.3); }
+
+/* ===== Modal Sections ===== */
+.modal-section { margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border-light); }
+.modal-section:last-of-type { border-bottom: none; margin-bottom: 0; }
+.modal-section-title { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; letter-spacing: -0.2px; }
+
+/* Platform Tabs */
+.platform-tabs { display: flex; gap: 6px; }
+.platform-tab {
+  padding: 8px 18px;
+  border-radius: var(--radius-xs);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  transition: all 0.2s var(--transition);
+  cursor: pointer;
+}
+.platform-tab:hover { border-color: #D1D5DB; background: var(--surface-3); }
+.platform-tab.active { background: var(--primary-light); color: var(--primary); border-color: rgba(168,85,247,0.3); box-shadow: 0 0 0 3px var(--primary-glow); }
+
+/* Channel Type Buttons */
+.channel-type-btns { display: flex; gap: 6px; }
+.ch-type-btn {
+  padding: 7px 14px;
+  border-radius: var(--radius-xs);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  transition: all 0.2s var(--transition);
+  cursor: pointer;
+}
+.ch-type-btn:hover { border-color: #D1D5DB; }
+.ch-type-btn.active { color: var(--primary); background: var(--primary-light); border-color: rgba(168,85,247,0.3); }
+
+/* Topic Tags */
+.topic-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.topic-tag {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  transition: all 0.2s var(--transition);
+  cursor: pointer;
+}
+.topic-tag:hover { border-color: #D1D5DB; background: var(--surface-3); }
+.topic-tag.active { background: var(--primary-light); color: var(--primary); border-color: rgba(168,85,247,0.3); }
+
+/* ===== Detail Panel Premium ===== */
+.detail-url-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-xs);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  transition: all 0.2s var(--transition);
+}
+.detail-url-email { color: #7C3AED; background: #F5F3FF; border: 1px solid #EDE9FE; }
+.detail-url-email:hover { background: #EDE9FE; transform: translateX(2px); }
+.detail-url-yt { color: var(--youtube); background: #FEF2F2; border: 1px solid #FECACA; }
+.detail-url-yt:hover { background: #FEE2E2; transform: translateX(2px); }
+.detail-url-ig { color: var(--instagram); background: #FDF2F8; border: 1px solid #FBCFE8; }
+.detail-url-ig:hover { background: #FCE7F3; transform: translateX(2px); }
+
+.detail-topic-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--primary-light), #F3E8FF);
+  color: var(--primary);
+  border: 1px solid rgba(168,85,247,0.2);
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+.detail-price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border-radius: var(--radius-xs);
+  font-size: 13px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border-light);
+}
+.detail-price-value { font-weight: 800; font-size: 15px; color: var(--text-primary); }
+
+.detail-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid rgba(168,85,247,0.15);
+  margin-right: 4px;
+}
+
+/* ===== View Toggle ===== */
+.view-toggle { display: flex; background: var(--surface-2); border-radius: 8px; padding: 3px; gap: 2px; }
+.vt-btn {
+  padding: 6px 14px; border-radius: 6px; font-size: 11px; font-weight: 600;
+  color: var(--text-muted); background: transparent; border: none; cursor: pointer;
+  transition: all 0.2s var(--transition);
+}
+.vt-btn.on { background: var(--surface); color: #7C3AED; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+/* ===== Search & Filter Bar New ===== */
+.search-filter-bar { }
+.search-bar-wrap { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.search-input-new {
+  flex: 1; min-width: 200px; padding: 10px 16px; border-radius: 10px;
+  border: 1.5px solid var(--border); background: var(--surface); color: var(--text-primary);
+  font-size: 13px; outline: none; transition: all 0.2s var(--transition);
+}
+.search-input-new:focus { border-color: #A855F7; box-shadow: 0 0 0 3px rgba(168,85,247,0.08); }
+.filter-chip-new {
+  padding: 9px 14px; border-radius: 8px; font-size: 12px; font-weight: 500;
+  border: 1.5px solid var(--border); background: var(--surface); color: var(--text-muted);
+  cursor: pointer; outline: none; transition: border-color 0.15s;
+}
+.filter-chip-new:focus { border-color: #A855F7; }
+
+/* ===== Card Grid View ===== */
+.inf-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+@media (max-width: 1200px) { .inf-card-grid { grid-template-columns: 1fr; } }
+.inf-card-h {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s var(--transition);
+}
+.inf-card-h:hover { border-color: rgba(168,85,247,0.3); box-shadow: 0 4px 16px rgba(168,85,247,0.06); transform: translateY(-1px); }
+.inf-card-left { margin-bottom: 14px; }
+.inf-card-right { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.inf-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.inf-card-name { font-size: 15px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inf-card-star { color: #FBBF24; font-size: 14px; cursor: pointer; }
+.inf-card-star.off { color: var(--border); }
+.inf-card-badge-yt { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; background: #FEF2F2; color: #EF4444; border: 1px solid #FECACA; }
+.inf-card-badge-ig { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; background: #FDF2F8; color: #EC4899; border: 1px solid #FBCFE8; }
+.inf-card-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inf-card-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.inf-card-price { font-size: 14px; font-weight: 800; color: #7C3AED; }
+.inf-card-topic { padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 600; background: #F5F3FF; color: #7C3AED; border: 1px solid #EDE9FE; }
+.mini-stat {
+  background: var(--surface-2); border: 1px solid var(--border-light);
+  border-radius: 8px; padding: 8px; text-align: center;
+}
+.mini-stat .ms-label { font-size: 9px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.mini-stat .ms-value { font-size: 14px; font-weight: 800; color: var(--text-primary); margin-top: 2px; }
+.mini-stat .ms-purple { color: #7C3AED; }
+.mini-stat .ms-blue { color: #6366F1; }
+
+/* ===== Table Card Wrap ===== */
+.table-card-wrap {
+  background: var(--surface); border-radius: 14px; border: 1.5px solid var(--border);
+  overflow: hidden; box-shadow: var(--shadow);
+}
+.inf-table .name-cell { display: flex; align-items: center; gap: 10px; }
+.inf-table .name-avatar {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, #A855F7, #6366F1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; color: #fff; flex-shrink: 0;
+  overflow: hidden;
+}
+.inf-table .name-avatar img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.inf-table .name-text { font-weight: 700; color: var(--text-primary); }
+.inf-table .name-sub { font-size: 11px; color: var(--text-muted); }
+.inf-table .num-unit { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+.inf-table .price-cell { font-weight: 800; color: var(--text-primary); }
+.inf-table .tp-row { display: flex; gap: 4px; }
+.inf-table .tp { padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 600; background: #F5F3FF; color: #7C3AED; }
+.inf-table .action-dots {
+  width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); font-size: 16px; cursor: pointer; border: 1px solid transparent;
+}
+.inf-table .action-dots:hover { background: var(--surface-2); border-color: var(--border); }
 </style>
 </head>
 <body>
@@ -1042,54 +1241,59 @@ table { border-collapse: collapse; width: 100%; }
           <button class="ch-tab active" data-ch="youtube" onclick="switchChannel('youtube')">YouTube</button>
           <button class="ch-tab" data-ch="instagram" onclick="switchChannel('instagram')">인스타그램</button>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="openInfluencerModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-          추가
-        </button>
+        <button class="btn btn-primary btn-sm" onclick="openInfluencerModal()">+ 추가</button>
       </div>
     </div>
     <div class="main-body">
-      <!-- Filter Bar -->
-      <div class="filter-bar" style="margin-bottom:16px;">
-        <input type="text" id="inf-search" placeholder="이름, 태그, 주제 검색..." oninput="renderInfluencers()">
-        <select id="inf-sort" onchange="renderInfluencers()">
-          <option value="name">이름순</option>
-          <option value="followers">구독자순</option>
-          <option value="avgViewsLong">조회수(L)순</option>
-          <option value="avgViewsShort">조회수(S)순</option>
-        </select>
-        <select id="inf-price" onchange="renderInfluencers()">
-          <option value="">가격대 전체</option>
-          <option value="0-100">~100만</option>
-          <option value="100-300">100~300만</option>
-          <option value="300-500">300~500만</option>
-          <option value="500-">500만~</option>
-        </select>
-        <select id="inf-topic" onchange="renderInfluencers()">
-          <option value="">주제 전체</option>
-        </select>
+      <!-- Search & Filter -->
+      <div class="search-filter-bar" style="margin-bottom:20px;">
+        <div class="search-bar-wrap">
+          <input type="text" id="inf-search" class="search-input-new" placeholder="🔍 이름, 태그, 주제 검색..." oninput="renderInfluencers()">
+          <select id="inf-sort" class="filter-chip-new" onchange="renderInfluencers()">
+            <option value="name">이름순</option>
+            <option value="followers">구독자순</option>
+            <option value="avgViewsLong">조회수(L)순</option>
+            <option value="avgViewsShort">조회수(S)순</option>
+          </select>
+          <select id="inf-price" class="filter-chip-new" onchange="renderInfluencers()">
+            <option value="">가격대 전체</option>
+            <option value="0-100">~100만</option>
+            <option value="100-300">100~300만</option>
+            <option value="300-500">300~500만</option>
+            <option value="500-">500만~</option>
+          </select>
+          <select id="inf-topic" class="filter-chip-new" onchange="renderInfluencers()">
+            <option value="">주제 전체</option>
+          </select>
+        </div>
       </div>
 
-      <!-- Table -->
-      <div style="overflow-x:auto;">
-        <table class="inf-table" id="inf-table">
-          <thead>
-            <tr>
-              <th style="width:36px;"></th>
-              <th style="width:140px;">이름<div class="th-resizer"></div></th>
-              <th style="width:80px;">채널<div class="th-resizer"></div></th>
-              <th style="width:100px;" id="th-followers">구독자<div class="th-resizer"></div></th>
-              <th style="width:100px;" id="th-views-long">조회수(L)<div class="th-resizer"></div></th>
-              <th style="width:100px;" id="th-views-short">조회수(S)<div class="th-resizer"></div></th>
-              <th style="width:80px;">좋아요<div class="th-resizer"></div></th>
-              <th style="width:80px;">댓글<div class="th-resizer"></div></th>
-              <th style="width:80px;">단가(만)<div class="th-resizer"></div></th>
-              <th style="width:120px;">주제<div class="th-resizer"></div></th>
-            </tr>
-          </thead>
-          <tbody id="inf-tbody"></tbody>
-        </table>
+      <!-- Card View (disabled) -->
+      <div id="inf-card-view" style="display:none;"></div>
+
+      <!-- Table View -->
+      <div id="inf-table-view">
+        <div class="table-card-wrap">
+          <table class="inf-table" id="inf-table">
+            <thead>
+              <tr>
+                <th style="width:36px;"></th>
+                <th style="width:200px;">인플루언서</th>
+                <th style="width:60px;">채널</th>
+                <th style="width:80px;" id="th-followers">구독자</th>
+                <th style="width:80px;" id="th-views-long">조회수(L)</th>
+                <th style="width:80px;" id="th-views-short">조회수(S)</th>
+                <th style="width:70px;">좋아요</th>
+                <th style="width:80px;">단가</th>
+                <th style="width:100px;">주제</th>
+                <th style="width:40px;"></th>
+              </tr>
+            </thead>
+            <tbody id="inf-tbody"></tbody>
+          </table>
+        </div>
       </div>
+
       <div id="inf-empty" class="empty-state" style="display:none;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
         <p>등록된 인플루언서가 없습니다</p>
@@ -1256,8 +1460,13 @@ table { border-collapse: collapse; width: 100%; }
 <div id="detail-overlay" class="detail-overlay" onclick="closeDetailPanel()"></div>
 <div id="detail-panel" class="detail-panel">
   <div class="detail-header">
-    <h2 id="detail-name"></h2>
-    <div id="detail-channels" style="display:flex;gap:4px;"></div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div id="detail-profile-img" style="display:none;"></div>
+      <div>
+        <h2 id="detail-name"></h2>
+        <div id="detail-channels" style="display:flex;gap:4px;margin-top:4px;"></div>
+      </div>
+    </div>
   </div>
   <div class="detail-body">
     <div id="detail-urls" class="detail-section"></div>
@@ -1295,113 +1504,166 @@ table { border-collapse: collapse; width: 100%; }
 
 <!-- Modal: Influencer Add/Edit -->
 <div id="modal-influencer" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-influencer')">
-  <div class="modal modal-md">
+  <div class="modal modal-md" style="max-width:680px;">
     <div class="modal-header">
       <h3 id="modal-inf-title">인플루언서 추가</h3>
       <button class="modal-close" onclick="closeModal('modal-influencer')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">이름 *</label>
-        <input type="text" id="inf-name" class="form-input" placeholder="인플루언서 이름">
-      </div>
-      <div class="form-group">
-        <label class="form-label">채널</label>
-        <div style="display:flex;gap:12px;">
-          <label class="form-check"><input type="checkbox" id="ch-youtube" value="youtube" onchange="toggleChannelFields()"> YouTube</label>
-          <label class="form-check"><input type="checkbox" id="ch-instagram" value="instagram" onchange="toggleChannelFields()"> 인스타그램</label>
+
+      <!-- 채널 등록 -->
+      <div class="modal-section">
+        <div class="modal-section-title">🔗 채널 등록</div>
+        <div class="form-group">
+          <label class="form-label">플랫폼 선택</label>
+          <div class="platform-tabs">
+            <button type="button" class="platform-tab" data-plat="youtube" onclick="selectPlatformTab('youtube')">유튜브</button>
+            <button type="button" class="platform-tab" data-plat="instagram" onclick="selectPlatformTab('instagram')">인스타그램</button>
+          </div>
+        </div>
+        <div id="plat-youtube-url" style="display:none;">
+          <div class="form-group">
+            <input type="text" id="inf-url-youtube" class="form-input" placeholder="https://youtube.com/@channel">
+            <div class="form-hint">URL 또는 한글 채널명 입력 → 자동 크롤링</div>
+            <div class="yt-loading" id="yt-loading">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              채널 정보 수집 중...
+            </div>
+            <div class="yt-result-box" id="yt-result"></div>
+          </div>
+        </div>
+        <div id="plat-instagram-url" style="display:none;">
+          <div class="form-group">
+            <input type="text" id="inf-url-instagram" class="form-input" placeholder="https://instagram.com/username">
+            <div class="form-hint">URL 또는 @username 입력</div>
+            <div class="yt-loading" id="ig-loading">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              인스타 정보 수집 중...
+            </div>
+            <div class="yt-result-box" id="ig-result"></div>
+          </div>
         </div>
       </div>
 
-      <!-- YouTube Fields -->
-      <div id="fields-youtube" style="display:none;">
-        <div class="form-group">
-          <label class="form-label">YouTube URL</label>
-          <input type="text" id="inf-url-youtube" class="form-input" placeholder="https://youtube.com/@channel">
-          <div class="yt-loading" id="yt-loading">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-            채널 정보 수집 중...
+      <!-- 기본 정보 -->
+      <div class="modal-section">
+        <div class="modal-section-title">기본 정보</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">이름 *</label>
+            <input type="text" id="inf-name" class="form-input" placeholder="인플루언서 이름">
           </div>
-          <div class="yt-result-box" id="yt-result"></div>
+          <div class="form-group">
+            <label class="form-label">채널 유형</label>
+            <div class="channel-type-btns">
+              <button type="button" class="ch-type-btn" id="ch-youtube" data-ch="youtube" onclick="toggleChType('youtube')">📺 유튜브</button>
+              <button type="button" class="ch-type-btn" id="ch-instagram" data-ch="instagram" onclick="toggleChType('instagram')">📷 인스타</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 연락처 -->
+      <div class="modal-section">
+        <div class="modal-section-title">연락처</div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">이메일</label>
+          <input type="email" id="inf-email" class="form-input" placeholder="business@example.com (YouTube 설명에서 자동 추출)">
+        </div>
+      </div>
+
+      <!-- 채널 통계 -->
+      <div class="modal-section">
+        <div class="modal-section-title">채널 통계</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label class="form-label">팔로워/구독자 수</label>
+            <input type="number" id="inf-followers" class="form-input" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">평균 좋아요</label>
+            <input type="number" id="inf-likes" class="form-input" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">평균 댓글</label>
+            <input type="number" id="inf-comments" class="form-input" placeholder="0">
+          </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">YouTube 단가 (만원)</label>
-            <input type="number" id="inf-price-youtube" class="form-input" placeholder="0">
+            <label class="form-label">평균 조회수 (Long) <span style="font-weight:400;color:var(--text-muted);">60초 초과 영상</span></label>
+            <input type="number" id="inf-views-long" class="form-input" placeholder="0">
           </div>
-        </div>
-      </div>
-
-      <!-- Instagram Fields -->
-      <div id="fields-instagram" style="display:none;">
-        <div class="form-group">
-          <label class="form-label">Instagram URL</label>
-          <input type="text" id="inf-url-instagram" class="form-input" placeholder="https://instagram.com/username">
-          <div class="yt-loading" id="ig-loading">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-            인스타 정보 수집 중...
-          </div>
-          <div class="yt-result-box" id="ig-result"></div>
-        </div>
-        <div class="form-row">
           <div class="form-group">
-            <label class="form-label">인스타 단가 (만원)</label>
-            <input type="number" id="inf-price-instagram" class="form-input" placeholder="0">
+            <label class="form-label">평균 조회수 (Short) <span style="font-weight:400;color:var(--text-muted);">60초 이하 Shorts</span></label>
+            <input type="number" id="inf-views-short" class="form-input" placeholder="0">
           </div>
-        </div>
-      </div>
-
-      <!-- Common Stats Fields -->
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">팔로워/구독자</label>
-          <input type="number" id="inf-followers" class="form-input" placeholder="0">
         </div>
         <div class="form-group">
           <label class="form-label">인게이지먼트율 (%)</label>
-          <input type="number" id="inf-engagement" class="form-input" placeholder="0" step="0.1">
+          <input type="number" id="inf-engagement" class="form-input" placeholder="0" step="0.1" style="max-width:200px;">
+          <div class="form-hint">팔로워 대비 반응률 (자동 불러오기 시 자동 계산됨)</div>
         </div>
       </div>
-      <div class="form-row">
+
+      <!-- 채널 분류 -->
+      <div class="modal-section">
+        <div class="modal-section-title">채널 분류</div>
         <div class="form-group">
-          <label class="form-label">평균 조회수 (Long)</label>
-          <input type="number" id="inf-views-long" class="form-input" placeholder="0">
+          <label class="form-label">주제 (다중 선택)</label>
+          <div class="topic-tags" id="topic-tags">
+            <button type="button" class="topic-tag" data-topic="일상" onclick="toggleTopicTag(this)">일상</button>
+            <button type="button" class="topic-tag" data-topic="교육" onclick="toggleTopicTag(this)">교육</button>
+            <button type="button" class="topic-tag" data-topic="재테크" onclick="toggleTopicTag(this)">재테크</button>
+            <button type="button" class="topic-tag" data-topic="유머" onclick="toggleTopicTag(this)">유머</button>
+            <button type="button" class="topic-tag" data-topic="가족" onclick="toggleTopicTag(this)">가족</button>
+            <button type="button" class="topic-tag" data-topic="연애" onclick="toggleTopicTag(this)">연애</button>
+            <button type="button" class="topic-tag" data-topic="먹방" onclick="toggleTopicTag(this)">먹방</button>
+            <button type="button" class="topic-tag" data-topic="부동산" onclick="toggleTopicTag(this)">부동산</button>
+            <button type="button" class="topic-tag" data-topic="뷰티" onclick="toggleTopicTag(this)">뷰티</button>
+            <button type="button" class="topic-tag" data-topic="패션" onclick="toggleTopicTag(this)">패션</button>
+            <button type="button" class="topic-tag" data-topic="여행" onclick="toggleTopicTag(this)">여행</button>
+            <button type="button" class="topic-tag" data-topic="기타" onclick="toggleTopicTag(this)">기타</button>
+          </div>
         </div>
         <div class="form-group">
-          <label class="form-label">평균 조회수 (Short)</label>
-          <input type="number" id="inf-views-short" class="form-input" placeholder="0">
+          <label class="form-label">채널 분석</label>
+          <textarea id="inf-analysis" class="form-textarea" rows="3" placeholder="채널 특성 분석 내용..."></textarea>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">평균 좋아요</label>
-          <input type="number" id="inf-likes" class="form-input" placeholder="0">
+
+      <!-- 협찬 단가 -->
+      <div class="modal-section">
+        <div class="modal-section-title">협찬 단가</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">유튜브 PPL (만원)</label>
+            <input type="number" id="inf-price-youtube" class="form-input" placeholder="예: 1,000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">인스타 피드 (만원)</label>
+            <input type="number" id="inf-price-instagram" class="form-input" placeholder="예: 100">
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">평균 댓글</label>
-          <input type="number" id="inf-comments" class="form-input" placeholder="0">
+      </div>
+
+      <!-- 메모 -->
+      <div class="modal-section">
+        <div class="modal-section-title">메모</div>
+        <div class="form-group" style="margin-bottom:0;">
+          <textarea id="inf-memo" class="form-textarea" rows="3" placeholder="특이사항, 연락처 등을 기록하세요"></textarea>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">주제</label>
-        <input type="text" id="inf-topic" class="form-input" placeholder="일상, 교육, 부동산 (쉼표 구분)">
-      </div>
-      <div class="form-group">
-        <label class="form-label">채널 분석</label>
-        <textarea id="inf-analysis" class="form-textarea" rows="2" placeholder="채널 특성 분석..."></textarea>
-      </div>
-      <div class="form-group">
-        <label class="form-label">태그</label>
-        <input type="text" id="inf-tags" class="form-input" placeholder="태그1, 태그2 (쉼표 구분)">
-      </div>
-      <div class="form-group">
-        <label class="form-label">메모</label>
-        <textarea id="inf-memo" class="form-textarea" rows="2" placeholder="메모..."></textarea>
-      </div>
+
+      <!-- Hidden fields -->
+      <input type="hidden" id="inf-topic">
+      <input type="hidden" id="inf-tags">
+      <input type="hidden" id="inf-profile-image">
+
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-influencer')">취소</button>
-      <button class="btn btn-primary" onclick="saveInfluencer()">저장</button>
+      <button class="btn btn-primary" onclick="saveInfluencer()">✓ 저장</button>
     </div>
   </div>
 </div>
@@ -1716,8 +1978,27 @@ function switchChannel(ch) {
 }
 
 function toggleChannelFields() {
-  document.getElementById('fields-youtube').style.display = document.getElementById('ch-youtube').checked ? 'block' : 'none';
-  document.getElementById('fields-instagram').style.display = document.getElementById('ch-instagram').checked ? 'block' : 'none';
+  // Legacy - kept for compatibility
+}
+
+function selectPlatformTab(plat) {
+  document.querySelectorAll('.platform-tab').forEach(t => t.classList.toggle('active', t.dataset.plat === plat));
+  document.getElementById('plat-youtube-url').style.display = plat === 'youtube' ? 'block' : 'none';
+  document.getElementById('plat-instagram-url').style.display = plat === 'instagram' ? 'block' : 'none';
+  // Auto-check channel type
+  const btn = document.querySelector(`.ch-type-btn[data-ch="${plat}"]`);
+  if (btn && !btn.classList.contains('active')) btn.classList.add('active');
+}
+
+function toggleChType(ch) {
+  document.querySelector(`.ch-type-btn[data-ch="${ch}"]`).classList.toggle('active');
+}
+
+function toggleTopicTag(el) {
+  el.classList.toggle('active');
+  // Sync to hidden input
+  const selected = [...document.querySelectorAll('.topic-tag.active')].map(t => t.dataset.topic).join(', ');
+  document.getElementById('inf-topic').value = selected;
 }
 
 // ===== Realtime Listeners =====
@@ -1758,12 +2039,15 @@ function openInfluencerModal(id) {
   editingInfluencerId = id || null;
   document.getElementById('modal-inf-title').textContent = id ? '인플루언서 수정' : '인플루언서 추가';
 
-  // Reset
-  ['inf-name','inf-url-youtube','inf-url-instagram','inf-price-youtube','inf-price-instagram',
+  // Reset all fields
+  ['inf-name','inf-email','inf-url-youtube','inf-url-instagram','inf-price-youtube','inf-price-instagram',
    'inf-followers','inf-engagement','inf-views-long','inf-views-short','inf-likes','inf-comments',
-   'inf-topic','inf-analysis','inf-tags','inf-memo'].forEach(f => document.getElementById(f).value = '');
-  document.getElementById('ch-youtube').checked = false;
-  document.getElementById('ch-instagram').checked = false;
+   'inf-topic','inf-analysis','inf-tags','inf-memo','inf-profile-image'].forEach(f => document.getElementById(f).value = '');
+  document.querySelectorAll('.ch-type-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.topic-tag').forEach(t => t.classList.remove('active'));
+  document.getElementById('plat-youtube-url').style.display = 'none';
+  document.getElementById('plat-instagram-url').style.display = 'none';
   document.getElementById('yt-result').classList.remove('show');
   document.getElementById('ig-result').classList.remove('show');
 
@@ -1771,24 +2055,42 @@ function openInfluencerModal(id) {
     const inf = allInfluencers[id];
     document.getElementById('inf-name').value = inf.name || '';
     const chs = inf.channels || [];
-    document.getElementById('ch-youtube').checked = chs.includes('youtube');
-    document.getElementById('ch-instagram').checked = chs.includes('instagram');
+    chs.forEach(ch => {
+      const btn = document.querySelector(`.ch-type-btn[data-ch="${ch}"]`);
+      if (btn) btn.classList.add('active');
+    });
+    document.getElementById('inf-email').value = inf.email || '';
+    document.getElementById('inf-profile-image').value = inf.profileImage || '';
     document.getElementById('inf-url-youtube').value = inf.urlYoutube || '';
     document.getElementById('inf-url-instagram').value = inf.urlInstagram || '';
-    document.getElementById('inf-price-youtube').value = inf.priceYoutube || '';
-    document.getElementById('inf-price-instagram').value = inf.priceInstagram || '';
-    document.getElementById('inf-followers').value = inf.followers || '';
-    document.getElementById('inf-engagement').value = inf.engagement || '';
-    document.getElementById('inf-views-long').value = inf.avgViewsLong || '';
-    document.getElementById('inf-views-short').value = inf.avgViewsShort || '';
-    document.getElementById('inf-likes').value = inf.avgLikes || '';
-    document.getElementById('inf-comments').value = inf.avgComments || '';
+    document.getElementById('inf-price-youtube').value = inf.priceYoutube != null ? inf.priceYoutube : '';
+    document.getElementById('inf-price-instagram').value = inf.priceInstagram != null ? inf.priceInstagram : '';
+    document.getElementById('inf-followers').value = inf.followers != null ? inf.followers : '';
+    document.getElementById('inf-engagement').value = inf.engagement != null ? inf.engagement : '';
+    document.getElementById('inf-views-long').value = inf.avgViewsLong != null ? inf.avgViewsLong : '';
+    document.getElementById('inf-views-short').value = inf.avgViewsShort != null ? inf.avgViewsShort : '';
+    document.getElementById('inf-likes').value = inf.avgLikes != null ? inf.avgLikes : '';
+    document.getElementById('inf-comments').value = inf.avgComments != null ? inf.avgComments : '';
     document.getElementById('inf-topic').value = inf.topic || '';
     document.getElementById('inf-analysis').value = inf.analysis || '';
     document.getElementById('inf-tags').value = (inf.tags || []).join(', ');
     document.getElementById('inf-memo').value = inf.memo || '';
+    // Show both URL tabs if both channels exist
+    if (chs.includes('youtube')) {
+      document.getElementById('plat-youtube-url').style.display = 'block';
+      document.querySelector('.platform-tab[data-plat="youtube"]').classList.add('active');
+    }
+    if (chs.includes('instagram')) {
+      document.getElementById('plat-instagram-url').style.display = 'block';
+      document.querySelector('.platform-tab[data-plat="instagram"]').classList.add('active');
+    }
+    // Restore topic tags
+    (inf.topic || '').split(',').forEach(t => {
+      t = t.trim();
+      const tag = document.querySelector(`.topic-tag[data-topic="${t}"]`);
+      if (tag) tag.classList.add('active');
+    });
   }
-  toggleChannelFields();
   openModal('modal-influencer');
 }
 
@@ -1797,12 +2099,13 @@ function saveInfluencer() {
   if (!name) { showToast('이름을 입력해주세요'); return; }
 
   const channels = [];
-  if (document.getElementById('ch-youtube').checked) channels.push('youtube');
-  if (document.getElementById('ch-instagram').checked) channels.push('instagram');
+  document.querySelectorAll('.ch-type-btn.active').forEach(b => channels.push(b.dataset.ch));
 
   const data = {
     name,
     channels,
+    email: document.getElementById('inf-email').value.trim(),
+    profileImage: document.getElementById('inf-profile-image').value.trim(),
     urlYoutube: document.getElementById('inf-url-youtube').value.trim(),
     urlInstagram: document.getElementById('inf-url-instagram').value.trim(),
     priceYoutube: Number(document.getElementById('inf-price-youtube').value) || 0,
@@ -1813,7 +2116,7 @@ function saveInfluencer() {
     avgViewsShort: Number(document.getElementById('inf-views-short').value) || 0,
     avgLikes: Number(document.getElementById('inf-likes').value) || 0,
     avgComments: Number(document.getElementById('inf-comments').value) || 0,
-    topic: document.getElementById('inf-topic').value.trim(),
+    topic: [...document.querySelectorAll('.topic-tag.active')].map(t => t.dataset.topic).join(', ') || document.getElementById('inf-topic').value.trim(),
     analysis: document.getElementById('inf-analysis').value.trim(),
     tags: document.getElementById('inf-tags').value.split(',').map(t => t.trim()).filter(Boolean),
     memo: document.getElementById('inf-memo').value.trim(),
@@ -1873,9 +2176,27 @@ function toggleFavorite(id, current) {
   }
 }
 
-// ===== Render Influencer Table =====
+// ===== Number Formatting (만 단위) =====
+function fmtK(n) {
+  if (n == null || isNaN(n) || n === 0) return '-';
+  n = Number(n);
+  if (n >= 10000) return (n / 10000).toFixed(n >= 100000 ? 0 : 1) + '만';
+  return fmt(n);
+}
+
+// ===== View Toggle =====
+let currentListView = 'card';
+function switchListView(mode) {
+  currentListView = mode;
+  document.getElementById('inf-card-view').style.display = mode === 'card' ? 'grid' : 'none';
+  document.getElementById('inf-table-view').style.display = mode === 'table' ? 'block' : 'none';
+  document.getElementById('btn-view-card').classList.toggle('on', mode === 'card');
+  document.getElementById('btn-view-table').classList.toggle('on', mode === 'table');
+  renderInfluencers();
+}
+
+// ===== Render Influencers =====
 function renderInfluencers() {
-  const tbody = document.getElementById('inf-tbody');
   const search = (document.getElementById('inf-search').value || '').toLowerCase();
   const sortKey = document.getElementById('inf-sort').value;
   const priceRange = document.getElementById('inf-price').value;
@@ -1921,24 +2242,63 @@ function renderInfluencers() {
 
   document.getElementById('inf-empty').style.display = items.length ? 'none' : 'flex';
 
-  tbody.innerHTML = items.map(inf => {
-    const priceKey = currentChannel === 'youtube' ? 'priceYoutube' : 'priceInstagram';
-    const chBadges = (inf.channels || []).map(c =>
-      c === 'youtube' ? '<span class="badge badge-youtube">YT</span>' :
-      '<span class="badge badge-instagram">IG</span>'
+  const priceKey = currentChannel === 'youtube' ? 'priceYoutube' : 'priceInstagram';
+  const isYT = currentChannel === 'youtube';
+
+  // ===== Card View =====
+  document.getElementById('inf-card-view').innerHTML = items.map(inf => {
+    const badge = (inf.channels || []).map(c =>
+      c === 'youtube' ? '<span class="inf-card-badge-yt">YT</span>' : '<span class="inf-card-badge-ig">IG</span>'
     ).join(' ');
+    const topics = (inf.topic || '').split(',').map(t => t.trim()).filter(Boolean);
+    const desc = inf.analysis || '';
+
+    return `<div class="inf-card-h" onclick="openDetailPanel('${inf.id}')">
+      <div class="inf-card-left">
+        <div class="inf-card-top">
+          <span class="inf-card-name">${inf.name || ''}</span>
+          <span class="inf-card-star ${inf.favorite ? '' : 'off'}" onclick="event.stopPropagation();toggleFavorite('${inf.id}',${!!inf.favorite})">★</span>
+          ${badge}
+        </div>
+        <div class="inf-card-desc">${desc || '채널 분석 정보가 없습니다'}</div>
+        <div class="inf-card-meta">
+          <span class="inf-card-price">${inf[priceKey] ? '💰 ' + fmt(inf[priceKey]) + '만' : ''}</span>
+          ${topics.map(t => `<span class="inf-card-topic">${t}</span>`).join('')}
+        </div>
+      </div>
+      <div class="inf-card-right">
+        <div class="mini-stat"><div class="ms-label">${isYT ? '구독자' : '팔로워'}</div><div class="ms-value">${fmtK(inf.followers)}</div></div>
+        <div class="mini-stat"><div class="ms-label">조회(L)</div><div class="ms-value ms-blue">${isYT ? fmtK(inf.avgViewsLong) : '-'}</div></div>
+        <div class="mini-stat"><div class="ms-label">조회(S)</div><div class="ms-value ms-purple">${fmtK(inf.avgViewsShort)}</div></div>
+        <div class="mini-stat"><div class="ms-label">좋아요</div><div class="ms-value">${fmtK(inf.avgLikes)}</div></div>
+        <div class="mini-stat"><div class="ms-label">댓글</div><div class="ms-value">${fmtK(inf.avgComments)}</div></div>
+        <div class="mini-stat"><div class="ms-label">ER</div><div class="ms-value">${inf.engagement ? inf.engagement.toFixed(1) + '%' : '-'}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ===== Table View =====
+  const tbody = document.getElementById('inf-tbody');
+  tbody.innerHTML = items.map(inf => {
+    const badge = (inf.channels || []).includes('youtube') ?
+      '<span class="badge badge-youtube"><svg width="14" height="10" viewBox="0 0 24 17" fill="#FF0000"><path d="M23.5 2.5c-.3-1-1-1.8-2-2.1C19.6 0 12 0 12 0S4.4 0 2.5.4c-1 .3-1.7 1.1-2 2.1C0 4.4 0 8.3 0 8.3s0 3.9.5 5.8c.3 1 1 1.8 2 2.1 1.9.5 9.5.5 9.5.5s7.6 0 9.5-.5c1-.3 1.7-1.1 2-2.1.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 12V4.7l6.4 3.6L9.5 12z"/></svg></span>' : '<span class="badge badge-instagram"><svg width="14" height="14" viewBox="0 0 24 24" fill="#E1306C"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.2 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1.1.4 2.2.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.9c-.1 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1.1.4-2.2.4-1.3.1-1.6.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1.1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.2-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1.1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zM12 0C8.7 0 8.3 0 7 .1 5.7.1 4.8.3 4 .6 3.2.9 2.5 1.3 1.8 2 1.1 2.7.7 3.4.4 4.2.2 5 0 5.9 0 7.2 0 8.5 0 8.9 0 12s0 3.7.1 5c0 1.3.2 2.2.5 3 .3.8.7 1.5 1.4 2.2.7.7 1.4 1.1 2.2 1.4.8.3 1.7.5 3 .5 1.3.1 1.7.1 5 .1s3.7 0 5-.1c1.3 0 2.2-.2 3-.5.8-.3 1.5-.7 2.2-1.4.7-.7 1.1-1.4 1.4-2.2.3-.8.5-1.7.5-3 .1-1.3.1-1.7.1-5s0-3.7-.1-5c0-1.3-.2-2.2-.5-3-.3-.8-.7-1.5-1.4-2.2C21.3 1.3 20.6.9 19.8.6 19 .3 18.1.1 16.8.1 15.5 0 15.1 0 12 0zm0 5.8a6.2 6.2 0 100 12.4 6.2 6.2 0 000-12.4zM12 16a4 4 0 110-8 4 4 0 010 8zm6.4-10.8a1.44 1.44 0 100 2.88 1.44 1.44 0 000-2.88z"/></svg></span>';
+    const topics = (inf.topic || '').split(',').map(t => t.trim()).filter(Boolean);
+    const initial = (inf.name || '?')[0];
+    const avatarHtml = inf.profileImage
+      ? `<div class="name-avatar"><img src="${inf.profileImage}" alt=""></div>`
+      : `<div class="name-avatar">${initial}</div>`;
 
     return `<tr onclick="openDetailPanel('${inf.id}')">
       <td><button class="star-btn ${inf.favorite ? 'active' : ''}" onclick="event.stopPropagation();toggleFavorite('${inf.id}',${!!inf.favorite})">★</button></td>
-      <td style="font-weight:600;">${inf.name || ''}</td>
-      <td>${chBadges}</td>
-      <td>${fmt(inf.followers)}</td>
-      <td>${currentChannel === 'youtube' ? fmt(inf.avgViewsLong) : '-'}</td>
-      <td>${fmt(inf.avgViewsShort)}</td>
-      <td>${fmt(inf.avgLikes)}</td>
-      <td>${fmt(inf.avgComments)}</td>
-      <td>${fmt(inf[priceKey])}</td>
-      <td title="${inf.topic || ''}">${inf.topic || '-'}</td>
+      <td><div class="name-cell">${avatarHtml}<div><div class="name-text">${inf.name || ''}</div><div class="name-sub">${inf.analysis ? inf.analysis.substring(0, 30) : ''}</div></div></div></td>
+      <td>${badge}</td>
+      <td class="num">${fmtK(inf.followers)}</td>
+      <td class="num">${isYT ? fmtK(inf.avgViewsLong) : '-'}</td>
+      <td class="num">${fmtK(inf.avgViewsShort)}</td>
+      <td class="num">${fmtK(inf.avgLikes)}</td>
+      <td class="price-cell">${inf[priceKey] ? fmt(inf[priceKey]) + '<span class="num-unit">만</span>' : '-'}</td>
+      <td><div class="tp-row">${topics.map(t => `<span class="tp">${t}</span>`).join('')}</div></td>
+      <td><span class="action-dots" onclick="event.stopPropagation();openInfluencerModal('${inf.id}')">⋮</span></td>
     </tr>`;
   }).join('');
 
@@ -1965,6 +2325,15 @@ function openDetailPanel(id) {
 
   document.getElementById('detail-name').textContent = inf.name || '';
 
+  // Profile image
+  const profileArea = document.getElementById('detail-profile-img');
+  if (inf.profileImage) {
+    profileArea.innerHTML = `<img src="${inf.profileImage}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;border:2px solid var(--border);">`;
+    profileArea.style.display = 'block';
+  } else {
+    profileArea.style.display = 'none';
+  }
+
   // Channel badges
   const chDiv = document.getElementById('detail-channels');
   chDiv.innerHTML = (inf.channels || []).map(c =>
@@ -1975,21 +2344,24 @@ function openDetailPanel(id) {
   // URLs
   const urlDiv = document.getElementById('detail-urls');
   let urlHtml = '';
-  if (inf.urlYoutube) urlHtml += `<a href="${inf.urlYoutube}" target="_blank" style="display:block;color:var(--youtube);font-size:13px;margin-bottom:4px;">▶ YouTube</a>`;
-  if (inf.urlInstagram) urlHtml += `<a href="${inf.urlInstagram}" target="_blank" style="display:block;color:var(--instagram);font-size:13px;margin-bottom:4px;">📷 Instagram</a>`;
+  if (inf.email) urlHtml += `<a href="mailto:${inf.email}" class="detail-url-link detail-url-email"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4L12 13 2 4"/></svg> ${inf.email}</a>`;
+  if (inf.urlYoutube) urlHtml += `<a href="${inf.urlYoutube}" target="_blank" class="detail-url-link detail-url-yt"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2c-.3-1-1-1.8-2-2.1C19.6 3.6 12 3.6 12 3.6s-7.6 0-9.5.5c-1 .3-1.8 1-2.1 2C0 8.1 0 12 0 12s0 3.9.4 5.8c.3 1 1 1.8 2 2.1 1.9.5 9.5.5 9.5.5s7.6 0 9.5-.5c1-.3 1.8-1 2.1-2 .4-1.9.4-5.8.4-5.8s0-3.9-.4-5.8zM9.5 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg> YouTube 채널</a>`;
+  if (inf.urlInstagram) urlHtml += `<a href="${inf.urlInstagram}" target="_blank" class="detail-url-link detail-url-ig"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.2 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1.1.4 2.2.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.9c-.1 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1.1.4-2.2.4-1.3.1-1.6.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1.1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.2-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1.1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zM12 0C8.7 0 8.3 0 7 .1 5.7.1 4.8.3 4 .6c-.8.3-1.5.7-2.2 1.4C1.1 2.7.7 3.4.4 4.2.2 5 0 5.9 0 7.2 0 8.5 0 8.9 0 12.2s0 3.7.1 5c.1 1.3.3 2.2.6 3 .3.8.7 1.5 1.4 2.2.7.7 1.4 1.1 2.2 1.4.8.3 1.7.5 3 .6 1.3.1 1.7.1 5 .1s3.7 0 5-.1c1.3-.1 2.2-.3 3-.6.8-.3 1.5-.7 2.2-1.4.7-.7 1.1-1.4 1.4-2.2.3-.8.5-1.7.6-3 .1-1.3.1-1.7.1-5s0-3.7-.1-5c-.1-1.3-.3-2.2-.6-3-.3-.8-.7-1.5-1.4-2.2C21.3 1.1 20.6.7 19.8.4 19 .2 18.1 0 16.8 0 15.5 0 15.1 0 12 0zM12 5.8c-3.4 0-6.2 2.8-6.2 6.2s2.8 6.2 6.2 6.2 6.2-2.8 6.2-6.2-2.8-6.2-6.2-6.2zM12 16c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4zm6.4-10.8c-.8 0-1.4.6-1.4 1.4s.6 1.4 1.4 1.4 1.4-.6 1.4-1.4-.6-1.4-1.4-1.4z"/></svg> Instagram 프로필</a>`;
   urlDiv.innerHTML = urlHtml || '<span style="color:var(--text-muted);font-size:13px;">등록된 URL 없음</span>';
 
-  // Topic & Analysis
-  document.getElementById('detail-topic').innerHTML = inf.topic ?
-    `<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;background:#F0FDF4;color:#059669;border:1px solid #A7F3D0;">${inf.topic}</span>` : '';
+  // Topic tags
+  const topics = (inf.topic || '').split(',').map(t => t.trim()).filter(Boolean);
+  document.getElementById('detail-topic').innerHTML = topics.length ?
+    topics.map(t => `<span class="detail-topic-tag">${t}</span>`).join('') :
+    '<span style="color:var(--text-muted);font-size:13px;">-</span>';
   document.getElementById('detail-analysis').textContent = inf.analysis || '';
 
   // Stats
   const isYT = (inf.channels || []).includes('youtube');
   document.getElementById('detail-stats').innerHTML = `
     <div class="stat-item"><div class="stat-label">${isYT ? '구독자' : '팔로워'}</div><div class="stat-value">${fmt(inf.followers)}</div></div>
-    ${isYT ? `<div class="stat-item"><div class="stat-label">평균 조회수 (Long)</div><div class="stat-value" style="color:#3B82F6;">${fmt(inf.avgViewsLong)}</div></div>` : ''}
-    <div class="stat-item"><div class="stat-label">${isYT ? '평균 조회수 (Short)' : '평균 릴스 조회수'}</div><div class="stat-value" style="color:#EC4899;">${fmt(inf.avgViewsShort)}</div></div>
+    ${isYT ? `<div class="stat-item"><div class="stat-label">평균 조회수 (LONG)</div><div class="stat-value" style="color:#6366F1;">${fmt(inf.avgViewsLong)}</div></div>` : ''}
+    <div class="stat-item"><div class="stat-label">${isYT ? '평균 조회수 (SHORT)' : '평균 릴스 조회수'}</div><div class="stat-value" style="color:#A855F7;">${fmt(inf.avgViewsShort)}</div></div>
     <div class="stat-item"><div class="stat-label">평균 좋아요</div><div class="stat-value">${fmt(inf.avgLikes)}</div></div>
     <div class="stat-item"><div class="stat-label">평균 댓글</div><div class="stat-value">${fmt(inf.avgComments)}</div></div>
     <div class="stat-item"><div class="stat-label">인게이지먼트율</div><div class="stat-value">${inf.engagement ? inf.engagement.toFixed(1) + '%' : '-'}</div></div>
@@ -1997,13 +2369,13 @@ function openDetailPanel(id) {
 
   // Prices
   let priceHtml = '';
-  if (inf.priceYoutube) priceHtml += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span>유튜브 PPL</span><span style="font-weight:700;">${fmt(inf.priceYoutube)}만원</span></div>`;
-  if (inf.priceInstagram) priceHtml += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span>인스타 피드</span><span style="font-weight:700;">${fmt(inf.priceInstagram)}만원</span></div>`;
+  if (inf.priceYoutube) priceHtml += `<div class="detail-price-row"><span>유튜브 PPL</span><span class="detail-price-value">${fmt(inf.priceYoutube)}만원</span></div>`;
+  if (inf.priceInstagram) priceHtml += `<div class="detail-price-row"><span>인스타 피드</span><span class="detail-price-value">${fmt(inf.priceInstagram)}만원</span></div>`;
   document.getElementById('detail-prices').innerHTML = priceHtml || '<span style="color:var(--text-muted);font-size:13px;">-</span>';
 
   // Tags
   document.getElementById('detail-tags').innerHTML = (inf.tags || []).map(t =>
-    `<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:500;background:var(--primary-light);color:var(--primary);">${t}</span>`
+    `<span class="detail-tag">${t}</span>`
   ).join('') || '<span style="color:var(--text-muted);font-size:13px;">-</span>';
 
   // Memo
@@ -2034,7 +2406,10 @@ function saveDetailMemo() {
 }
 
 function deleteFromDetail() { if (detailInfluencerId) deleteInfluencer(detailInfluencerId); }
-function editFromDetail() { if (detailInfluencerId) { closeDetailPanel(); openInfluencerModal(detailInfluencerId); } }
+function editFromDetail() {
+  const id = detailInfluencerId;
+  if (id) { closeDetailPanel(); openInfluencerModal(id); }
+}
 
 // ===== YouTube API =====
 let ytDebounce = null;
@@ -2132,12 +2507,12 @@ async function fetchYouTubeData(url) {
 
     // Extract topics
     const topicMap = {
-      'Entertainment': '엔터', 'Music': '음악', 'Gaming': '게임', 'Sports': '스포츠',
-      'Education': '교육', 'Science': '과학', 'Technology': 'IT/테크', 'Lifestyle': '라이프스타일',
-      'Comedy': '코미디', 'Film': '영화', 'News': '뉴스', 'Pets': '반려동물',
-      'People': '인물', 'Fashion': '패션', 'Beauty': '뷰티', 'Food': '음식',
-      'Travel': '여행', 'Autos': '자동차', 'Society': '사회', 'Knowledge': '지식',
-      'How-to': '노하우', 'Howto': '노하우'
+      'Entertainment': '일상', 'Music': '일상', 'Gaming': '기타', 'Sports': '기타',
+      'Education': '교육', 'Science': '교육', 'Technology': '재테크', 'Lifestyle': '일상',
+      'Comedy': '유머', 'Film': '일상', 'News': '기타', 'Pets': '가족',
+      'People': '일상', 'Fashion': '패션', 'Beauty': '뷰티', 'Food': '먹방',
+      'Travel': '여행', 'Autos': '기타', 'Society': '교육', 'Knowledge': '교육',
+      'How-to': '교육', 'Howto': '교육'
     };
     let topics = [];
     if (ch.topicDetails && ch.topicDetails.topicCategories) {
@@ -2147,8 +2522,13 @@ async function fetchYouTubeData(url) {
       });
     }
 
+    // Extract email from description
+    const descFull = ch.snippet.description || '';
+    const emailMatch = descFull.match(/[\w.-]+@[\w.-]+\.\w{2,}/);
+    const contactEmail = emailMatch ? emailMatch[0] : '';
+
     // Get tags from branding
-    let analysis = (ch.snippet.description || '').replace(/\n{3,}/g, '\n\n').trim();
+    let analysis = descFull.replace(/\n{3,}/g, '\n\n').trim();
     if (analysis.length > 300) analysis = analysis.substring(0, 300) + '...';
 
     // Auto-fill form
@@ -2158,8 +2538,19 @@ async function fetchYouTubeData(url) {
     document.getElementById('inf-likes').value = avgLikes;
     document.getElementById('inf-comments').value = avgComments;
     document.getElementById('inf-engagement').value = engagement;
-    if (topics.length) document.getElementById('inf-topic').value = topics.join(', ');
+    if (topics.length) {
+      document.getElementById('inf-topic').value = topics.join(', ');
+      // Auto-activate topic tag buttons
+      topics.forEach(t => {
+        const tag = document.querySelector(`.topic-tag[data-topic="${t}"]`);
+        if (tag) tag.classList.add('active');
+      });
+    }
     if (analysis) document.getElementById('inf-analysis').value = analysis;
+    if (contactEmail) document.getElementById('inf-email').value = contactEmail;
+    // Save profile image URL
+    const profileImg = (ch.snippet.thumbnails || {}).medium || (ch.snippet.thumbnails || {}).default || {};
+    if (profileImg.url) document.getElementById('inf-profile-image').value = profileImg.url;
     if (!document.getElementById('inf-name').value) document.getElementById('inf-name').value = ch.snippet.title;
 
     // Show result box
@@ -2453,7 +2844,7 @@ function renderTrackTable() {
     html += `<tr class="track-group-header"><td colspan="10">${label} (${groups[key].length})</td></tr>`;
     groups[key].forEach(e => {
       const st = STATUS_MAP[e.status] || STATUS_MAP.recruiting;
-      const chBadge = key === 'youtube' ? '<span class="badge badge-youtube">YT</span>' : '<span class="badge badge-instagram">IG</span>';
+      const chBadge = key === 'youtube' ? '<span class="badge badge-youtube"><svg width="14" height="10" viewBox="0 0 24 17" fill="#FF0000"><path d="M23.5 2.5c-.3-1-1-1.8-2-2.1C19.6 0 12 0 12 0S4.4 0 2.5.4c-1 .3-1.7 1.1-2 2.1C0 4.4 0 8.3 0 8.3s0 3.9.5 5.8c.3 1 1 1.8 2 2.1 1.9.5 9.5.5 9.5.5s7.6 0 9.5-.5c1-.3 1.7-1.1 2-2.1.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 12V4.7l6.4 3.6L9.5 12z"/></svg></span>' : '<span class="badge badge-instagram"><svg width="14" height="14" viewBox="0 0 24 24" fill="#E1306C"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.2 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1.1.4 2.2.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.9c-.1 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1.1.4-2.2.4-1.3.1-1.6.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1.1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.2-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1.1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zM12 0C8.7 0 8.3 0 7 .1 5.7.1 4.8.3 4 .6 3.2.9 2.5 1.3 1.8 2 1.1 2.7.7 3.4.4 4.2.2 5 0 5.9 0 7.2 0 8.5 0 8.9 0 12s0 3.7.1 5c0 1.3.2 2.2.5 3 .3.8.7 1.5 1.4 2.2.7.7 1.4 1.1 2.2 1.4.8.3 1.7.5 3 .5 1.3.1 1.7.1 5 .1s3.7 0 5-.1c1.3 0 2.2-.2 3-.5.8-.3 1.5-.7 2.2-1.4.7-.7 1.1-1.4 1.4-2.2.3-.8.5-1.7.5-3 .1-1.3.1-1.7.1-5s0-3.7-.1-5c0-1.3-.2-2.2-.5-3-.3-.8-.7-1.5-1.4-2.2C21.3 1.3 20.6.9 19.8.6 19 .3 18.1.1 16.8.1 15.5 0 15.1 0 12 0zm0 5.8a6.2 6.2 0 100 12.4 6.2 6.2 0 000-12.4zM12 16a4 4 0 110-8 4 4 0 010 8zm6.4-10.8a1.44 1.44 0 100 2.88 1.44 1.44 0 000-2.88z"/></svg></span>';
       html += `<tr>
         <td style="font-weight:600;cursor:pointer;" onclick="openDetailPanel('${e.infId}')">${e.inf.name || '(삭제됨)'}</td>
         <td>${chBadge}</td>
