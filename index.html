@@ -2008,7 +2008,8 @@ table { border-collapse: collapse; width: 100%; }
           <div class="form-group" style="margin:0;">
             <label style="font-size:12px;">1차 구분</label>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              <label class="chip-toggle"><input type="radio" name="media-p1" value="APP" checked><span>APP</span></label>
+              <label class="chip-toggle"><input type="radio" name="media-p1" value="ALL" checked><span>ALL</span></label>
+              <label class="chip-toggle"><input type="radio" name="media-p1" value="APP"><span>APP</span></label>
               <label class="chip-toggle"><input type="radio" name="media-p1" value="WEB"><span>WEB</span></label>
             </div>
           </div>
@@ -4643,7 +4644,7 @@ function openMediaModal(id) {
     document.getElementById('media-product').value = '';
     ['media-budget','media-goal','media-start','media-end','media-memo'].forEach(id => document.getElementById(id).value = '');
     document.querySelectorAll('input[name="media-type"]').forEach(r => r.checked = r.value === '퍼포먼스');
-    document.querySelectorAll('input[name="media-p1"]').forEach(r => r.checked = r.value === 'APP');
+    document.querySelectorAll('input[name="media-p1"]').forEach(r => r.checked = r.value === 'ALL');
     document.querySelectorAll('input[name="media-p2"]').forEach(r => r.checked = r.value === 'ALL');
     document.getElementById('media-daily-budget').textContent = '-';
     document.getElementById('media-days').textContent = '-';
@@ -4794,39 +4795,34 @@ function renderMediaMix() {
       const k = m.platform1 || 'APP';
       platBreakdown[k] = (platBreakdown[k]||0) + (m.budget||0);
     });
-    const platColors = {'APP':'#3B82F6','WEB':'#10B981'};
-    const platIcons = {'APP':'📱','WEB':'🌐'};
+    const platConf = [
+      {key:'ALL', icon:'🔗', color:'#8B5CF6', bg:'#F5F3FF'},
+      {key:'APP', icon:'📱', color:'#3B82F6', bg:'#EFF6FF'},
+      {key:'WEB', icon:'🌐', color:'#10B981', bg:'#ECFDF5'}
+    ];
     const platTotal = Object.values(platBreakdown).reduce((s,v)=>s+v,0);
-    const appBudget = platBreakdown['APP']||0;
-    const webBudget = platBreakdown['WEB']||0;
-    const appPct = platTotal ? Math.round(appBudget/platTotal*100) : 0;
-    const webPct = platTotal ? Math.round(webBudget/platTotal*100) : 0;
 
-    // APP/WEB별 매체 목록
-    const appMedia = items.filter(([,m])=>(m.platform1||'APP')==='APP').map(([,m])=>m.name);
-    const webMedia = items.filter(([,m])=>m.platform1==='WEB').map(([,m])=>m.name);
+    const barHtml = platConf.filter(p=>platBreakdown[p.key]).map(p=>{
+      const pct = platTotal ? Math.round(platBreakdown[p.key]/platTotal*100) : 0;
+      return `<div style="width:${pct}%;background:${p.color};"></div>`;
+    }).join('');
+
+    const cardsHtml = platConf.map(p=>{
+      const budget = platBreakdown[p.key]||0;
+      const pct = platTotal ? Math.round(budget/platTotal*100) : 0;
+      const mediaList = items.filter(([,m])=>(m.platform1||'ALL')===p.key).map(([,m])=>m.name);
+      return `<div style="flex:1;padding:18px;background:${p.bg};border-radius:12px;text-align:center;">
+        <div style="font-size:24px;margin-bottom:4px;">${p.icon}</div>
+        <div style="font-size:12px;font-weight:700;color:#8B8BA7;margin-bottom:4px;">${p.key}</div>
+        <div style="font-size:22px;font-weight:800;color:${p.color};">${pct}%</div>
+        <div style="font-size:13px;font-weight:700;color:#3A3A52;margin-top:4px;">${budget.toLocaleString()}만</div>
+        <div style="font-size:11px;color:#8B8BA7;margin-top:6px;">${mediaList.length?mediaList.join(', '):'없음'}</div>
+      </div>`;
+    }).join('');
 
     document.getElementById('mm-platform-chart').innerHTML = `
-      <div style="display:flex;height:14px;border-radius:7px;overflow:hidden;margin-bottom:24px;">
-        ${appPct?`<div style="width:${appPct}%;background:${platColors.APP};"></div>`:''}
-        ${webPct?`<div style="width:${webPct}%;background:${platColors.WEB};"></div>`:''}
-      </div>
-      <div style="display:flex;gap:16px;">
-        <div style="flex:1;padding:20px;background:#EFF6FF;border-radius:12px;text-align:center;">
-          <div style="font-size:28px;margin-bottom:6px;">📱</div>
-          <div style="font-size:12px;font-weight:700;color:#8B8BA7;margin-bottom:4px;">APP</div>
-          <div style="font-size:24px;font-weight:800;color:#3B82F6;">${appPct}%</div>
-          <div style="font-size:13px;font-weight:700;color:#3A3A52;margin-top:4px;">${appBudget.toLocaleString()}만</div>
-          <div style="font-size:11px;color:#8B8BA7;margin-top:6px;">${appMedia.length?appMedia.join(', '):'없음'}</div>
-        </div>
-        <div style="flex:1;padding:20px;background:#ECFDF5;border-radius:12px;text-align:center;">
-          <div style="font-size:28px;margin-bottom:6px;">🌐</div>
-          <div style="font-size:12px;font-weight:700;color:#8B8BA7;margin-bottom:4px;">WEB</div>
-          <div style="font-size:24px;font-weight:800;color:#10B981;">${webPct}%</div>
-          <div style="font-size:13px;font-weight:700;color:#3A3A52;margin-top:4px;">${webBudget.toLocaleString()}만</div>
-          <div style="font-size:11px;color:#8B8BA7;margin-top:6px;">${webMedia.length?webMedia.join(', '):'없음'}</div>
-        </div>
-      </div>`;
+      <div style="display:flex;height:14px;border-radius:7px;overflow:hidden;margin-bottom:24px;">${barHtml}</div>
+      <div style="display:flex;gap:12px;">${cardsHtml}</div>`;
 
     // Weekly budget plan - vertical bar chart
     const allStartDates = items.filter(([,m])=>m.startDate).map(([,m])=>m.startDate).sort();
