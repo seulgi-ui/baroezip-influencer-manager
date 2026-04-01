@@ -1614,11 +1614,11 @@ table { border-collapse: collapse; width: 100%; }
               <th>매체</th>
               <th>상품</th>
               <th>플랫폼</th>
+              <th>목표</th>
               <th class="mm-num">총 예산</th>
               <th class="mm-num">일예산</th>
               <th class="mm-num">비중</th>
               <th>기간</th>
-              <th class="mm-num">목표</th>
               <th style="width:60px;"></th>
             </tr></thead>
             <tbody id="media-tbody"></tbody>
@@ -4757,11 +4757,11 @@ function renderMediaMix() {
           <td style="font-weight:700;">${m.name}</td>
           <td>${m.product || '-'}</td>
           <td><span style="font-size:11px;padding:2px 8px;border-radius:12px;background:#F3F3F8;font-weight:600;">${platform}</span></td>
-          <td class="mm-num" style="font-weight:700;">${(m.budget||0).toLocaleString()}</td>
+          <td>${m.goal || '-'}</td>
+          <td class="mm-num" style="font-weight:700;">${(m.budget||0).toLocaleString()}만원</td>
           <td class="mm-num" style="color:var(--primary);font-weight:600;">${daily}</td>
           <td class="mm-num"><span style="color:var(--primary);font-weight:700;">${pct}%</span></td>
           <td>${period}</td>
-          <td class="mm-num">${m.goal || '-'}</td>
           <td onclick="event.stopPropagation();"><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deleteMedia('${id}')" style="font-size:11px;color:var(--danger);">삭제</button></td>
         </tr>`;
       });
@@ -4769,10 +4769,10 @@ function renderMediaMix() {
     tbody.innerHTML = tbodyHtml;
 
     // Footer
-    tfoot.innerHTML = `<tr><td></td><td>합계</td><td></td><td></td>
-      <td class="mm-num">${totalBudget.toLocaleString()}</td>
+    tfoot.innerHTML = `<tr><td></td><td>합계</td><td></td><td></td><td></td>
+      <td class="mm-num">${totalBudget.toLocaleString()}만원</td>
       <td class="mm-num">-</td><td class="mm-num">100%</td>
-      <td></td><td></td><td></td></tr>`;
+      <td></td><td></td></tr>`;
 
     // Type bar chart
     const typeBreakdown = {};
