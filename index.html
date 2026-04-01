@@ -5250,15 +5250,13 @@ function renderMediaMix() {
     ];
     const platTotal = Object.values(platBreakdown).reduce((s,v)=>s+v,0);
 
-    document.getElementById('mm-platform-chart').innerHTML = `<div style="display:flex;flex-direction:column;gap:10px;">` + platConf.filter(p=>platBreakdown[p.key]).map(p=>{
+    document.getElementById('mm-platform-chart').innerHTML = `<div style="display:grid;grid-template-columns:repeat(${platConf.filter(p=>platBreakdown[p.key]).length},1fr);gap:10px;">` + platConf.filter(p=>platBreakdown[p.key]).map(p=>{
       const budget = platBreakdown[p.key]||0;
       const pct = platTotal ? Math.round(budget/platTotal*100) : 0;
-      return `<div class="mm-plat-item">
-        <div>
-          <div style="font-size:13px;color:#555;font-weight:500;">${p.key}</div>
-          <div style="font-size:17px;font-weight:700;color:#111;margin-top:2px;">${budget.toLocaleString()}만원</div>
-        </div>
-        <span style="font-size:12px;color:var(--primary);font-weight:600;background:#F3E8FF;padding:3px 10px;border-radius:12px;">${pct}%</span>
+      return `<div style="background:#FAFAFE;border-radius:10px;padding:16px;text-align:center;">
+        <div style="font-size:12px;color:#888;font-weight:600;margin-bottom:4px;">${p.key}</div>
+        <div style="font-size:18px;font-weight:700;color:#111;">${budget.toLocaleString()}만</div>
+        <span style="font-size:11px;color:var(--primary);font-weight:600;background:#F3E8FF;padding:2px 8px;border-radius:10px;display:inline-block;margin-top:6px;">${pct}%</span>
       </div>`;
     }).join('') + `</div>`;
 
