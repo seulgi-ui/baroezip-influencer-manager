@@ -5060,6 +5060,22 @@ function saveMedia() {
   ref.update(data).then(() => { closeModal('modal-media'); renderMediaMix(); toast('저장 완료'); });
 }
 
+function updateMediaBudget(id, val) {
+  const budget = parseInt(val) || 0;
+  db.ref('campaign/mediamix/' + id).once('value', s => {
+    const m = s.val();
+    if (!m) return;
+    let dailyBudget = 0;
+    if (budget && m.startDate && m.endDate) {
+      const days = Math.ceil((new Date(m.endDate) - new Date(m.startDate)) / 86400000) + 1;
+      if (days > 0) dailyBudget = Math.round(budget / days * 10000);
+    }
+    db.ref('campaign/mediamix/' + id).update({ budget, dailyBudget }).then(() => {
+      renderMediaMix();
+    });
+  });
+}
+
 function deleteMedia(id) {
   if (!confirm('삭제하시겠습니까?')) return;
   db.ref('campaign/mediamix/' + id).remove().then(() => { renderMediaMix(); toast('삭제 완료'); });
@@ -5145,9 +5161,9 @@ function renderMediaMix() {
             <td>${m.product || '-'}</td>
             <td><span style="font-size:11px;padding:2px 8px;border-radius:12px;background:#F3F3F8;font-weight:600;">${platform}</span></td>
             <td>${m.goal || '-'}</td>
-            <td class="mm-num" style="font-weight:700;color:var(--primary);">${(m.budget||0).toLocaleString()}만원</td>
-            <td class="mm-num"><span style="color:var(--primary);font-weight:700;">${pct}%</span></td>
-            <td class="mm-num" style="font-weight:600;">${daily}</td>
+            <td class="mm-num" onclick="event.stopPropagation();"><input type="number" value="${m.budget||0}" onchange="updateMediaBudget('${id}',this.value)" onclick="event.stopPropagation();this.select();" style="width:80px;text-align:right;font-weight:700;color:var(--primary);border:1px solid transparent;border-radius:6px;padding:4px 6px;font-size:13px;background:transparent;font-family:var(--font);" onfocus="this.style.borderColor='var(--primary)';this.style.background='#fff';" onblur="this.style.borderColor='transparent';this.style.background='transparent';"><span style="font-size:12px;color:var(--text-muted);">만원</span></td>
+            <td class="mm-num"><span style="color:var(--primary);font-weight:700;" id="mm-pct-${id}">${pct}%</span></td>
+            <td class="mm-num" style="font-weight:600;" id="mm-daily-${id}">${daily}</td>
             <td>${period}</td>
             <td onclick="event.stopPropagation();"><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deleteMedia('${id}')" style="font-size:11px;color:var(--danger);">삭제</button></td>
           </tr>`;
