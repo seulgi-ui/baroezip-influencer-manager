@@ -51,6 +51,193 @@
   --transition: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ===== Dashboard Cards ===== */
+.dash-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+  transition: box-shadow 0.2s var(--transition);
+}
+.dash-card:hover { box-shadow: var(--shadow-md); }
+.dash-card-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.dash-card-value { font-size: 24px; font-weight: 800; color: var(--text-primary); }
+.dash-card-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.dash-section-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; }
+
+/* ===== Media Mix Budget Bar ===== */
+.mm-bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.mm-bar-label { font-size: 13px; font-weight: 600; color: var(--text-primary); min-width: 80px; }
+.mm-bar-track { flex: 1; height: 28px; background: var(--surface-2); border-radius: 14px; overflow: hidden; position: relative; }
+.mm-bar-fill { height: 100%; border-radius: 14px; transition: width 0.5s var(--transition); display: flex; align-items: center; padding-left: 12px; }
+.mm-bar-fill span { font-size: 11px; font-weight: 700; color: white; white-space: nowrap; }
+.mm-bar-amount { font-size: 13px; font-weight: 600; color: var(--text-secondary); min-width: 90px; text-align: right; }
+
+/* ===== Calendar ===== */
+.cal-header-cell {
+  background: var(--surface-2);
+  padding: 10px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+.cal-cell {
+  background: var(--surface);
+  min-height: 100px;
+  padding: 8px;
+  position: relative;
+  vertical-align: top;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.cal-cell:hover { background: var(--primary-light); }
+.cal-cell.today { background: #F0EBFF; }
+.cal-cell.other-month { opacity: 0.35; }
+.cal-day { font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; }
+.cal-day.sunday { color: #EF4444; }
+.cal-day.saturday { color: #3B82F6; }
+.cal-event {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cal-event:hover { opacity: 0.85; }
+
+/* ===== Creative Card ===== */
+.cr-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 20px;
+  transition: box-shadow 0.2s var(--transition), transform 0.15s;
+  cursor: pointer;
+  position: relative;
+}
+.cr-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.cr-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.cr-card-title { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.cr-card-media { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; background: var(--primary-light); color: var(--primary); }
+.cr-card-meta { display: flex; gap: 16px; font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+.cr-status-badge {
+  font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; display: inline-block;
+}
+.cr-status-badge[data-status="준비중"] { background: #FEF3C7; color: #D97706; }
+.cr-status-badge[data-status="제작중"] { background: #DBEAFE; color: #2563EB; }
+.cr-status-badge[data-status="검수중"] { background: #F3E8FF; color: #7C3AED; }
+.cr-status-badge[data-status="완료"] { background: #D1FAE5; color: #059669; }
+.cr-card-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
+.cr-card:hover .cr-card-actions { opacity: 1; }
+
+/* ===== Media Mix Premium ===== */
+.mm-kpi-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:28px; }
+.mm-kpi-card {
+  background:#fff;border-radius:14px;padding:22px 26px;border:1px solid #EEEEF2;
+  transition:box-shadow .2s;
+}
+.mm-kpi-card:hover { box-shadow:0 4px 20px rgba(168,85,247,.1); }
+.mm-kpi-label { font-size:12px;color:#8B8BA7;font-weight:600;letter-spacing:.3px;margin-bottom:6px; }
+.mm-kpi-value { font-size:26px;font-weight:800;color:#1E1E2D; }
+.mm-kpi-value span { font-size:13px;font-weight:500;color:var(--primary);margin-left:4px; }
+
+.mm-table-wrap {
+  background:#fff;border-radius:14px;border:1px solid #EEEEF2;overflow:hidden;margin-bottom:28px;
+}
+.mm-table-title { padding:18px 24px;font-size:15px;font-weight:700;border-bottom:1px solid #EEEEF2; }
+.mm-table { width:100%;border-collapse:collapse; }
+.mm-table thead th {
+  text-align:left;padding:12px 18px;font-size:11px;font-weight:700;color:#8B8BA7;
+  text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #EEEEF2;background:#FAFAFC;
+}
+.mm-table thead th.mm-num { text-align:right; }
+.mm-table tbody td {
+  padding:13px 18px;font-size:13px;font-weight:500;color:#3A3A52;border-bottom:1px solid #F2F2F6;
+}
+.mm-table tbody td.mm-num { text-align:right;font-variant-numeric:tabular-nums; }
+.mm-table tbody tr:nth-child(even) { background:#FAFAFC; }
+.mm-table tbody tr { cursor:pointer;transition:background .15s; }
+.mm-table tbody tr:hover { background:#F5F3FF; }
+.mm-table tfoot td {
+  padding:14px 18px;font-size:13px;font-weight:700;color:#1E1E2D;
+  border-top:2px solid var(--primary);background:#FAF5FF;
+}
+.mm-table tfoot td.mm-num { text-align:right;font-variant-numeric:tabular-nums; }
+
+.mm-type-divider {
+  padding:10px 18px;font-size:11px;font-weight:800;color:#fff;letter-spacing:.5px;
+  text-transform:uppercase;
+}
+
+.mm-tag {
+  display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;
+}
+
+.mm-charts-row { display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:28px; }
+.mm-chart-card {
+  background:#fff;border-radius:14px;border:1px solid #EEEEF2;padding:24px 28px;
+}
+.mm-chart-card h3 { font-size:15px;font-weight:700;margin-bottom:20px; }
+
+.mm-donut-wrap { display:flex;align-items:center;gap:28px; }
+.mm-donut {
+  width:150px;height:150px;border-radius:50%;position:relative;flex-shrink:0;
+}
+.mm-donut::after {
+  content:'';position:absolute;top:32px;left:32px;width:86px;height:86px;background:#fff;border-radius:50%;
+}
+.mm-donut-center {
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1;text-align:center;
+}
+.mm-donut-center .val { font-size:20px;font-weight:800;color:#1E1E2D; }
+.mm-donut-center .lab { font-size:10px;color:#8B8BA7; }
+.mm-legend { display:flex;flex-direction:column;gap:10px; }
+.mm-legend-item { display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500; }
+.mm-legend-dot { width:10px;height:10px;border-radius:3px;flex-shrink:0; }
+
+.mm-bar-row2 { display:flex;align-items:center;gap:12px;margin-bottom:14px; }
+.mm-bar-label2 { width:80px;font-size:12px;font-weight:700;color:#3A3A52;flex-shrink:0; }
+.mm-bar-track2 { flex:1;height:28px;background:#F3F3F8;border-radius:8px;overflow:hidden; }
+.mm-bar-fill2 { height:100%;border-radius:8px;display:flex;align-items:center;padding-left:10px;font-size:11px;font-weight:700;color:#fff;transition:width .5s; }
+.mm-bar-amt2 { width:80px;text-align:right;font-size:12px;font-weight:700;color:#3A3A52;flex-shrink:0; }
+
+/* ===== Chip Toggle ===== */
+.chip-toggle { cursor: pointer; }
+.chip-toggle input { display: none; }
+.chip-toggle span {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  border: 1.5px solid transparent;
+  transition: all 0.15s var(--transition);
+}
+.chip-toggle input:checked + span {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
 /* ===== Reset & Base ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -262,7 +449,7 @@ table { border-collapse: collapse; width: 100%; }
 .btn svg { width: 15px; height: 15px; }
 
 /* ===== Section Toggle ===== */
-.section { display: none; height: 100%; }
+.section { display: none; height: 100%; flex: 1; min-width: 0; overflow: hidden; }
 .section.active { display: flex; flex-direction: column; }
 
 /* ===== Channel Tabs ===== */
@@ -1325,8 +1512,25 @@ table { border-collapse: collapse; width: 100%; }
       </div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-section-label">관리</div>
-      <div class="nav-item active" data-section="influencer" onclick="navigate('influencer')">
+      <div class="nav-section-label">기획</div>
+      <div class="nav-item active" data-section="dashboard" onclick="navigate('dashboard')">
+        <div class="nav-dot"></div>
+        <span class="nav-label">대시보드</span>
+      </div>
+      <div class="nav-item" data-section="mediamix" onclick="navigate('mediamix')">
+        <div class="nav-dot"></div>
+        <span class="nav-label">미디어믹스</span>
+      </div>
+      <div class="nav-item" data-section="calendar" onclick="navigate('calendar')">
+        <div class="nav-dot"></div>
+        <span class="nav-label">캘린더</span>
+      </div>
+      <div class="nav-item" data-section="creatives" onclick="navigate('creatives')">
+        <div class="nav-dot"></div>
+        <span class="nav-label">소재 관리</span>
+      </div>
+      <div class="nav-section-label" style="margin-top:12px;">관리</div>
+      <div class="nav-item" data-section="influencer" onclick="navigate('influencer')">
         <div class="nav-dot"></div>
         <span class="nav-label">인플루언서</span>
       </div>
@@ -1344,8 +1548,152 @@ table { border-collapse: collapse; width: 100%; }
     <div id="sidebar-resizer"></div>
   </aside>
 
+  <!-- Dashboard Section -->
+  <section id="section-dashboard" class="section active">
+    <div class="main-header"><h1>대시보드</h1></div>
+    <div class="main-body" id="dashboard-body" style="padding:24px;">
+      <div id="dash-campaign-info" style="display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap;">
+        <div class="dash-card" style="flex:1;min-width:200px;">
+          <div class="dash-card-label"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> 캠페인 기간</div>
+          <div class="dash-card-value" id="dash-period">-</div>
+          <div class="dash-card-sub" id="dash-dday"></div>
+        </div>
+        <div class="dash-card" style="flex:1;min-width:200px;">
+          <div class="dash-card-label"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 총 예산</div>
+          <div class="dash-card-value" id="dash-budget">-</div>
+          <div class="dash-card-sub" id="dash-budget-sub"></div>
+        </div>
+        <div class="dash-card" style="flex:1;min-width:200px;">
+          <div class="dash-card-label"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> 매체 수</div>
+          <div class="dash-card-value" id="dash-media-count">-</div>
+          <div class="dash-card-sub" id="dash-media-sub"></div>
+        </div>
+        <div class="dash-card" style="flex:1;min-width:200px;">
+          <div class="dash-card-label"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> 소재 현황</div>
+          <div class="dash-card-value" id="dash-creative-count">-</div>
+          <div class="dash-card-sub" id="dash-creative-sub"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
+        <div style="flex:2;min-width:400px;">
+          <div class="dash-section-title">매체별 예산 배분</div>
+          <div id="dash-budget-chart" style="background:var(--surface);border-radius:var(--radius);padding:24px;border:1px solid var(--border);min-height:200px;">
+            <div id="dash-budget-bars"></div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:280px;">
+          <div class="dash-section-title">캠페인 일정</div>
+          <div id="dash-calendar-preview" style="background:var(--surface);border-radius:var(--radius);padding:20px;border:1px solid var(--border);min-height:200px;">
+            <div id="dash-upcoming"></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:20px;">
+        <div class="dash-section-title">소재 제작 현황</div>
+        <div id="dash-creative-status" style="background:var(--surface);border-radius:var(--radius);padding:20px;border:1px solid var(--border);"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Media Mix Section -->
+  <section id="section-mediamix" class="section">
+    <div class="main-header">
+      <h1>미디어믹스</h1>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span id="mm-total-budget" style="font-size:13px;color:var(--text-muted);"></span>
+        <button class="btn btn-primary btn-sm" onclick="openMediaModal()">+ 매체 추가</button>
+      </div>
+    </div>
+    <div class="main-body" style="padding:28px 32px;">
+      <!-- KPI -->
+      <div id="mm-kpi" class="mm-kpi-grid" style="display:none;"></div>
+
+      <!-- Table -->
+      <div id="mm-table-wrap" class="mm-table-wrap" style="display:none;">
+        <div class="mm-table-title">매체별 상세</div>
+        <div style="overflow-x:auto;">
+          <table class="mm-table">
+            <thead><tr>
+              <th style="width:90px;">유형</th>
+              <th>매체</th>
+              <th>상품</th>
+              <th>플랫폼</th>
+              <th class="mm-num">총 예산</th>
+              <th class="mm-num">일예산</th>
+              <th class="mm-num">비중</th>
+              <th>기간</th>
+              <th class="mm-num">목표</th>
+              <th style="width:60px;"></th>
+            </tr></thead>
+            <tbody id="media-tbody"></tbody>
+            <tfoot id="media-tfoot"></tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div id="mm-empty" class="empty-state" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+        <p>등록된 매체가 없습니다.<br><span style="font-size:13px;color:var(--text-muted);">매체를 추가하여 미디어믹스를 구성하세요.</span></p>
+      </div>
+
+      <!-- Charts -->
+      <div id="mm-summary" style="display:none;margin-top:28px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+          <div class="mm-chart-card"><h3>유형별 예산 배분</h3><div id="mm-type-chart"></div></div>
+          <div class="mm-chart-card"><h3>플랫폼별 비중</h3><div id="mm-platform-chart"></div></div>
+        </div>
+        <div class="mm-chart-card"><h3>주차별 예산 소진 계획</h3><div id="mm-weekly-chart"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Calendar Section -->
+  <section id="section-calendar" class="section">
+    <div class="main-header">
+      <h1>캠페인 캘린더</h1>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-secondary btn-sm" onclick="calPrev()">◀</button>
+        <span id="cal-month-label" style="font-weight:700;font-size:16px;min-width:120px;text-align:center;"></span>
+        <button class="btn btn-secondary btn-sm" onclick="calNext()">▶</button>
+        <button class="btn btn-primary btn-sm" onclick="openCalEventModal()">+ 일정 추가</button>
+      </div>
+    </div>
+    <div class="main-body" style="padding:24px;">
+      <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);">
+      </div>
+      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;" id="cal-legend"></div>
+    </div>
+  </section>
+
+  <!-- Creatives Section -->
+  <section id="section-creatives" class="section">
+    <div class="main-header">
+      <h1>소재 관리</h1>
+      <button class="btn btn-primary btn-sm" onclick="openCreativeModal()">+ 소재 추가</button>
+    </div>
+    <div class="main-body" style="padding:24px;">
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+        <select class="form-input" id="cr-filter-media" onchange="renderCreatives()" style="width:140px;padding:6px 10px;font-size:13px;">
+          <option value="">매체 전체</option>
+        </select>
+        <select class="form-input" id="cr-filter-status" onchange="renderCreatives()" style="width:140px;padding:6px 10px;font-size:13px;">
+          <option value="">상태 전체</option>
+          <option value="준비중">준비중</option>
+          <option value="제작중">제작중</option>
+          <option value="검수중">검수중</option>
+          <option value="완료">완료</option>
+        </select>
+      </div>
+      <div id="creative-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;"></div>
+      <div id="cr-empty" class="empty-state" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <p>등록된 소재가 없습니다.<br><span style="font-size:13px;color:var(--text-muted);">소재를 추가하여 제작 현황을 관리하세요.</span></p>
+      </div>
+    </div>
+  </section>
+
   <!-- Influencer Section -->
-  <section id="section-influencer" class="section active">
+  <section id="section-influencer" class="section">
     <div class="main-header">
       <h1>인플루언서</h1>
       <div style="display:flex;gap:8px;align-items:center;">
@@ -1591,6 +1939,203 @@ table { border-collapse: collapse; width: 100%; }
     </div>
   </section>
 
+</div>
+
+<!-- Media Mix Modal -->
+<div class="modal-overlay" id="modal-media">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header" style="background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border-bottom:1px solid var(--border);">
+      <h3 id="media-modal-title" style="font-size:18px;font-weight:800;">매체 추가</h3>
+      <button class="modal-close" onclick="closeModal('modal-media')">×</button>
+    </div>
+    <div class="modal-body" style="padding:24px;max-height:70vh;overflow-y:auto;">
+      <input type="hidden" id="media-edit-id">
+
+      <!-- 매체 선택 -->
+      <div style="background:var(--surface-2);border-radius:var(--radius);padding:20px;margin-bottom:20px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:12px;">📡 매체 선택</div>
+        <div class="form-grid">
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:12px;">매체 *</label>
+            <select id="media-name-select" class="form-input" onchange="onMediaSelect()" style="font-weight:600;">
+              <option value="">선택하세요</option>
+              <option value="Meta">Meta (Facebook/Instagram)</option>
+              <option value="Google UAC">Google UAC</option>
+              <option value="Google GDN">Google GDN</option>
+              <option value="네이버 SA">네이버 SA</option>
+              <option value="네이버 DA">네이버 DA</option>
+              <option value="네이버 브랜드검색">네이버 브랜드검색</option>
+              <option value="카카오모먼트">카카오모먼트</option>
+              <option value="카카오 비즈보드">카카오 비즈보드</option>
+              <option value="토스">토스</option>
+              <option value="틱톡">틱톡</option>
+              <option value="유튜브 광고">유튜브 광고</option>
+              <option value="__custom__">직접 입력</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:12px;">상품 유형</label>
+            <input type="text" id="media-product" class="form-input" placeholder="예: 피드, 릴스, 검색광고">
+          </div>
+        </div>
+        <div id="media-custom-name-wrap" style="display:none;margin-top:10px;">
+          <input type="text" id="media-name-custom" class="form-input" placeholder="매체명 직접 입력">
+        </div>
+        <input type="hidden" id="media-name">
+      </div>
+
+      <!-- 유형 & 목표 -->
+      <div style="background:var(--surface-2);border-radius:var(--radius);padding:20px;margin-bottom:20px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:12px;">🎯 캠페인 유형</div>
+        <div class="form-grid">
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:12px;">유형</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <label class="chip-toggle"><input type="radio" name="media-type" value="퍼포먼스" checked><span>퍼포먼스</span></label>
+              <label class="chip-toggle"><input type="radio" name="media-type" value="브랜딩"><span>브랜딩</span></label>
+              <label class="chip-toggle"><input type="radio" name="media-type" value="바이럴"><span>바이럴</span></label>
+              <label class="chip-toggle"><input type="radio" name="media-type" value="언론보도"><span>언론보도</span></label>
+              <label class="chip-toggle"><input type="radio" name="media-type" value="인플루언서"><span>인플루언서</span></label>
+            </div>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:12px;">목표</label>
+            <input type="text" id="media-goal" class="form-input" placeholder="예: CPA 3,000원, ROAS 300%">
+          </div>
+        </div>
+      </div>
+
+      <!-- 플랫폼 구분 -->
+      <div style="background:var(--surface-2);border-radius:var(--radius);padding:20px;margin-bottom:20px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:12px;">📱 플랫폼 구분</div>
+        <div class="form-grid">
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:12px;">1차 구분</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <label class="chip-toggle"><input type="radio" name="media-p1" value="APP" checked><span>APP</span></label>
+              <label class="chip-toggle"><input type="radio" name="media-p1" value="WEB"><span>WEB</span></label>
+            </div>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:12px;">2차 구분</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <label class="chip-toggle"><input type="radio" name="media-p2" value="ALL" checked><span>ALL</span></label>
+              <label class="chip-toggle"><input type="radio" name="media-p2" value="AOS"><span>AOS</span></label>
+              <label class="chip-toggle"><input type="radio" name="media-p2" value="IOS"><span>IOS</span></label>
+              <label class="chip-toggle"><input type="radio" name="media-p2" value="PC"><span>PC</span></label>
+              <label class="chip-toggle"><input type="radio" name="media-p2" value="Mobile"><span>Mobile</span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 예산 및 기간 -->
+      <div style="background:var(--surface-2);border-radius:var(--radius);padding:20px;margin-bottom:20px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:12px;">💰 예산 및 기간</div>
+        <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;">
+          <div class="form-group" style="margin:0;"><label style="font-size:12px;">총 예산 (만원) *</label><input type="number" id="media-budget" class="form-input" placeholder="5000" oninput="calcDailyBudget()"></div>
+          <div class="form-group" style="margin:0;"><label style="font-size:12px;">시작일</label><input type="date" id="media-start" class="form-input" onchange="calcDailyBudget()"></div>
+          <div class="form-group" style="margin:0;"><label style="font-size:12px;">종료일</label><input type="date" id="media-end" class="form-input" onchange="calcDailyBudget()"></div>
+        </div>
+        <div class="form-grid" style="margin-top:12px;">
+          <div style="padding:12px 16px;background:var(--surface);border-radius:var(--radius-xs);border:1px solid var(--border);">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">일예산 (자동 계산)</div>
+            <div id="media-daily-budget" style="font-size:18px;font-weight:800;color:var(--primary);">-</div>
+          </div>
+          <div style="padding:12px 16px;background:var(--surface);border-radius:var(--radius-xs);border:1px solid var(--border);">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">집행 일수</div>
+            <div id="media-days" style="font-size:18px;font-weight:800;color:var(--text-primary);">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 비고 -->
+      <div class="form-group" style="margin:0;"><label style="font-size:12px;">비고</label><textarea id="media-memo" class="form-input" rows="2" placeholder="메모"></textarea></div>
+    </div>
+    <div class="modal-footer" style="border-top:1px solid var(--border);padding:16px 24px;">
+      <button class="btn btn-secondary" onclick="closeModal('modal-media')">취소</button>
+      <button class="btn btn-primary" onclick="saveMedia()" style="padding:8px 24px;">✓ 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Calendar Event Modal -->
+<div class="modal-overlay" id="modal-cal-event">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header"><h3 id="cal-event-modal-title">일정 추가</h3><button class="modal-close" onclick="closeModal('modal-cal-event')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="cal-event-edit-id">
+      <div class="form-grid">
+        <div class="form-group"><label>일정명 *</label><input type="text" id="cal-event-name" class="form-input" placeholder="예: Meta 광고 ON"></div>
+        <div class="form-group"><label>매체/카테고리</label>
+          <select id="cal-event-category" class="form-input">
+            <option value="Meta">Meta</option>
+            <option value="Google">Google</option>
+            <option value="네이버">네이버</option>
+            <option value="카카오">카카오</option>
+            <option value="토스">토스</option>
+            <option value="인플루언서">인플루언서</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>시작일 *</label><input type="date" id="cal-event-start" class="form-input"></div>
+        <div class="form-group"><label>종료일</label><input type="date" id="cal-event-end" class="form-input"></div>
+      </div>
+      <div class="form-group"><label>메모</label><textarea id="cal-event-memo" class="form-input" rows="2" placeholder="메모"></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-cal-event')">취소</button><button class="btn btn-primary" onclick="saveCalEvent()">✓ 저장</button></div>
+  </div>
+</div>
+
+<!-- Creative Modal -->
+<div class="modal-overlay" id="modal-creative">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-header"><h3 id="creative-modal-title">소재 추가</h3><button class="modal-close" onclick="closeModal('modal-creative')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="cr-edit-id">
+      <div class="form-grid">
+        <div class="form-group"><label>소재명 *</label><input type="text" id="cr-name" class="form-input" placeholder="예: 메인 배너 A안"></div>
+        <div class="form-group"><label>매체</label>
+          <select id="cr-media" class="form-input">
+            <option value="Meta">Meta</option>
+            <option value="Google">Google</option>
+            <option value="네이버">네이버</option>
+            <option value="카카오">카카오</option>
+            <option value="토스">토스</option>
+            <option value="인플루언서">인플루언서</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>유형</label>
+          <select id="cr-type" class="form-input">
+            <option value="이미지">이미지</option>
+            <option value="영상">영상</option>
+            <option value="카피">카피</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+        <div class="form-group"><label>사이즈</label><input type="text" id="cr-size" class="form-input" placeholder="예: 1080x1080, 1920x1080"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>상태</label>
+          <select id="cr-status" class="form-input">
+            <option value="준비중">준비중</option>
+            <option value="제작중">제작중</option>
+            <option value="검수중">검수중</option>
+            <option value="완료">완료</option>
+          </select>
+        </div>
+        <div class="form-group"><label>마감일</label><input type="date" id="cr-deadline" class="form-input"></div>
+      </div>
+      <div class="form-group"><label>담당자</label><input type="text" id="cr-assignee" class="form-input" placeholder="담당자 이름"></div>
+      <div class="form-group"><label>메모</label><textarea id="cr-memo" class="form-input" rows="2" placeholder="메모"></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-creative')">취소</button><button class="btn btn-primary" onclick="saveCreative()">✓ 저장</button></div>
+  </div>
 </div>
 
 <!-- Detail Panel (Influencer) -->
@@ -2103,12 +2648,13 @@ function navigate(section) {
   currentSection = section;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.section === section));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  if (section === 'influencer') {
-    document.getElementById('section-influencer').classList.add('active');
-  } else if (section === 'projects') {
-    document.getElementById('section-projects').classList.add('active');
-    showProjectList();
-  }
+  const el = document.getElementById('section-' + section);
+  if (el) el.classList.add('active');
+  if (section === 'projects') showProjectList();
+  if (section === 'dashboard') renderDashboard();
+  if (section === 'mediamix') renderMediaMix();
+  if (section === 'calendar') renderCalendar();
+  if (section === 'creatives') renderCreatives();
 }
 
 // ===== Standalone Guide Check =====
@@ -3998,12 +4544,681 @@ function initColumnResize(tableId) {
 }
 
 // ===== Initialization =====
+// ===== Media Mix =====
+const MEDIA_COLORS = ['#A855F7','#3B82F6','#10B981','#F59E0B','#EF4444','#EC4899','#06B6D4','#8B5CF6','#F97316','#64748B'];
+
+// Media product suggestions per platform
+const MEDIA_PRODUCTS = {
+  'Meta': ['피드','릴스','스토리','다이나믹','컬렉션','어드밴티지+'],
+  'Google UAC': ['ACA','ACe','ACI','Pmax'],
+  'Google GDN': ['디스플레이','디스커버리','Pmax'],
+  '네이버 SA': ['파워링크','쇼핑검색','브랜드검색'],
+  '네이버 DA': ['성과형 DA','보장형 DA','스마트채널'],
+  '네이버 브랜드검색': ['라이트형','프리미엄형','브랜드존'],
+  '카카오모먼트': ['디스플레이','메시지','동영상','비즈보드'],
+  '카카오 비즈보드': ['비즈보드','카카오톡 채널'],
+  '토스': ['배너','행운퀴즈','만보기','라이브쇼핑'],
+  '틱톡': ['인피드','탑뷰','스파크광고'],
+  '유튜브 광고': ['인스트림','범퍼','쇼츠','디스커버리']
+};
+
+function onMediaSelect() {
+  const sel = document.getElementById('media-name-select');
+  const customWrap = document.getElementById('media-custom-name-wrap');
+  const productInput = document.getElementById('media-product');
+
+  if (sel.value === '__custom__') {
+    customWrap.style.display = '';
+    document.getElementById('media-name-custom').focus();
+  } else {
+    customWrap.style.display = 'none';
+    document.getElementById('media-name-custom').value = '';
+  }
+
+  // Show product suggestions
+  const products = MEDIA_PRODUCTS[sel.value];
+  if (products) {
+    const suggestEl = document.getElementById('media-product-suggest');
+    if (suggestEl) suggestEl.remove();
+    const div = document.createElement('div');
+    div.id = 'media-product-suggest';
+    div.style.cssText = 'display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;';
+    div.innerHTML = products.map(p => `<button type="button" class="btn btn-ghost btn-xs" style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:12px;" onclick="document.getElementById('media-product').value=this.textContent;this.parentElement.remove();">${p}</button>`).join('');
+    productInput.parentElement.appendChild(div);
+  }
+}
+
+function calcDailyBudget() {
+  const budget = parseInt(document.getElementById('media-budget').value) || 0;
+  const start = document.getElementById('media-start').value;
+  const end = document.getElementById('media-end').value;
+  if (budget && start && end) {
+    const days = Math.ceil((new Date(end) - new Date(start)) / 86400000) + 1;
+    if (days > 0) {
+      const daily = Math.round(budget / days * 10000);
+      document.getElementById('media-daily-budget').textContent = daily.toLocaleString() + '원';
+      document.getElementById('media-days').textContent = days + '일';
+      return;
+    }
+  }
+  document.getElementById('media-daily-budget').textContent = '-';
+  document.getElementById('media-days').textContent = '-';
+}
+
+function openMediaModal(id) {
+  document.getElementById('media-edit-id').value = id || '';
+  document.getElementById('media-modal-title').textContent = id ? '매체 수정' : '매체 추가';
+  const suggest = document.getElementById('media-product-suggest');
+  if (suggest) suggest.remove();
+  if (id && firebaseReady) {
+    db.ref('campaign/mediamix/' + id).once('value', s => {
+      const d = s.val();
+      if (d) {
+        // Check if name matches a select option
+        const sel = document.getElementById('media-name-select');
+        const opts = [...sel.options].map(o => o.value);
+        if (opts.includes(d.name)) {
+          sel.value = d.name;
+          document.getElementById('media-custom-name-wrap').style.display = 'none';
+        } else {
+          sel.value = '__custom__';
+          document.getElementById('media-custom-name-wrap').style.display = '';
+          document.getElementById('media-name-custom').value = d.name || '';
+        }
+        document.getElementById('media-product').value = d.product || '';
+        document.getElementById('media-budget').value = d.budget || '';
+        document.getElementById('media-goal').value = d.goal || '';
+        document.getElementById('media-start').value = d.startDate || '';
+        document.getElementById('media-end').value = d.endDate || '';
+        document.getElementById('media-memo').value = d.memo || '';
+        const t = d.type || '퍼포먼스';
+        document.querySelectorAll('input[name="media-type"]').forEach(r => r.checked = r.value === t);
+        const p1 = d.platform1 || 'APP';
+        const p2 = d.platform2 || 'ALL';
+        document.querySelectorAll('input[name="media-p1"]').forEach(r => r.checked = r.value === p1);
+        document.querySelectorAll('input[name="media-p2"]').forEach(r => r.checked = r.value === p2);
+        calcDailyBudget();
+      }
+      openModal('modal-media');
+    });
+  } else {
+    document.getElementById('media-name-select').value = '';
+    document.getElementById('media-name-custom').value = '';
+    document.getElementById('media-custom-name-wrap').style.display = 'none';
+    document.getElementById('media-product').value = '';
+    ['media-budget','media-goal','media-start','media-end','media-memo'].forEach(id => document.getElementById(id).value = '');
+    document.querySelectorAll('input[name="media-type"]').forEach(r => r.checked = r.value === '퍼포먼스');
+    document.querySelectorAll('input[name="media-p1"]').forEach(r => r.checked = r.value === 'APP');
+    document.querySelectorAll('input[name="media-p2"]').forEach(r => r.checked = r.value === 'ALL');
+    document.getElementById('media-daily-budget').textContent = '-';
+    document.getElementById('media-days').textContent = '-';
+    openModal('modal-media');
+  }
+}
+
+function saveMedia() {
+  const sel = document.getElementById('media-name-select').value;
+  const name = sel === '__custom__' ? document.getElementById('media-name-custom').value.trim() : sel;
+  const budget = parseInt(document.getElementById('media-budget').value) || 0;
+  if (!name) return toast('매체를 선택하세요');
+  const p1 = document.querySelector('input[name="media-p1"]:checked')?.value || 'APP';
+  const p2 = document.querySelector('input[name="media-p2"]:checked')?.value || 'ALL';
+  const type = document.querySelector('input[name="media-type"]:checked')?.value || '퍼포먼스';
+  const start = document.getElementById('media-start').value;
+  const end = document.getElementById('media-end').value;
+  let dailyBudget = 0;
+  if (budget && start && end) {
+    const days = Math.ceil((new Date(end) - new Date(start)) / 86400000) + 1;
+    if (days > 0) dailyBudget = Math.round(budget / days * 10000);
+  }
+  const data = {
+    name, budget, type,
+    product: document.getElementById('media-product').value.trim(),
+    platform1: p1,
+    platform2: p2,
+    goal: document.getElementById('media-goal').value.trim(),
+    startDate: start,
+    endDate: end,
+    dailyBudget,
+    memo: document.getElementById('media-memo').value.trim(),
+    updatedAt: Date.now()
+  };
+  const editId = document.getElementById('media-edit-id').value;
+  const ref = editId ? db.ref('campaign/mediamix/' + editId) : db.ref('campaign/mediamix').push();
+  ref.update(data).then(() => { closeModal('modal-media'); renderMediaMix(); toast('저장 완료'); });
+}
+
+function deleteMedia(id) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  db.ref('campaign/mediamix/' + id).remove().then(() => { renderMediaMix(); toast('삭제 완료'); });
+}
+
+const TYPE_ORDER = ['브랜딩','퍼포먼스','바이럴','언론보도','인플루언서'];
+const TYPE_COLORS_MM = {'퍼포먼스':'#3B82F6','브랜딩':'#8B5CF6','바이럴':'#EC4899','언론보도':'#10B981','인플루언서':'#F59E0B'};
+const TYPE_BG_MM = {'퍼포먼스':'#EFF6FF','브랜딩':'#F5F3FF','바이럴':'#FDF2F8','언론보도':'#ECFDF5','인플루언서':'#FFFBEB'};
+
+function renderMediaMix() {
+  if (!firebaseReady) return;
+  db.ref('campaign/mediamix').once('value', snap => {
+    const data = snap.val() || {};
+    const items = Object.entries(data);
+    const tbody = document.getElementById('media-tbody');
+    const tfoot = document.getElementById('media-tfoot');
+    const empty = document.getElementById('mm-empty');
+    const summary = document.getElementById('mm-summary');
+    const kpi = document.getElementById('mm-kpi');
+    const tableWrap = document.getElementById('mm-table-wrap');
+    const totalBudget = items.reduce((s, [,v]) => s + (v.budget || 0), 0);
+    const totalDaily = items.reduce((s, [,v]) => s + (v.dailyBudget || 0), 0);
+    document.getElementById('mm-total-budget').textContent = items.length ? '총 ' + totalBudget.toLocaleString() + '만원' : '';
+
+    if (!items.length) {
+      tbody.innerHTML = ''; tfoot.innerHTML = '';
+      empty.style.display = '';
+      summary.style.display = 'none';
+      kpi.style.display = 'none';
+      tableWrap.style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    summary.style.display = '';
+    kpi.style.display = '';
+    tableWrap.style.display = '';
+
+    // KPI
+    const allStarts = items.filter(([,m]) => m.startDate).map(([,m]) => m.startDate).sort();
+    const allEnds = items.filter(([,m]) => m.endDate).map(([,m]) => m.endDate).sort();
+    const periodStr = allStarts.length ? allStarts[0].slice(5) + ' ~ ' + allEnds[allEnds.length-1].slice(5) : '-';
+    kpi.innerHTML = [
+      {l:'총 예산', v:totalBudget.toLocaleString()+'<span>만원</span>'},
+      {l:'매체 수', v:items.length+'<span>매체</span>'},
+      {l:'평균 일예산', v:Math.round(totalDaily/items.length).toLocaleString()+'<span>원</span>'},
+      {l:'캠페인 기간', v:periodStr}
+    ].map(k => `<div class="mm-kpi-card"><div class="mm-kpi-label">${k.l}</div><div class="mm-kpi-value">${k.v}</div></div>`).join('');
+
+    // Group by type in defined order
+    const grouped = {};
+    items.forEach(([id, m]) => {
+      const t = m.type || '퍼포먼스';
+      if (!grouped[t]) grouped[t] = [];
+      grouped[t].push([id, m]);
+    });
+
+    let tbodyHtml = '';
+    let colorIdx = 0;
+    TYPE_ORDER.forEach(type => {
+      if (!grouped[type]) return;
+      const tc = TYPE_COLORS_MM[type] || '#64748B';
+      const bg = TYPE_BG_MM[type] || '#F9FAFB';
+      const count = grouped[type].length;
+      grouped[type].forEach(([id, m], idx) => {
+        const pct = totalBudget ? Math.round(m.budget / totalBudget * 100) : 0;
+        const period = (m.startDate && m.endDate) ? m.startDate.slice(5) + ' ~ ' + m.endDate.slice(5) : '-';
+        const platform = (m.platform1 || 'APP') + ' / ' + (m.platform2 || 'ALL');
+        const daily = m.dailyBudget ? m.dailyBudget.toLocaleString() : '-';
+        const typeCell = idx === 0 ? `<td rowspan="${count}" style="background:${bg};font-weight:800;font-size:12px;color:${tc};text-align:center;vertical-align:middle;letter-spacing:.3px;white-space:nowrap;"><span style="display:inline-block;padding:4px 14px;border-radius:8px;background:${tc}18;white-space:nowrap;">${type}</span></td>` : '';
+        tbodyHtml += `<tr onclick="openMediaModal('${id}')">
+          ${typeCell}
+          <td style="font-weight:700;">${m.name}</td>
+          <td>${m.product || '-'}</td>
+          <td><span style="font-size:11px;padding:2px 8px;border-radius:12px;background:#F3F3F8;font-weight:600;">${platform}</span></td>
+          <td class="mm-num" style="font-weight:700;">${(m.budget||0).toLocaleString()}</td>
+          <td class="mm-num" style="color:var(--primary);font-weight:600;">${daily}</td>
+          <td class="mm-num"><span style="color:var(--primary);font-weight:700;">${pct}%</span></td>
+          <td>${period}</td>
+          <td class="mm-num">${m.goal || '-'}</td>
+          <td onclick="event.stopPropagation();"><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deleteMedia('${id}')" style="font-size:11px;color:var(--danger);">삭제</button></td>
+        </tr>`;
+      });
+    });
+    tbody.innerHTML = tbodyHtml;
+
+    // Footer
+    tfoot.innerHTML = `<tr><td></td><td>합계</td><td></td><td></td>
+      <td class="mm-num">${totalBudget.toLocaleString()}</td>
+      <td class="mm-num">-</td><td class="mm-num">100%</td>
+      <td></td><td></td><td></td></tr>`;
+
+    // Type bar chart
+    const typeBreakdown = {};
+    items.forEach(([,m]) => { const t = m.type||'퍼포먼스'; typeBreakdown[t] = (typeBreakdown[t]||0) + (m.budget||0); });
+    document.getElementById('mm-type-chart').innerHTML = TYPE_ORDER.filter(t => typeBreakdown[t]).map(t => {
+      const b = typeBreakdown[t];
+      const pct = totalBudget ? Math.round(b / totalBudget * 100) : 0;
+      const tc = TYPE_COLORS_MM[t];
+      return `<div class="mm-bar-row2">
+        <div class="mm-bar-label2">${t}</div>
+        <div class="mm-bar-track2"><div class="mm-bar-fill2" style="width:${pct}%;background:linear-gradient(90deg,${tc},${tc}99);">${pct>5?pct+'%':''}</div></div>
+        <div class="mm-bar-amt2">${b.toLocaleString()}만</div>
+      </div>`;
+    }).join('');
+
+    // Platform chart (APP vs WEB)
+    const platBreakdown = {};
+    items.forEach(([,m]) => {
+      const k = m.platform1 || 'APP';
+      platBreakdown[k] = (platBreakdown[k]||0) + (m.budget||0);
+    });
+    const platColors = {'APP':'#3B82F6','WEB':'#10B981'};
+    const platIcons = {'APP':'📱','WEB':'🌐'};
+    const platTotal = Object.values(platBreakdown).reduce((s,v)=>s+v,0);
+    const appBudget = platBreakdown['APP']||0;
+    const webBudget = platBreakdown['WEB']||0;
+    const appPct = platTotal ? Math.round(appBudget/platTotal*100) : 0;
+    const webPct = platTotal ? Math.round(webBudget/platTotal*100) : 0;
+
+    // APP/WEB별 매체 목록
+    const appMedia = items.filter(([,m])=>(m.platform1||'APP')==='APP').map(([,m])=>m.name);
+    const webMedia = items.filter(([,m])=>m.platform1==='WEB').map(([,m])=>m.name);
+
+    document.getElementById('mm-platform-chart').innerHTML = `
+      <div style="display:flex;height:14px;border-radius:7px;overflow:hidden;margin-bottom:24px;">
+        ${appPct?`<div style="width:${appPct}%;background:${platColors.APP};"></div>`:''}
+        ${webPct?`<div style="width:${webPct}%;background:${platColors.WEB};"></div>`:''}
+      </div>
+      <div style="display:flex;gap:16px;">
+        <div style="flex:1;padding:20px;background:#EFF6FF;border-radius:12px;text-align:center;">
+          <div style="font-size:28px;margin-bottom:6px;">📱</div>
+          <div style="font-size:12px;font-weight:700;color:#8B8BA7;margin-bottom:4px;">APP</div>
+          <div style="font-size:24px;font-weight:800;color:#3B82F6;">${appPct}%</div>
+          <div style="font-size:13px;font-weight:700;color:#3A3A52;margin-top:4px;">${appBudget.toLocaleString()}만</div>
+          <div style="font-size:11px;color:#8B8BA7;margin-top:6px;">${appMedia.length?appMedia.join(', '):'없음'}</div>
+        </div>
+        <div style="flex:1;padding:20px;background:#ECFDF5;border-radius:12px;text-align:center;">
+          <div style="font-size:28px;margin-bottom:6px;">🌐</div>
+          <div style="font-size:12px;font-weight:700;color:#8B8BA7;margin-bottom:4px;">WEB</div>
+          <div style="font-size:24px;font-weight:800;color:#10B981;">${webPct}%</div>
+          <div style="font-size:13px;font-weight:700;color:#3A3A52;margin-top:4px;">${webBudget.toLocaleString()}만</div>
+          <div style="font-size:11px;color:#8B8BA7;margin-top:6px;">${webMedia.length?webMedia.join(', '):'없음'}</div>
+        </div>
+      </div>`;
+
+    // Weekly budget plan - vertical bar chart
+    const allStartDates = items.filter(([,m])=>m.startDate).map(([,m])=>m.startDate).sort();
+    const allEndDates = items.filter(([,m])=>m.endDate).map(([,m])=>m.endDate).sort();
+    if (allStartDates.length && allEndDates.length) {
+      const campStart = new Date(allStartDates[0]);
+      const campEnd = new Date(allEndDates[allEndDates.length-1]);
+      const weeks = [];
+      let ws = new Date(campStart);
+      while (ws <= campEnd) {
+        let we = new Date(ws); we.setDate(we.getDate() + 6);
+        if (we > campEnd) we = new Date(campEnd);
+        let weekBudget = 0;
+        items.forEach(([,m]) => {
+          if (!m.startDate || !m.endDate || !m.dailyBudget) return;
+          const ms = new Date(m.startDate), me = new Date(m.endDate);
+          const overlapStart = ws > ms ? ws : ms;
+          const overlapEnd = we < me ? we : me;
+          if (overlapStart <= overlapEnd) {
+            const days = Math.ceil((overlapEnd - overlapStart) / 86400000) + 1;
+            weekBudget += days * m.dailyBudget;
+          }
+        });
+        weeks.push({
+          label: (ws.getMonth()+1)+'/'+ws.getDate()+' ~ '+(we.getMonth()+1)+'/'+we.getDate(),
+          budget: Math.round(weekBudget)
+        });
+        ws = new Date(we); ws.setDate(ws.getDate() + 1);
+      }
+      const maxWeek = Math.max(...weeks.map(w=>w.budget));
+      const totalPlanned = weeks.reduce((s,w)=>s+w.budget,0);
+      const totalBudgetWon = totalBudget * 10000;
+      const burnPct = totalBudgetWon ? Math.round(totalPlanned / totalBudgetWon * 100) : 0;
+      const maxBarH = 220;
+      let cumTotal = 0;
+
+      const barsHtml = weeks.map((w,i) => {
+        cumTotal += w.budget;
+        const barH = maxWeek ? Math.round(w.budget / maxWeek * maxBarH) : 20;
+        const budgetMan = Math.round(w.budget / 10000);
+        const cumMan = Math.round(cumTotal / 10000);
+        return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;max-width:120px;">
+          <div style="font-size:14px;font-weight:700;color:#1E1E2E;margin-bottom:8px;">${budgetMan.toLocaleString()}만</div>
+          <div style="width:100%;display:flex;justify-content:center;">
+            <div style="width:52px;height:${barH}px;border-radius:12px 12px 0 0;background:linear-gradient(180deg,#A855F7,#C084FC);cursor:pointer;transition:all .3s;min-height:20px;" onmouseover="this.style.background='linear-gradient(180deg,#9333EA,#A855F7)'" onmouseout="this.style.background='linear-gradient(180deg,#A855F7,#C084FC)'"></div>
+          </div>
+          <div style="margin-top:12px;text-align:center;">
+            <div style="font-size:14px;font-weight:700;color:#1E1E2E;">${i+1}주차</div>
+            <div style="font-size:11px;color:#9CA3AF;margin-top:2px;">${w.label}</div>
+          </div>
+        </div>`;
+      }).join('');
+
+      cumTotal = 0;
+      const cumHtml = weeks.map((w,i) => {
+        cumTotal += w.budget;
+        const cumMan = Math.round(cumTotal / 10000);
+        return `<div style="flex:1;max-width:120px;text-align:center;">
+          <div style="font-size:10px;color:#9CA3AF;">누적</div>
+          <div style="font-size:12px;font-weight:700;color:#A855F7;">${cumMan.toLocaleString()}만</div>
+        </div>`;
+      }).join('');
+
+      const remainMan = Math.round((totalBudgetWon - totalPlanned) / 10000);
+      const plannedMan = Math.round(totalPlanned / 10000);
+
+      document.getElementById('mm-weekly-chart').innerHTML = `
+        <div style="display:flex;align-items:flex-end;justify-content:center;gap:20px;height:${maxBarH+80}px;padding:0 8px;margin-bottom:16px;position:relative;">
+          <div style="position:absolute;bottom:0;left:0;right:0;height:1px;background:#E5E7EB;"></div>
+          ${barsHtml}
+        </div>
+        <div style="display:flex;justify-content:center;gap:20px;padding:0 8px;margin-bottom:28px;">${cumHtml}</div>
+        <div style="background:#FAFAFF;border-radius:14px;padding:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font-size:13px;font-weight:600;color:#6B7280;">총 예산 소진율</span>
+            <span style="font-size:13px;font-weight:700;color:#A855F7;">${burnPct}%</span>
+          </div>
+          <div style="height:10px;background:#EDE9FE;border-radius:99px;overflow:hidden;">
+            <div style="height:100%;width:${burnPct}%;background:linear-gradient(90deg,#A855F7,#7C3AED);border-radius:99px;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:#9CA3AF;">
+            <span style="font-weight:600;color:#1E1E2E;">${plannedMan.toLocaleString()}만원 소진 예정</span>
+            <span>잔여 ${remainMan.toLocaleString()}만원</span>
+          </div>
+        </div>`;
+    } else {
+      document.getElementById('mm-weekly-chart').innerHTML = '<div style="color:#8B8BA7;font-size:13px;text-align:center;padding:30px;">매체에 기간을 설정하면 주차별 계획이 표시됩니다</div>';
+    }
+  });
+}
+
+// ===== Calendar =====
+let calYear, calMonth;
+(function() { const d = new Date(); calYear = d.getFullYear(); calMonth = d.getMonth(); })();
+
+function calPrev() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
+function calNext() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendar(); }
+
+const CAL_COLORS = { 'Meta':'#3B82F6','Google':'#10B981','네이버':'#2DB400','카카오':'#FEE500','토스':'#0064FF','인플루언서':'#EC4899','기타':'#64748B' };
+
+function openCalEventModal(id) {
+  document.getElementById('cal-event-edit-id').value = id || '';
+  document.getElementById('cal-event-modal-title').textContent = id ? '일정 수정' : '일정 추가';
+  if (id && firebaseReady) {
+    db.ref('campaign/calendar/' + id).once('value', s => {
+      const d = s.val();
+      if (d) {
+        document.getElementById('cal-event-name').value = d.name || '';
+        document.getElementById('cal-event-category').value = d.category || 'Meta';
+        document.getElementById('cal-event-start').value = d.startDate || '';
+        document.getElementById('cal-event-end').value = d.endDate || '';
+        document.getElementById('cal-event-memo').value = d.memo || '';
+      }
+      openModal('modal-cal-event');
+    });
+  } else {
+    ['cal-event-name','cal-event-start','cal-event-end','cal-event-memo'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('cal-event-category').value = 'Meta';
+    openModal('modal-cal-event');
+  }
+}
+
+function saveCalEvent() {
+  const name = document.getElementById('cal-event-name').value.trim();
+  const startDate = document.getElementById('cal-event-start').value;
+  if (!name || !startDate) return toast('일정명과 시작일을 입력하세요');
+  const data = {
+    name,
+    category: document.getElementById('cal-event-category').value,
+    startDate,
+    endDate: document.getElementById('cal-event-end').value || startDate,
+    memo: document.getElementById('cal-event-memo').value.trim()
+  };
+  const editId = document.getElementById('cal-event-edit-id').value;
+  const ref = editId ? db.ref('campaign/calendar/' + editId) : db.ref('campaign/calendar').push();
+  ref.update(data).then(() => { closeModal('modal-cal-event'); renderCalendar(); toast('저장 완료'); });
+}
+
+function deleteCalEvent(id) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  db.ref('campaign/calendar/' + id).remove().then(() => { renderCalendar(); toast('삭제 완료'); });
+}
+
+function renderCalendar() {
+  if (!firebaseReady) return;
+  document.getElementById('cal-month-label').textContent = calYear + '년 ' + (calMonth + 1) + '월';
+
+  db.ref('campaign/calendar').once('value', snap => {
+    const events = snap.val() || {};
+    const grid = document.getElementById('cal-grid');
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const today = new Date();
+    const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+
+    let html = ['일','월','화','수','목','금','토'].map(d => `<div class="cal-header-cell">${d}</div>`).join('');
+
+    // Previous month
+    const prevDays = new Date(calYear, calMonth, 0).getDate();
+    for (let i = firstDay - 1; i >= 0; i--) {
+      html += `<div class="cal-cell other-month"><div class="cal-day">${prevDays - i}</div></div>`;
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = calYear + '-' + String(calMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+      const dayOfWeek = new Date(calYear, calMonth, d).getDay();
+      const isToday = dateStr === todayStr;
+      const dayClass = dayOfWeek === 0 ? 'sunday' : dayOfWeek === 6 ? 'saturday' : '';
+
+      // Find events for this date
+      let eventHtml = '';
+      Object.entries(events).forEach(([id, ev]) => {
+        if (dateStr >= ev.startDate && dateStr <= (ev.endDate || ev.startDate)) {
+          const color = CAL_COLORS[ev.category] || CAL_COLORS['기타'];
+          const textColor = ev.category === '카카오' ? '#000' : '#fff';
+          eventHtml += `<div class="cal-event" style="background:${color};color:${textColor};" onclick="event.stopPropagation();openCalEventModal('${id}')" title="${ev.name}">${ev.name}</div>`;
+        }
+      });
+
+      html += `<div class="cal-cell${isToday ? ' today' : ''}"><div class="cal-day ${dayClass}">${d}</div>${eventHtml}</div>`;
+    }
+
+    // Fill remaining cells
+    const totalCells = firstDay + daysInMonth;
+    const remaining = (7 - totalCells % 7) % 7;
+    for (let i = 1; i <= remaining; i++) {
+      html += `<div class="cal-cell other-month"><div class="cal-day">${i}</div></div>`;
+    }
+
+    grid.innerHTML = html;
+
+    // Legend
+    const usedCategories = [...new Set(Object.values(events).map(e => e.category))];
+    document.getElementById('cal-legend').innerHTML = usedCategories.map(c => {
+      const color = CAL_COLORS[c] || CAL_COLORS['기타'];
+      return `<span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);"><span style="width:10px;height:10px;border-radius:3px;background:${color};display:inline-block;"></span>${c}</span>`;
+    }).join('');
+  });
+}
+
+// ===== Creatives =====
+function openCreativeModal(id) {
+  document.getElementById('cr-edit-id').value = id || '';
+  document.getElementById('creative-modal-title').textContent = id ? '소재 수정' : '소재 추가';
+  if (id && firebaseReady) {
+    db.ref('campaign/creatives/' + id).once('value', s => {
+      const d = s.val();
+      if (d) {
+        document.getElementById('cr-name').value = d.name || '';
+        document.getElementById('cr-media').value = d.media || 'Meta';
+        document.getElementById('cr-type').value = d.type || '이미지';
+        document.getElementById('cr-size').value = d.size || '';
+        document.getElementById('cr-status').value = d.status || '준비중';
+        document.getElementById('cr-deadline').value = d.deadline || '';
+        document.getElementById('cr-assignee').value = d.assignee || '';
+        document.getElementById('cr-memo').value = d.memo || '';
+      }
+      openModal('modal-creative');
+    });
+  } else {
+    ['cr-name','cr-size','cr-deadline','cr-assignee','cr-memo'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('cr-media').value = 'Meta';
+    document.getElementById('cr-type').value = '이미지';
+    document.getElementById('cr-status').value = '준비중';
+    openModal('modal-creative');
+  }
+}
+
+function saveCreative() {
+  const name = document.getElementById('cr-name').value.trim();
+  if (!name) return toast('소재명을 입력하세요');
+  const data = {
+    name,
+    media: document.getElementById('cr-media').value,
+    type: document.getElementById('cr-type').value,
+    size: document.getElementById('cr-size').value.trim(),
+    status: document.getElementById('cr-status').value,
+    deadline: document.getElementById('cr-deadline').value,
+    assignee: document.getElementById('cr-assignee').value.trim(),
+    memo: document.getElementById('cr-memo').value.trim(),
+    updatedAt: Date.now()
+  };
+  const editId = document.getElementById('cr-edit-id').value;
+  const ref = editId ? db.ref('campaign/creatives/' + editId) : db.ref('campaign/creatives').push();
+  ref.update(data).then(() => { closeModal('modal-creative'); renderCreatives(); toast('저장 완료'); });
+}
+
+function deleteCreative(id) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  db.ref('campaign/creatives/' + id).remove().then(() => { renderCreatives(); toast('삭제 완료'); });
+}
+
+function renderCreatives() {
+  if (!firebaseReady) return;
+  db.ref('campaign/creatives').once('value', snap => {
+    const data = snap.val() || {};
+    let items = Object.entries(data);
+    const filterMedia = document.getElementById('cr-filter-media').value;
+    const filterStatus = document.getElementById('cr-filter-status').value;
+    if (filterMedia) items = items.filter(([,v]) => v.media === filterMedia);
+    if (filterStatus) items = items.filter(([,v]) => v.status === filterStatus);
+
+    const grid = document.getElementById('creative-grid');
+    const empty = document.getElementById('cr-empty');
+
+    // Update media filter options
+    const allMedia = [...new Set(Object.values(data).map(v => v.media))];
+    const sel = document.getElementById('cr-filter-media');
+    const curVal = sel.value;
+    sel.innerHTML = '<option value="">매체 전체</option>' + allMedia.map(m => `<option value="${m}" ${m===curVal?'selected':''}>${m}</option>`).join('');
+
+    if (!items.length) {
+      grid.innerHTML = '';
+      empty.style.display = '';
+      return;
+    }
+    empty.style.display = 'none';
+
+    grid.innerHTML = items.map(([id, c]) => {
+      const dday = c.deadline ? (() => {
+        const diff = Math.ceil((new Date(c.deadline) - new Date()) / 86400000);
+        return diff > 0 ? `D-${diff}` : diff === 0 ? 'D-Day' : `D+${Math.abs(diff)}`;
+      })() : '';
+      return `<div class="cr-card" onclick="openCreativeModal('${id}')">
+        <div class="cr-card-actions">
+          <button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deleteCreative('${id}')" style="color:var(--danger);font-size:11px;">삭제</button>
+        </div>
+        <div class="cr-card-header">
+          <div class="cr-card-title">${c.name}</div>
+          <span class="cr-card-media">${c.media}</span>
+        </div>
+        <div class="cr-card-meta">
+          <span>${c.type || '이미지'}</span>
+          ${c.size ? '<span>' + c.size + '</span>' : ''}
+          ${c.assignee ? '<span>' + c.assignee + '</span>' : ''}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="cr-status-badge" data-status="${c.status}">${c.status}</span>
+          ${dday ? `<span style="font-size:11px;font-weight:700;color:${dday.startsWith('D+') ? 'var(--danger)' : 'var(--primary)'};">${dday}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+
+// ===== Dashboard =====
+function renderDashboard() {
+  if (!firebaseReady) return;
+  Promise.all([
+    new Promise(r => db.ref('campaign/mediamix').once('value', s => r(s.val() || {}))),
+    new Promise(r => db.ref('campaign/calendar').once('value', s => r(s.val() || {}))),
+    new Promise(r => db.ref('campaign/creatives').once('value', s => r(s.val() || {})))
+  ]).then(([media, calendar, creatives]) => {
+    const mediaItems = Object.values(media);
+    const calItems = Object.values(calendar);
+    const crItems = Object.values(creatives);
+    const totalBudget = mediaItems.reduce((s, m) => s + (m.budget || 0), 0);
+
+    // Find campaign period from media dates
+    const allStarts = mediaItems.filter(m => m.startDate).map(m => m.startDate).sort();
+    const allEnds = mediaItems.filter(m => m.endDate).map(m => m.endDate).sort();
+    const campStart = allStarts[0] || '-';
+    const campEnd = allEnds[allEnds.length - 1] || '-';
+
+    document.getElementById('dash-period').textContent = campStart !== '-' ? campStart + ' ~ ' + campEnd : '미설정';
+    if (campEnd !== '-') {
+      const diff = Math.ceil((new Date(campEnd) - new Date()) / 86400000);
+      document.getElementById('dash-dday').textContent = diff > 0 ? '종료까지 D-' + diff : '캠페인 종료';
+    }
+
+    document.getElementById('dash-budget').textContent = totalBudget ? totalBudget.toLocaleString() + '만원' : '미설정';
+    document.getElementById('dash-budget-sub').textContent = mediaItems.length ? '매체 ' + mediaItems.length + '개 배분' : '';
+
+    document.getElementById('dash-media-count').textContent = mediaItems.length + '개';
+    document.getElementById('dash-media-sub').textContent = mediaItems.map(m => m.name).slice(0, 3).join(', ') + (mediaItems.length > 3 ? ' 외' : '');
+
+    const crComplete = crItems.filter(c => c.status === '완료').length;
+    document.getElementById('dash-creative-count').textContent = crItems.length + '개';
+    document.getElementById('dash-creative-sub').textContent = crItems.length ? '완료 ' + crComplete + ' / 진행 ' + (crItems.length - crComplete) : '';
+
+    // Budget bars
+    document.getElementById('dash-budget-bars').innerHTML = mediaItems.length ? mediaItems.map((m, i) => {
+      const pct = totalBudget ? Math.round(m.budget / totalBudget * 100) : 0;
+      const color = MEDIA_COLORS[i % MEDIA_COLORS.length];
+      return `<div class="mm-bar-row">
+        <div class="mm-bar-label">${m.name}</div>
+        <div class="mm-bar-track"><div class="mm-bar-fill" style="width:${pct}%;background:${color};"><span>${pct}%</span></div></div>
+        <div class="mm-bar-amount">${(m.budget||0).toLocaleString()}만원</div>
+      </div>`;
+    }).join('') : '<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:40px;">미디어믹스 탭에서 매체를 추가하세요</div>';
+
+    // Upcoming events
+    const today = new Date().toISOString().slice(0, 10);
+    const upcoming = calItems.filter(e => e.startDate >= today).sort((a, b) => a.startDate.localeCompare(b.startDate)).slice(0, 5);
+    document.getElementById('dash-upcoming').innerHTML = upcoming.length ? upcoming.map(e => {
+      const color = CAL_COLORS[e.category] || CAL_COLORS['기타'];
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);">
+        <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;"></div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${e.name}</div><div style="font-size:11px;color:var(--text-muted);">${e.startDate}${e.endDate && e.endDate !== e.startDate ? ' ~ ' + e.endDate : ''}</div></div>
+      </div>`;
+    }).join('') : '<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:40px;">캘린더에서 일정을 추가하세요</div>';
+
+    // Creative status
+    const statusCounts = { '준비중': 0, '제작중': 0, '검수중': 0, '완료': 0 };
+    crItems.forEach(c => { if (statusCounts.hasOwnProperty(c.status)) statusCounts[c.status]++; });
+    const statusColors = { '준비중': '#F59E0B', '제작중': '#3B82F6', '검수중': '#8B5CF6', '완료': '#10B981' };
+    document.getElementById('dash-creative-status').innerHTML = crItems.length ? `
+      <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">${Object.entries(statusCounts).map(([s, c]) =>
+        `<div style="flex:1;min-width:120px;text-align:center;padding:16px;background:var(--surface-2);border-radius:var(--radius-sm);">
+          <div style="font-size:24px;font-weight:800;color:${statusColors[s]};">${c}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${s}</div>
+        </div>`).join('')}</div>
+      <div style="height:8px;border-radius:4px;overflow:hidden;display:flex;">${Object.entries(statusCounts).map(([s, c]) => {
+        const pct = crItems.length ? (c / crItems.length * 100) : 0;
+        return pct ? `<div style="width:${pct}%;background:${statusColors[s]};"></div>` : '';
+      }).join('')}</div>
+    ` : '<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:40px;">소재 관리에서 소재를 추가하세요</div>';
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initFirebase();
   if (!checkGuideView()) {
     initSidebarResize();
     renderInfluencers();
     renderProjects();
+    navigate('dashboard');
   }
 });
 </script>
