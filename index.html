@@ -1699,7 +1699,8 @@ table { border-collapse: collapse; width: 100%; }
       <div style="display:flex;gap:8px;align-items:center;">
         <span style="font-size:12px;color:var(--text-muted);background:var(--surface-2);padding:4px 12px;border-radius:20px;">대행사: <b style="color:var(--text-primary);">오른웍스</b></span>
         <div class="ch-tabs" id="pr-tabs">
-          <button class="ch-tab active" data-pr="releases" onclick="switchPrTab('releases')">보도자료</button>
+          <button class="ch-tab active" data-pr="plan" onclick="switchPrTab('plan')">기획</button>
+          <button class="ch-tab" data-pr="releases" onclick="switchPrTab('releases')">보도자료</button>
           <button class="ch-tab" data-pr="media" onclick="switchPrTab('media')">매체/기자 DB</button>
           <button class="ch-tab" data-pr="coverage" onclick="switchPrTab('coverage')">게재 현황</button>
         </div>
@@ -1707,8 +1708,55 @@ table { border-collapse: collapse; width: 100%; }
     </div>
     <div class="main-body" style="padding:28px 32px;">
 
+      <!-- 기획 탭 -->
+      <div id="pr-view-plan">
+        <!-- 안내사항 -->
+        <div class="mm-chart-card" style="margin-bottom:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="font-size:15px;font-weight:700;">안내사항</h3>
+            <button class="btn btn-ghost btn-xs" onclick="togglePrNoticeEdit()" id="pr-notice-edit-btn" style="font-size:11px;">수정</button>
+          </div>
+          <div id="pr-notice-display" style="font-size:13px;line-height:1.8;color:var(--text-secondary);white-space:pre-wrap;">로딩 중...</div>
+          <div id="pr-notice-edit-wrap" style="display:none;">
+            <textarea id="pr-notice-textarea" class="form-input" rows="6" style="font-size:13px;line-height:1.8;" placeholder="오른웍스 계약 조건, 진행 프로세스, 주의사항 등을 입력하세요.&#10;&#10;예:&#10;• 대행사: 오른웍스&#10;• 계약 기간: 2026.05.01 ~ 2026.05.31&#10;• 배포 후 게재 확인까지 1~3일 소요&#10;• 기사 수정 요청은 게재 당일에만 가능"></textarea>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;">
+              <button class="btn btn-secondary btn-xs" onclick="togglePrNoticeEdit()">취소</button>
+              <button class="btn btn-primary btn-xs" onclick="savePrNotice()">저장</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 배포 계획 -->
+        <div class="mm-chart-card" style="margin-bottom:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="font-size:15px;font-weight:700;">배포 계획</h3>
+            <button class="btn btn-primary btn-sm" onclick="openPrPlanModal()">+ 배포 추가</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="mm-table">
+              <thead><tr>
+                <th style="width:100px;">등급</th>
+                <th>언론사</th>
+                <th class="mm-num">건수</th>
+                <th class="mm-num">건당 단가 (만원)</th>
+                <th class="mm-num">소계 (만원)</th>
+                <th style="width:60px;"></th>
+              </tr></thead>
+              <tbody id="pr-plan-tbody"></tbody>
+              <tfoot id="pr-plan-tfoot"></tfoot>
+            </table>
+          </div>
+          <div id="pr-plan-empty" style="display:none;text-align:center;padding:30px;color:var(--text-muted);font-size:13px;">배포 계획을 추가하세요.</div>
+        </div>
+
+        <!-- 등급별 요약 -->
+        <div id="pr-plan-summary" style="display:none;">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;" id="pr-plan-summary-cards"></div>
+        </div>
+      </div>
+
       <!-- 보도자료 탭 -->
-      <div id="pr-view-releases">
+      <div id="pr-view-releases" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
           <div style="display:flex;gap:8px;">
             <select class="form-input" id="pr-filter-status" onchange="renderPrReleases()" style="width:130px;padding:6px 10px;font-size:12px;">
@@ -2238,6 +2286,38 @@ table { border-collapse: collapse; width: 100%; }
       <div class="form-group"><label>메모</label><textarea id="cr-memo" class="form-input" rows="2" placeholder="메모"></textarea></div>
     </div>
     <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-creative')">취소</button><button class="btn btn-primary" onclick="saveCreative()">✓ 저장</button></div>
+  </div>
+</div>
+
+<!-- PR Plan Modal -->
+<div class="modal-overlay" id="modal-pr-plan">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header" style="background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border-bottom:1px solid var(--border);">
+      <h3 id="pr-plan-modal-title" style="font-size:18px;font-weight:800;">배포 추가</h3>
+      <button class="modal-close" onclick="closeModal('modal-pr-plan')">×</button>
+    </div>
+    <div class="modal-body" style="padding:24px;">
+      <input type="hidden" id="pr-plan-edit-id">
+      <div style="background:var(--surface-2);border-radius:var(--radius);padding:20px;">
+        <div class="form-group" style="margin:0 0 12px;">
+          <label style="font-size:12px;">등급 *</label>
+          <div style="display:flex;gap:6px;">
+            <label class="chip-toggle"><input type="radio" name="pr-plan-grade" value="메이저" checked><span>메이저</span></label>
+            <label class="chip-toggle"><input type="radio" name="pr-plan-grade" value="준메이저"><span>준메이저</span></label>
+            <label class="chip-toggle"><input type="radio" name="pr-plan-grade" value="일반"><span>일반</span></label>
+          </div>
+        </div>
+        <div class="form-group" style="margin:0 0 12px;"><label style="font-size:12px;">언론사 *</label><input type="text" id="pr-plan-media" class="form-input" placeholder="예: 조선일보, 한경, 매경"></div>
+        <div class="form-grid">
+          <div class="form-group" style="margin:0;"><label style="font-size:12px;">건수</label><input type="number" id="pr-plan-count" class="form-input" placeholder="1" value="1"></div>
+          <div class="form-group" style="margin:0;"><label style="font-size:12px;">건당 단가 (만원)</label><input type="number" id="pr-plan-price" class="form-input" placeholder="예: 100"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="border-top:1px solid var(--border);padding:16px 24px;">
+      <button class="btn btn-secondary" onclick="closeModal('modal-pr-plan')">취소</button>
+      <button class="btn btn-primary" onclick="savePrPlan()">✓ 저장</button>
+    </div>
   </div>
 </div>
 
@@ -2855,7 +2935,7 @@ function navigate(section) {
   if (section === 'mediamix') renderMediaMix();
   if (section === 'calendar') renderCalendar();
   if (section === 'creatives') renderCreatives();
-  if (section === 'pr') renderPrReleases();
+  if (section === 'pr') renderPrPlan();
 }
 
 // ===== Standalone Guide Check =====
@@ -5347,12 +5427,159 @@ function renderCreatives() {
 // ===== PR (언론홍보) =====
 function switchPrTab(tab) {
   document.querySelectorAll('#pr-tabs .ch-tab').forEach(t => t.classList.toggle('active', t.dataset.pr === tab));
-  document.getElementById('pr-view-releases').style.display = tab === 'releases' ? '' : 'none';
-  document.getElementById('pr-view-media').style.display = tab === 'media' ? '' : 'none';
-  document.getElementById('pr-view-coverage').style.display = tab === 'coverage' ? '' : 'none';
+  ['plan','releases','media','coverage'].forEach(v => {
+    const el = document.getElementById('pr-view-' + v);
+    if (el) el.style.display = v === tab ? '' : 'none';
+  });
+  if (tab === 'plan') renderPrPlan();
   if (tab === 'releases') renderPrReleases();
   if (tab === 'media') renderPrMedia();
   if (tab === 'coverage') renderPrCoverage();
+}
+
+// --- 기획 탭 ---
+const PR_GRADE_COLORS = {'메이저':'#EF4444','준메이저':'#F59E0B','일반':'#3B82F6'};
+const PR_GRADE_BG = {'메이저':'#FEE2E2','준메이저':'#FEF3C7','일반':'#DBEAFE'};
+const PR_GRADE_ORDER = ['메이저','준메이저','일반'];
+
+function renderPrPlan() {
+  if (!firebaseReady) return;
+  // Load notice
+  db.ref('campaign/pr-notice').once('value', s => {
+    const notice = s.val() || '• 대행사: 오른웍스\n• 진행 프로세스: 기획 → 보도자료 작성 → 검토 → 배포 → 게재 확인\n• 배포 후 게재 확인까지 1~3일 소요\n• 기사 수정 요청은 게재 당일에만 가능';
+    document.getElementById('pr-notice-display').textContent = notice;
+    document.getElementById('pr-notice-textarea').value = notice;
+  });
+  // Load plan
+  db.ref('campaign/pr-plan').once('value', snap => {
+    const data = snap.val() || {};
+    const items = Object.entries(data);
+    const tbody = document.getElementById('pr-plan-tbody');
+    const tfoot = document.getElementById('pr-plan-tfoot');
+    const empty = document.getElementById('pr-plan-empty');
+    const summary = document.getElementById('pr-plan-summary');
+
+    if (!items.length) {
+      tbody.innerHTML = ''; tfoot.innerHTML = '';
+      empty.style.display = '';
+      summary.style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    summary.style.display = '';
+
+    // Group by grade
+    const grouped = {};
+    items.forEach(([id, p]) => {
+      const g = p.grade || '일반';
+      if (!grouped[g]) grouped[g] = [];
+      grouped[g].push([id, p]);
+    });
+
+    let totalCount = 0, totalAmount = 0;
+    let tbodyHtml = '';
+    PR_GRADE_ORDER.forEach(grade => {
+      if (!grouped[grade]) return;
+      const gc = PR_GRADE_COLORS[grade];
+      const gb = PR_GRADE_BG[grade];
+      const count = grouped[grade].length;
+      grouped[grade].forEach(([id, p], idx) => {
+        const cnt = p.count || 1;
+        const price = p.price || 0;
+        const sub = cnt * price;
+        totalCount += cnt;
+        totalAmount += sub;
+        const gradeCell = idx === 0 ? `<td rowspan="${count}" style="background:${gb};font-weight:800;font-size:12px;color:${gc};text-align:center;vertical-align:middle;white-space:nowrap;"><span style="padding:4px 14px;border-radius:8px;background:${gc}18;display:inline-block;">${grade}</span></td>` : '';
+        tbodyHtml += `<tr onclick="openPrPlanModal('${id}')" style="cursor:pointer;">
+          ${gradeCell}
+          <td style="font-weight:700;">${p.media || '-'}</td>
+          <td class="mm-num">${cnt}건</td>
+          <td class="mm-num">${price.toLocaleString()}만원</td>
+          <td class="mm-num" style="font-weight:700;color:var(--primary);">${sub.toLocaleString()}만원</td>
+          <td onclick="event.stopPropagation();"><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deletePrPlan('${id}')" style="font-size:11px;color:var(--danger);">삭제</button></td>
+        </tr>`;
+      });
+    });
+    tbody.innerHTML = tbodyHtml;
+    tfoot.innerHTML = `<tr><td></td><td>합계</td><td class="mm-num">${totalCount}건</td><td class="mm-num">-</td><td class="mm-num" style="font-weight:700;color:var(--primary);">${totalAmount.toLocaleString()}만원</td><td></td></tr>`;
+
+    // Summary cards by grade
+    const gradeStats = {};
+    items.forEach(([,p]) => {
+      const g = p.grade || '일반';
+      if (!gradeStats[g]) gradeStats[g] = {count:0, amount:0};
+      gradeStats[g].count += (p.count||1);
+      gradeStats[g].amount += (p.count||1) * (p.price||0);
+    });
+    document.getElementById('pr-plan-summary-cards').innerHTML = PR_GRADE_ORDER.map(g => {
+      const s = gradeStats[g] || {count:0, amount:0};
+      const gc = PR_GRADE_COLORS[g];
+      const gb = PR_GRADE_BG[g];
+      const pct = totalAmount ? Math.round(s.amount / totalAmount * 100) : 0;
+      return `<div style="background:${gb};border-radius:14px;padding:20px;text-align:center;">
+        <div style="font-size:12px;font-weight:700;color:${gc};margin-bottom:8px;">${g}</div>
+        <div style="font-size:24px;font-weight:800;color:#1E1E2D;">${s.count}건</div>
+        <div style="font-size:14px;font-weight:700;color:${gc};margin-top:4px;">${s.amount.toLocaleString()}만원</div>
+        <div style="font-size:11px;color:#8B8BA7;margin-top:4px;">전체의 ${pct}%</div>
+      </div>`;
+    }).join('');
+  });
+}
+
+function togglePrNoticeEdit() {
+  const display = document.getElementById('pr-notice-display');
+  const editWrap = document.getElementById('pr-notice-edit-wrap');
+  const isEditing = editWrap.style.display !== 'none';
+  display.style.display = isEditing ? '' : 'none';
+  editWrap.style.display = isEditing ? 'none' : '';
+}
+function savePrNotice() {
+  const text = document.getElementById('pr-notice-textarea').value;
+  db.ref('campaign/pr-notice').set(text).then(() => {
+    document.getElementById('pr-notice-display').textContent = text;
+    togglePrNoticeEdit();
+    toast('저장 완료');
+  });
+}
+
+function openPrPlanModal(id) {
+  document.getElementById('pr-plan-edit-id').value = id || '';
+  document.getElementById('pr-plan-modal-title').textContent = id ? '배포 수정' : '배포 추가';
+  if (id && firebaseReady) {
+    db.ref('campaign/pr-plan/' + id).once('value', s => {
+      const d = s.val();
+      if (d) {
+        document.getElementById('pr-plan-media').value = d.media || '';
+        document.getElementById('pr-plan-count').value = d.count || 1;
+        document.getElementById('pr-plan-price').value = d.price || '';
+        document.querySelectorAll('input[name="pr-plan-grade"]').forEach(r => r.checked = r.value === (d.grade||'일반'));
+      }
+      openModal('modal-pr-plan');
+    });
+  } else {
+    document.getElementById('pr-plan-media').value = '';
+    document.getElementById('pr-plan-count').value = 1;
+    document.getElementById('pr-plan-price').value = '';
+    document.querySelectorAll('input[name="pr-plan-grade"]').forEach(r => r.checked = r.value === '메이저');
+    openModal('modal-pr-plan');
+  }
+}
+function savePrPlan() {
+  const media = document.getElementById('pr-plan-media').value.trim();
+  if (!media) return toast('언론사를 입력하세요');
+  const data = {
+    media,
+    grade: document.querySelector('input[name="pr-plan-grade"]:checked')?.value || '일반',
+    count: parseInt(document.getElementById('pr-plan-count').value) || 1,
+    price: parseInt(document.getElementById('pr-plan-price').value) || 0
+  };
+  const editId = document.getElementById('pr-plan-edit-id').value;
+  const ref = editId ? db.ref('campaign/pr-plan/' + editId) : db.ref('campaign/pr-plan').push();
+  ref.update(data).then(() => { closeModal('modal-pr-plan'); renderPrPlan(); toast('저장 완료'); });
+}
+function deletePrPlan(id) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  db.ref('campaign/pr-plan/' + id).remove().then(() => { renderPrPlan(); toast('삭제 완료'); });
 }
 
 const PR_STATUS_COLORS = {'작성중':'#F59E0B','검토중':'#3B82F6','배포완료':'#8B5CF6','게재확인':'#10B981'};
