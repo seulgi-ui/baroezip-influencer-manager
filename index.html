@@ -1513,11 +1513,7 @@ table { border-collapse: collapse; width: 100%; }
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">기획</div>
-      <div class="nav-item active" data-section="dashboard" onclick="navigate('dashboard')">
-        <div class="nav-dot"></div>
-        <span class="nav-label">대시보드</span>
-      </div>
-      <div class="nav-item" data-section="mediamix" onclick="navigate('mediamix')">
+      <div class="nav-item active" data-section="mediamix" onclick="navigate('mediamix')">
         <div class="nav-dot"></div>
         <span class="nav-label">미디어믹스</span>
       </div>
@@ -1549,7 +1545,7 @@ table { border-collapse: collapse; width: 100%; }
   </aside>
 
   <!-- Dashboard Section -->
-  <section id="section-dashboard" class="section active">
+  <section id="section-dashboard" class="section" style="display:none;">
     <div class="main-header"><h1>대시보드</h1></div>
     <div class="main-body" id="dashboard-body" style="padding:24px;">
       <div id="dash-campaign-info" style="display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap;">
@@ -1596,7 +1592,7 @@ table { border-collapse: collapse; width: 100%; }
   </section>
 
   <!-- Media Mix Section -->
-  <section id="section-mediamix" class="section">
+  <section id="section-mediamix" class="section active">
     <div class="main-header">
       <h1>미디어믹스</h1>
       <div style="display:flex;gap:8px;align-items:center;">
@@ -2651,7 +2647,6 @@ function navigate(section) {
   const el = document.getElementById('section-' + section);
   if (el) el.classList.add('active');
   if (section === 'projects') showProjectList();
-  if (section === 'dashboard') renderDashboard();
   if (section === 'mediamix') renderMediaMix();
   if (section === 'calendar') renderCalendar();
   if (section === 'creatives') renderCreatives();
@@ -5218,7 +5213,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSidebarResize();
     renderInfluencers();
     renderProjects();
-    navigate('dashboard');
+    navigate('mediamix');
   }
 });
 </script>
