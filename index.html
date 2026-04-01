@@ -1526,6 +1526,10 @@ table { border-collapse: collapse; width: 100%; }
         <span class="nav-label">소재 관리</span>
       </div>
       <div class="nav-section-label" style="margin-top:12px;">기획</div>
+      <div class="nav-item" data-section="pr" onclick="navigate('pr')">
+        <div class="nav-dot"></div>
+        <span class="nav-label">언론홍보</span>
+      </div>
       <div class="nav-item" data-section="influencer" onclick="navigate('influencer')">
         <div class="nav-dot"></div>
         <span class="nav-label">인플루언서</span>
@@ -1685,6 +1689,109 @@ table { border-collapse: collapse; width: 100%; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         <p>등록된 소재가 없습니다.<br><span style="font-size:13px;color:var(--text-muted);">소재를 추가하여 제작 현황을 관리하세요.</span></p>
       </div>
+    </div>
+  </section>
+
+  <!-- PR Section -->
+  <section id="section-pr" class="section">
+    <div class="main-header">
+      <h1>언론홍보</h1>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface-2);padding:4px 12px;border-radius:20px;">대행사: <b style="color:var(--text-primary);">오른웍스</b></span>
+        <div class="ch-tabs" id="pr-tabs">
+          <button class="ch-tab active" data-pr="releases" onclick="switchPrTab('releases')">보도자료</button>
+          <button class="ch-tab" data-pr="media" onclick="switchPrTab('media')">매체/기자 DB</button>
+          <button class="ch-tab" data-pr="coverage" onclick="switchPrTab('coverage')">게재 현황</button>
+        </div>
+      </div>
+    </div>
+    <div class="main-body" style="padding:28px 32px;">
+
+      <!-- 보도자료 탭 -->
+      <div id="pr-view-releases">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div style="display:flex;gap:8px;">
+            <select class="form-input" id="pr-filter-status" onchange="renderPrReleases()" style="width:130px;padding:6px 10px;font-size:12px;">
+              <option value="">상태 전체</option>
+              <option value="작성중">작성중</option>
+              <option value="검토중">검토중</option>
+              <option value="배포완료">배포완료</option>
+              <option value="게재확인">게재확인</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openPrReleaseModal()">+ 보도자료 추가</button>
+        </div>
+        <div class="mm-table-wrap">
+          <table class="mm-table">
+            <thead><tr>
+              <th>제목</th>
+              <th>상태</th>
+              <th>배포 매체</th>
+              <th>배포일</th>
+              <th>담당자</th>
+              <th style="width:60px;"></th>
+            </tr></thead>
+            <tbody id="pr-release-tbody"></tbody>
+          </table>
+        </div>
+        <div id="pr-release-empty" class="empty-state" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <p>등록된 보도자료가 없습니다.</p>
+        </div>
+      </div>
+
+      <!-- 매체/기자 DB 탭 -->
+      <div id="pr-view-media" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <input type="text" class="form-input" id="pr-media-search" placeholder="매체명, 기자명 검색..." oninput="renderPrMedia()" style="width:240px;padding:6px 12px;font-size:12px;">
+          <button class="btn btn-primary btn-sm" onclick="openPrMediaModal()">+ 매체/기자 추가</button>
+        </div>
+        <div class="mm-table-wrap">
+          <table class="mm-table">
+            <thead><tr>
+              <th>매체명</th>
+              <th>기자명</th>
+              <th>연락처</th>
+              <th>이메일</th>
+              <th>분야</th>
+              <th>비고</th>
+              <th style="width:60px;"></th>
+            </tr></thead>
+            <tbody id="pr-media-tbody"></tbody>
+          </table>
+        </div>
+        <div id="pr-media-empty" class="empty-state" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <p>등록된 매체/기자가 없습니다.</p>
+        </div>
+      </div>
+
+      <!-- 게재 현황 탭 -->
+      <div id="pr-view-coverage" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div id="pr-coverage-kpi" style="display:flex;gap:12px;"></div>
+          <button class="btn btn-primary btn-sm" onclick="openPrCoverageModal()">+ 게재 기사 추가</button>
+        </div>
+        <div class="mm-table-wrap">
+          <table class="mm-table">
+            <thead><tr>
+              <th>기사 제목</th>
+              <th>매체</th>
+              <th>기자</th>
+              <th>게재일</th>
+              <th class="mm-num">광고환산가치(AVE)</th>
+              <th>기사 링크</th>
+              <th style="width:60px;"></th>
+            </tr></thead>
+            <tbody id="pr-coverage-tbody"></tbody>
+          </table>
+        </div>
+        <div id="pr-coverage-empty" class="empty-state" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/></svg>
+          <p>등록된 게재 기사가 없습니다.</p>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -2131,6 +2238,104 @@ table { border-collapse: collapse; width: 100%; }
       <div class="form-group"><label>메모</label><textarea id="cr-memo" class="form-input" rows="2" placeholder="메모"></textarea></div>
     </div>
     <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-creative')">취소</button><button class="btn btn-primary" onclick="saveCreative()">✓ 저장</button></div>
+  </div>
+</div>
+
+<!-- PR Release Modal -->
+<div class="modal-overlay" id="modal-pr-release">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header" style="background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border-bottom:1px solid var(--border);">
+      <h3 id="pr-release-modal-title" style="font-size:18px;font-weight:800;">보도자료 추가</h3>
+      <button class="modal-close" onclick="closeModal('modal-pr-release')">×</button>
+    </div>
+    <div class="modal-body" style="padding:24px;max-height:70vh;overflow-y:auto;">
+      <input type="hidden" id="pr-release-edit-id">
+      <div style="background:var(--surface-2);border-radius:var(--radius);padding:20px;margin-bottom:16px;">
+        <div class="form-group" style="margin:0 0 12px;"><label style="font-size:12px;">제목 *</label><input type="text" id="pr-release-title" class="form-input" placeholder="보도자료 제목"></div>
+        <div class="form-grid">
+          <div class="form-group" style="margin:0;"><label style="font-size:12px;">상태</label>
+            <select id="pr-release-status" class="form-input">
+              <option value="작성중">작성중</option>
+              <option value="검토중">검토중</option>
+              <option value="배포완료">배포완료</option>
+              <option value="게재확인">게재확인</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;"><label style="font-size:12px;">배포일</label><input type="date" id="pr-release-date" class="form-input"></div>
+        </div>
+      </div>
+      <div style="background:var(--surface-2);border-radius:var(--radius);padding:20px;margin-bottom:16px;">
+        <div class="form-grid">
+          <div class="form-group" style="margin:0;"><label style="font-size:12px;">배포 매체</label><input type="text" id="pr-release-media" class="form-input" placeholder="예: 조선일보, 한경"></div>
+          <div class="form-group" style="margin:0;"><label style="font-size:12px;">담당자</label><input type="text" id="pr-release-assignee" class="form-input" placeholder="담당자"></div>
+        </div>
+      </div>
+      <div class="form-group" style="margin:0;"><label style="font-size:12px;">내용/메모</label><textarea id="pr-release-memo" class="form-input" rows="3" placeholder="보도자료 핵심 내용이나 메모"></textarea></div>
+    </div>
+    <div class="modal-footer" style="border-top:1px solid var(--border);padding:16px 24px;">
+      <button class="btn btn-secondary" onclick="closeModal('modal-pr-release')">취소</button>
+      <button class="btn btn-primary" onclick="savePrRelease()">✓ 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- PR Media Modal -->
+<div class="modal-overlay" id="modal-pr-media">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header" style="background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border-bottom:1px solid var(--border);">
+      <h3 id="pr-media-modal-title" style="font-size:18px;font-weight:800;">매체/기자 추가</h3>
+      <button class="modal-close" onclick="closeModal('modal-pr-media')">×</button>
+    </div>
+    <div class="modal-body" style="padding:24px;">
+      <input type="hidden" id="pr-media-edit-id">
+      <div style="background:var(--surface-2);border-radius:var(--radius);padding:20px;">
+        <div class="form-grid">
+          <div class="form-group" style="margin:0 0 12px;"><label style="font-size:12px;">매체명 *</label><input type="text" id="pr-media-name" class="form-input" placeholder="예: 조선일보"></div>
+          <div class="form-group" style="margin:0 0 12px;"><label style="font-size:12px;">기자명</label><input type="text" id="pr-media-reporter" class="form-input" placeholder="기자 이름"></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group" style="margin:0 0 12px;"><label style="font-size:12px;">연락처</label><input type="text" id="pr-media-phone" class="form-input" placeholder="010-0000-0000"></div>
+          <div class="form-group" style="margin:0 0 12px;"><label style="font-size:12px;">이메일</label><input type="text" id="pr-media-email" class="form-input" placeholder="email@media.com"></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group" style="margin:0;"><label style="font-size:12px;">분야</label><input type="text" id="pr-media-field" class="form-input" placeholder="예: 부동산, IT, 경제"></div>
+          <div class="form-group" style="margin:0;"><label style="font-size:12px;">비고</label><input type="text" id="pr-media-note" class="form-input" placeholder="메모"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="border-top:1px solid var(--border);padding:16px 24px;">
+      <button class="btn btn-secondary" onclick="closeModal('modal-pr-media')">취소</button>
+      <button class="btn btn-primary" onclick="savePrMedia()">✓ 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- PR Coverage Modal -->
+<div class="modal-overlay" id="modal-pr-coverage">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header" style="background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border-bottom:1px solid var(--border);">
+      <h3 id="pr-coverage-modal-title" style="font-size:18px;font-weight:800;">게재 기사 추가</h3>
+      <button class="modal-close" onclick="closeModal('modal-pr-coverage')">×</button>
+    </div>
+    <div class="modal-body" style="padding:24px;">
+      <input type="hidden" id="pr-coverage-edit-id">
+      <div style="background:var(--surface-2);border-radius:var(--radius);padding:20px;">
+        <div class="form-group" style="margin:0 0 12px;"><label style="font-size:12px;">기사 제목 *</label><input type="text" id="pr-coverage-title" class="form-input" placeholder="기사 제목"></div>
+        <div class="form-grid">
+          <div class="form-group" style="margin:0 0 12px;"><label style="font-size:12px;">매체</label><input type="text" id="pr-coverage-media" class="form-input" placeholder="매체명"></div>
+          <div class="form-group" style="margin:0 0 12px;"><label style="font-size:12px;">기자</label><input type="text" id="pr-coverage-reporter" class="form-input" placeholder="기자명"></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group" style="margin:0 0 12px;"><label style="font-size:12px;">게재일</label><input type="date" id="pr-coverage-date" class="form-input"></div>
+          <div class="form-group" style="margin:0 0 12px;"><label style="font-size:12px;">광고환산가치 (만원)</label><input type="number" id="pr-coverage-ave" class="form-input" placeholder="예: 500"></div>
+        </div>
+        <div class="form-group" style="margin:0;"><label style="font-size:12px;">기사 링크</label><input type="text" id="pr-coverage-url" class="form-input" placeholder="https://..."></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="border-top:1px solid var(--border);padding:16px 24px;">
+      <button class="btn btn-secondary" onclick="closeModal('modal-pr-coverage')">취소</button>
+      <button class="btn btn-primary" onclick="savePrCoverage()">✓ 저장</button>
+    </div>
   </div>
 </div>
 
@@ -2650,6 +2855,7 @@ function navigate(section) {
   if (section === 'mediamix') renderMediaMix();
   if (section === 'calendar') renderCalendar();
   if (section === 'creatives') renderCreatives();
+  if (section === 'pr') renderPrReleases();
 }
 
 // ===== Standalone Guide Check =====
@@ -5135,6 +5341,229 @@ function renderCreatives() {
         </div>
       </div>`;
     }).join('');
+  });
+}
+
+// ===== PR (언론홍보) =====
+function switchPrTab(tab) {
+  document.querySelectorAll('#pr-tabs .ch-tab').forEach(t => t.classList.toggle('active', t.dataset.pr === tab));
+  document.getElementById('pr-view-releases').style.display = tab === 'releases' ? '' : 'none';
+  document.getElementById('pr-view-media').style.display = tab === 'media' ? '' : 'none';
+  document.getElementById('pr-view-coverage').style.display = tab === 'coverage' ? '' : 'none';
+  if (tab === 'releases') renderPrReleases();
+  if (tab === 'media') renderPrMedia();
+  if (tab === 'coverage') renderPrCoverage();
+}
+
+const PR_STATUS_COLORS = {'작성중':'#F59E0B','검토중':'#3B82F6','배포완료':'#8B5CF6','게재확인':'#10B981'};
+const PR_STATUS_BG = {'작성중':'#FEF3C7','검토중':'#DBEAFE','배포완료':'#F3E8FF','게재확인':'#D1FAE5'};
+
+// --- 보도자료 ---
+function openPrReleaseModal(id) {
+  document.getElementById('pr-release-edit-id').value = id || '';
+  document.getElementById('pr-release-modal-title').textContent = id ? '보도자료 수정' : '보도자료 추가';
+  if (id && firebaseReady) {
+    db.ref('campaign/pr-releases/' + id).once('value', s => {
+      const d = s.val();
+      if (d) {
+        document.getElementById('pr-release-title').value = d.title || '';
+        document.getElementById('pr-release-status').value = d.status || '작성중';
+        document.getElementById('pr-release-date').value = d.date || '';
+        document.getElementById('pr-release-media').value = d.media || '';
+        document.getElementById('pr-release-assignee').value = d.assignee || '';
+        document.getElementById('pr-release-memo').value = d.memo || '';
+      }
+      openModal('modal-pr-release');
+    });
+  } else {
+    ['pr-release-title','pr-release-date','pr-release-media','pr-release-assignee','pr-release-memo'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('pr-release-status').value = '작성중';
+    openModal('modal-pr-release');
+  }
+}
+function savePrRelease() {
+  const title = document.getElementById('pr-release-title').value.trim();
+  if (!title) return toast('제목을 입력하세요');
+  const data = {
+    title,
+    status: document.getElementById('pr-release-status').value,
+    date: document.getElementById('pr-release-date').value,
+    media: document.getElementById('pr-release-media').value.trim(),
+    assignee: document.getElementById('pr-release-assignee').value.trim(),
+    memo: document.getElementById('pr-release-memo').value.trim(),
+    updatedAt: Date.now()
+  };
+  const editId = document.getElementById('pr-release-edit-id').value;
+  const ref = editId ? db.ref('campaign/pr-releases/' + editId) : db.ref('campaign/pr-releases').push();
+  ref.update(data).then(() => { closeModal('modal-pr-release'); renderPrReleases(); toast('저장 완료'); });
+}
+function deletePrRelease(id) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  db.ref('campaign/pr-releases/' + id).remove().then(() => { renderPrReleases(); toast('삭제 완료'); });
+}
+function renderPrReleases() {
+  if (!firebaseReady) return;
+  db.ref('campaign/pr-releases').once('value', snap => {
+    const data = snap.val() || {};
+    let items = Object.entries(data);
+    const filter = document.getElementById('pr-filter-status').value;
+    if (filter) items = items.filter(([,v]) => v.status === filter);
+    const tbody = document.getElementById('pr-release-tbody');
+    const empty = document.getElementById('pr-release-empty');
+    if (!items.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+    empty.style.display = 'none';
+    tbody.innerHTML = items.map(([id, r]) => {
+      const sc = PR_STATUS_COLORS[r.status] || '#64748B';
+      const sb = PR_STATUS_BG[r.status] || '#F3F4F6';
+      return `<tr onclick="openPrReleaseModal('${id}')" style="cursor:pointer;">
+        <td style="font-weight:700;">${r.title}</td>
+        <td><span style="font-size:11px;padding:3px 10px;border-radius:20px;background:${sb};color:${sc};font-weight:700;">${r.status}</span></td>
+        <td style="font-size:12px;">${r.media || '-'}</td>
+        <td style="font-size:12px;color:var(--text-muted);">${r.date || '-'}</td>
+        <td style="font-size:12px;">${r.assignee || '-'}</td>
+        <td onclick="event.stopPropagation();"><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deletePrRelease('${id}')" style="font-size:11px;color:var(--danger);">삭제</button></td>
+      </tr>`;
+    }).join('');
+  });
+}
+
+// --- 매체/기자 DB ---
+function openPrMediaModal(id) {
+  document.getElementById('pr-media-edit-id').value = id || '';
+  document.getElementById('pr-media-modal-title').textContent = id ? '매체/기자 수정' : '매체/기자 추가';
+  if (id && firebaseReady) {
+    db.ref('campaign/pr-media/' + id).once('value', s => {
+      const d = s.val();
+      if (d) {
+        document.getElementById('pr-media-name').value = d.name || '';
+        document.getElementById('pr-media-reporter').value = d.reporter || '';
+        document.getElementById('pr-media-phone').value = d.phone || '';
+        document.getElementById('pr-media-email').value = d.email || '';
+        document.getElementById('pr-media-field').value = d.field || '';
+        document.getElementById('pr-media-note').value = d.note || '';
+      }
+      openModal('modal-pr-media');
+    });
+  } else {
+    ['pr-media-name','pr-media-reporter','pr-media-phone','pr-media-email','pr-media-field','pr-media-note'].forEach(i => document.getElementById(i).value = '');
+    openModal('modal-pr-media');
+  }
+}
+function savePrMedia() {
+  const name = document.getElementById('pr-media-name').value.trim();
+  if (!name) return toast('매체명을 입력하세요');
+  const data = {
+    name,
+    reporter: document.getElementById('pr-media-reporter').value.trim(),
+    phone: document.getElementById('pr-media-phone').value.trim(),
+    email: document.getElementById('pr-media-email').value.trim(),
+    field: document.getElementById('pr-media-field').value.trim(),
+    note: document.getElementById('pr-media-note').value.trim()
+  };
+  const editId = document.getElementById('pr-media-edit-id').value;
+  const ref = editId ? db.ref('campaign/pr-media/' + editId) : db.ref('campaign/pr-media').push();
+  ref.update(data).then(() => { closeModal('modal-pr-media'); renderPrMedia(); toast('저장 완료'); });
+}
+function deletePrMedia(id) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  db.ref('campaign/pr-media/' + id).remove().then(() => { renderPrMedia(); toast('삭제 완료'); });
+}
+function renderPrMedia() {
+  if (!firebaseReady) return;
+  db.ref('campaign/pr-media').once('value', snap => {
+    const data = snap.val() || {};
+    let items = Object.entries(data);
+    const search = (document.getElementById('pr-media-search').value || '').toLowerCase();
+    if (search) items = items.filter(([,v]) => (v.name||'').toLowerCase().includes(search) || (v.reporter||'').toLowerCase().includes(search));
+    const tbody = document.getElementById('pr-media-tbody');
+    const empty = document.getElementById('pr-media-empty');
+    if (!items.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+    empty.style.display = 'none';
+    tbody.innerHTML = items.map(([id, m]) => `<tr onclick="openPrMediaModal('${id}')" style="cursor:pointer;">
+      <td style="font-weight:700;">${m.name}</td>
+      <td>${m.reporter || '-'}</td>
+      <td style="font-size:12px;">${m.phone || '-'}</td>
+      <td style="font-size:12px;"><a href="mailto:${m.email}" onclick="event.stopPropagation();" style="color:var(--primary);">${m.email || '-'}</a></td>
+      <td><span style="font-size:11px;padding:2px 8px;border-radius:12px;background:var(--surface-2);font-weight:600;">${m.field || '-'}</span></td>
+      <td style="font-size:12px;color:var(--text-muted);">${m.note || '-'}</td>
+      <td onclick="event.stopPropagation();"><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deletePrMedia('${id}')" style="font-size:11px;color:var(--danger);">삭제</button></td>
+    </tr>`).join('');
+  });
+}
+
+// --- 게재 현황 ---
+function openPrCoverageModal(id) {
+  document.getElementById('pr-coverage-edit-id').value = id || '';
+  document.getElementById('pr-coverage-modal-title').textContent = id ? '게재 기사 수정' : '게재 기사 추가';
+  if (id && firebaseReady) {
+    db.ref('campaign/pr-coverage/' + id).once('value', s => {
+      const d = s.val();
+      if (d) {
+        document.getElementById('pr-coverage-title').value = d.title || '';
+        document.getElementById('pr-coverage-media').value = d.media || '';
+        document.getElementById('pr-coverage-reporter').value = d.reporter || '';
+        document.getElementById('pr-coverage-date').value = d.date || '';
+        document.getElementById('pr-coverage-ave').value = d.ave || '';
+        document.getElementById('pr-coverage-url').value = d.url || '';
+      }
+      openModal('modal-pr-coverage');
+    });
+  } else {
+    ['pr-coverage-title','pr-coverage-media','pr-coverage-reporter','pr-coverage-date','pr-coverage-ave','pr-coverage-url'].forEach(i => document.getElementById(i).value = '');
+    openModal('modal-pr-coverage');
+  }
+}
+function savePrCoverage() {
+  const title = document.getElementById('pr-coverage-title').value.trim();
+  if (!title) return toast('기사 제목을 입력하세요');
+  const data = {
+    title,
+    media: document.getElementById('pr-coverage-media').value.trim(),
+    reporter: document.getElementById('pr-coverage-reporter').value.trim(),
+    date: document.getElementById('pr-coverage-date').value,
+    ave: parseInt(document.getElementById('pr-coverage-ave').value) || 0,
+    url: document.getElementById('pr-coverage-url').value.trim()
+  };
+  const editId = document.getElementById('pr-coverage-edit-id').value;
+  const ref = editId ? db.ref('campaign/pr-coverage/' + editId) : db.ref('campaign/pr-coverage').push();
+  ref.update(data).then(() => { closeModal('modal-pr-coverage'); renderPrCoverage(); toast('저장 완료'); });
+}
+function deletePrCoverage(id) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  db.ref('campaign/pr-coverage/' + id).remove().then(() => { renderPrCoverage(); toast('삭제 완료'); });
+}
+function renderPrCoverage() {
+  if (!firebaseReady) return;
+  db.ref('campaign/pr-coverage').once('value', snap => {
+    const data = snap.val() || {};
+    const items = Object.entries(data);
+    const tbody = document.getElementById('pr-coverage-tbody');
+    const empty = document.getElementById('pr-coverage-empty');
+    const totalAve = items.reduce((s,[,v]) => s + (v.ave||0), 0);
+
+    // KPI
+    document.getElementById('pr-coverage-kpi').innerHTML = items.length ? `
+      <div style="padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xs);">
+        <span style="font-size:11px;color:var(--text-muted);">게재 건수</span>
+        <span style="font-size:15px;font-weight:800;margin-left:8px;">${items.length}건</span>
+      </div>
+      <div style="padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xs);">
+        <span style="font-size:11px;color:var(--text-muted);">총 AVE</span>
+        <span style="font-size:15px;font-weight:800;color:var(--primary);margin-left:8px;">${totalAve.toLocaleString()}만원</span>
+      </div>
+    ` : '';
+
+    if (!items.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+    empty.style.display = 'none';
+    tbody.innerHTML = items.map(([id, c]) => `<tr onclick="openPrCoverageModal('${id}')" style="cursor:pointer;">
+      <td style="font-weight:700;">${c.title}</td>
+      <td>${c.media || '-'}</td>
+      <td style="font-size:12px;">${c.reporter || '-'}</td>
+      <td style="font-size:12px;color:var(--text-muted);">${c.date || '-'}</td>
+      <td class="mm-num" style="font-weight:700;color:var(--primary);">${c.ave ? c.ave.toLocaleString()+'만원' : '-'}</td>
+      <td>${c.url ? '<a href="'+c.url+'" target="_blank" onclick="event.stopPropagation();" style="color:var(--primary);font-size:12px;">기사 보기</a>' : '-'}</td>
+      <td onclick="event.stopPropagation();"><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deletePrCoverage('${id}')" style="font-size:11px;color:var(--danger);">삭제</button></td>
+    </tr>`).join('');
   });
 }
 
