@@ -5184,7 +5184,12 @@ function renderMediaMix() {
             <td class="mm-num" id="mm-pct-${id}"><div class="mm-pct-bar"><div class="mm-pct-track"><div class="mm-pct-fill" style="width:${pct}%;"></div></div><span class="mm-pct-text">${pct}%</span></div></td>
             <td class="mm-num" style="font-weight:600;" id="mm-daily-${id}">${daily}</td>
             <td>${period}</td>
-            <td onclick="event.stopPropagation();"><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deleteMedia('${id}')" style="font-size:11px;color:var(--danger);">삭제</button></td>
+            <td onclick="event.stopPropagation();" style="text-align:center;">
+              <div style="display:flex;gap:4px;justify-content:center;opacity:0.4;transition:opacity .15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
+                <button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();openMediaModal('${id}')" title="수정" style="padding:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deleteMedia('${id}')" title="삭제" style="padding:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+              </div>
+            </td>
           </tr>`;
           typeIdx++;
         });
