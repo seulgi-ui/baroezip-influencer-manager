@@ -5198,19 +5198,39 @@ function renderMediaMix() {
       <td class="mm-num">100%</td><td class="mm-num">-</td>
       <td></td><td></td></tr>`;
 
-    // Type bar chart
+    // Type donut chart (SVG)
     const typeBreakdown = {};
     items.forEach(([,m]) => { const t = m.type||'퍼포먼스'; typeBreakdown[t] = (typeBreakdown[t]||0) + (m.budget||0); });
-    document.getElementById('mm-type-chart').innerHTML = TYPE_ORDER.filter(t => typeBreakdown[t]).map(t => {
+    const typeEntries = TYPE_ORDER.filter(t => typeBreakdown[t]);
+    const circumference = 2 * Math.PI * 54; // r=54
+    let donutSvg = `<svg width="140" height="140" viewBox="0 0 140 140"><circle cx="70" cy="70" r="54" fill="none" stroke="#F0F0F4" stroke-width="20"/>`;
+    let cumOffset = 0;
+    const donutColors = {'퍼포먼스':'#A855F7','브랜딩':'#D8B4FE','바이럴':'#F9A8D4','언론보도':'#6EE7B7','인플루언서':'#FCD34D'};
+    typeEntries.forEach(t => {
+      const pct = totalBudget ? typeBreakdown[t] / totalBudget : 0;
+      const dashLen = pct * circumference;
+      const dashGap = circumference - dashLen;
+      const offset = -cumOffset * circumference + circumference * 0.25;
+      donutSvg += `<circle cx="70" cy="70" r="54" fill="none" stroke="${donutColors[t]||'#A855F7'}" stroke-width="20" stroke-dasharray="${dashLen} ${dashGap}" stroke-dashoffset="${offset}" transform="rotate(-90 70 70)"/>`;
+      cumOffset += pct;
+    });
+    donutSvg += `<text x="70" y="74" text-anchor="middle" font-size="16" font-weight="700" fill="#111" font-family="Pretendard">${totalBudget.toLocaleString()}만</text></svg>`;
+
+    const legendHtml = typeEntries.map(t => {
       const b = typeBreakdown[t];
       const pct = totalBudget ? Math.round(b / totalBudget * 100) : 0;
-      const tc = TYPE_COLORS_MM[t];
-      return `<div class="mm-bar-row2">
-        <div class="mm-bar-label2">${t}</div>
-        <div class="mm-bar-track2"><div class="mm-bar-fill2" style="width:${pct}%;background:linear-gradient(90deg,${tc},${tc}99);">${pct>5?pct+'%':''}</div></div>
-        <div class="mm-bar-amt2">${b.toLocaleString()}만</div>
+      return `<div class="mm-legend-row">
+        <span class="mm-legend-dot" style="background:${donutColors[t]||'#A855F7'}"></span>
+        <span style="flex:1;color:#555;">${t}</span>
+        <span style="font-weight:600;color:#111;">${b.toLocaleString()}만 (${pct}%)</span>
       </div>`;
     }).join('');
+
+    document.getElementById('mm-type-chart').innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+        ${donutSvg}
+        <div class="mm-legend" style="width:100%;">${legendHtml}</div>
+      </div>`;
 
     // Platform chart (APP vs WEB)
     const platBreakdown = {};
@@ -5229,11 +5249,11 @@ function renderMediaMix() {
       const budget = platBreakdown[p.key]||0;
       const pct = platTotal ? Math.round(budget/platTotal*100) : 0;
       return `<div class="mm-plat-item">
-        <span style="font-size:13px;color:#555;font-weight:500;">${p.key}</span>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:15px;font-weight:700;color:#111;">${budget.toLocaleString()}만</span>
-          <span style="font-size:12px;color:${p.color};font-weight:600;background:${p.color}15;padding:2px 8px;border-radius:10px;">${pct}%</span>
+        <div>
+          <div style="font-size:13px;color:#555;font-weight:500;">${p.key}</div>
+          <div style="font-size:17px;font-weight:700;color:#111;margin-top:2px;">${budget.toLocaleString()}만원</div>
         </div>
+        <span style="font-size:12px;color:var(--primary);font-weight:600;background:#F3E8FF;padding:3px 10px;border-radius:12px;">${pct}%</span>
       </div>`;
     }).join('');
 
