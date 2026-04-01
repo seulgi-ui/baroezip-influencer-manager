@@ -5205,7 +5205,7 @@ function renderMediaMix() {
     const circumference = 2 * Math.PI * 54; // r=54
     let donutSvg = `<svg width="140" height="140" viewBox="0 0 140 140"><circle cx="70" cy="70" r="54" fill="none" stroke="#F0F0F4" stroke-width="20"/>`;
     let cumOffset = 0;
-    const donutColors = {'퍼포먼스':'#A855F7','브랜딩':'#D8B4FE','바이럴':'#F9A8D4','언론보도':'#6EE7B7','인플루언서':'#FCD34D'};
+    const donutColors = {'퍼포먼스':'#A855F7','브랜딩':'#D8B4FE','바이럴':'#E9D5FF','언론보도':'#C4B5FD','인플루언서':'#EDE9FE'};
     typeEntries.forEach(t => {
       const pct = totalBudget ? typeBreakdown[t] / totalBudget : 0;
       const dashLen = pct * circumference;
@@ -5323,23 +5323,8 @@ function renderMediaMix() {
       const plannedMan = Math.round(totalPlanned / 10000);
 
       document.getElementById('mm-weekly-chart').innerHTML = `
-        <div style="display:flex;align-items:flex-end;justify-content:center;gap:20px;height:${maxBarH+80}px;padding:0 8px;margin-bottom:16px;position:relative;">
-          <div style="position:absolute;bottom:0;left:0;right:0;height:1px;background:#E5E7EB;"></div>
+        <div style="display:flex;align-items:flex-end;justify-content:center;gap:12px;height:${maxBarH+60}px;padding:0 4px;position:relative;">
           ${barsHtml}
-        </div>
-        <div style="display:flex;justify-content:center;gap:20px;padding:0 8px;margin-bottom:28px;">${cumHtml}</div>
-        <div style="background:#FAFAFF;border-radius:14px;padding:20px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-            <span style="font-size:13px;font-weight:600;color:#6B7280;">총 예산 소진율</span>
-            <span style="font-size:13px;font-weight:700;color:#A855F7;">${burnPct}%</span>
-          </div>
-          <div style="height:10px;background:#EDE9FE;border-radius:99px;overflow:hidden;">
-            <div style="height:100%;width:${burnPct}%;background:linear-gradient(90deg,#A855F7,#7C3AED);border-radius:99px;"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:#9CA3AF;">
-            <span style="font-weight:600;color:#1E1E2E;">${plannedMan.toLocaleString()}만원 소진 예정</span>
-            <span>잔여 ${remainMan.toLocaleString()}만원</span>
-          </div>
         </div>`;
     } else {
       document.getElementById('mm-weekly-chart').innerHTML = '<div style="color:#8B8BA7;font-size:13px;text-align:center;padding:30px;">매체에 기간을 설정하면 주차별 계획이 표시됩니다</div>';
