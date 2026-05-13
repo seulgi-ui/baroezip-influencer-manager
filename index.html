@@ -657,6 +657,7 @@ table { border-collapse: collapse; width: 100%; }
 @keyframes modalIn { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 .modal-sm { max-width: 480px; }
 .modal-md { max-width: 640px; }
+.modal-lg { max-width: 820px; }
 .modal-header {
   padding: 24px 28px;
   border-bottom: 1px solid var(--border-light);
@@ -2834,31 +2835,130 @@ table { border-collapse: collapse; width: 100%; }
 
 <!-- Modal: Template Add/Edit -->
 <div id="modal-template" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-template')">
-  <div class="modal modal-md">
+  <div class="modal modal-lg">
     <div class="modal-header">
       <h3 id="modal-tpl-title">템플릿 추가</h3>
       <button class="modal-close" onclick="closeModal('modal-template')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">유형</label>
-        <select id="tpl-type" class="form-select">
-          <option value="recruit">DM (섭외 메시지)</option>
-          <option value="guideline">메일 (가이드라인)</option>
-        </select>
+      <!-- 변수 팔레트 -->
+      <div class="form-group" style="background:var(--primary-light);padding:12px;border-radius:var(--radius-sm);margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">📌 변수 삽입 (필드 클릭 후 변수 클릭 → 자동 삽입)</div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;font-weight:600;">인플루언서 정보 (자동)</div>
+        <div id="var-palette-inf" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;"></div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;font-weight:600;">프로젝트 / 발신자 (자동)</div>
+        <div id="var-palette-meta" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">제목</label>
-        <input type="text" id="tpl-title" class="form-input" placeholder="템플릿 제목">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">유형</label>
+          <select id="tpl-type" class="form-select">
+            <option value="recruit">DM (섭외 메시지)</option>
+            <option value="guideline">메일 (콜드메일/협업 제안)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">템플릿 이름</label>
+          <input type="text" id="tpl-title" class="form-input" placeholder="예: 부동산 채널 PPL 콜드메일">
+        </div>
       </div>
+
+      <!-- 구조화 필드 (메일/DM 공통) -->
+      <div class="form-group" id="tpl-subject-group">
+        <label class="form-label">✉️ 메일 제목 <span style="font-weight:400;color:var(--text-muted);font-size:11px;">(메일 발송 시에만 사용)</span></label>
+        <input type="text" id="tpl-subject" class="form-input tpl-field" placeholder="예: [바로이집] {채널명}님과 콘텐츠 협업 제안드립니다">
+      </div>
+
       <div class="form-group">
-        <label class="form-label">내용</label>
-        <textarea id="tpl-content" class="form-textarea" rows="8" placeholder="템플릿 내용... {크리에이터명}, {담당자명} 등 플레이스홀더 사용 가능"></textarea>
+        <label class="form-label">🪝 오프닝 훅 <span style="font-weight:400;color:var(--text-muted);font-size:11px;">(채널을 봤다는 증거 — 템플릿 티 제거의 핵심)</span></label>
+        <textarea id="tpl-hook" class="form-textarea tpl-field" rows="2" placeholder="예: 안녕하세요 {채널명}님. 평소 {토픽} 관련 콘텐츠 잘 보고 있습니다."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">📝 본문 / 협업 제안 <span style="font-weight:400;color:var(--text-muted);font-size:11px;">(왜 이 채널과 협업하고 싶은지)</span></label>
+        <textarea id="tpl-body" class="form-textarea tpl-field" rows="5" placeholder="예: 바로이집은 부동산 AI 분석 서비스로, {채널명}님의 구독자({구독자수}명)와 잘 맞는 사용자층을 가지고 있습니다..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">📋 협업 조건 <span style="font-weight:400;color:var(--text-muted);font-size:11px;">(보상·일정·포맷)</span></label>
+        <textarea id="tpl-conditions" class="form-textarea tpl-field" rows="3" placeholder="■ 포맷: 유튜브 PPL (롱폼 통합 광고)&#10;■ 일정: 가이드 전달 후 2주 내 업로드&#10;■ 보상: 별도 협의"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">🎯 CTA <span style="font-weight:400;color:var(--text-muted);font-size:11px;">(다음 액션 요청 — 진입장벽 낮게)</span></label>
+        <textarea id="tpl-cta" class="form-textarea tpl-field" rows="2" placeholder="예: 관심 있으시면 회신 한 줄이면 충분합니다. 상세 가이드 별도로 전달드릴게요."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">🖋 서명</label>
+        <textarea id="tpl-signature" class="form-textarea tpl-field" rows="3" placeholder="{담당자명}&#10;바로이집 마케팅팀&#10;{담당자이메일} / {담당자연락처}"></textarea>
+      </div>
+
+      <!-- 미리보기 (변수 치환 결과) -->
+      <div class="form-group" style="margin-top:18px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <label class="form-label" style="margin:0;">👀 미리보기 (변수 치환 결과)</label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select id="tpl-preview-inf" class="form-select" style="font-size:12px;padding:4px 8px;width:auto;min-width:180px;" onchange="renderTemplatePreview()">
+              <option value="">— 인플루언서 선택 —</option>
+            </select>
+            <button type="button" class="btn btn-ghost btn-xs" onclick="copyPreviewToClipboard()">📋 복사</button>
+          </div>
+        </div>
+        <div id="tpl-preview" style="background:var(--surface-2);padding:14px;border-radius:var(--radius-sm);font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--text-secondary);min-height:80px;">인플루언서를 선택하면 변수가 치환된 결과가 표시됩니다.</div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-template')">취소</button>
       <button class="btn btn-primary" onclick="saveTemplate()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Send Mail (인플루언서별 변수 치환 후 발송) -->
+<div id="modal-send-mail" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-send-mail')">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>📧 인플루언서에게 보내기 — <span id="send-mail-tpl-name" style="font-weight:600;color:var(--primary);"></span></h3>
+      <button class="modal-close" onclick="closeModal('modal-send-mail')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="send-mail-tpl-id">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">받는 인플루언서</label>
+          <select id="send-mail-inf" class="form-select" onchange="renderSendMailPreview()"></select>
+        </div>
+      </div>
+
+      <div style="background:var(--surface-2);padding:12px;border-radius:var(--radius-sm);margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-primary);margin-bottom:8px;">🖋 발신자 정보 (한 번 저장하면 다음에도 자동 입력)</div>
+        <div style="display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:8px;">
+          <input type="text" id="sender-name" class="form-input" placeholder="이름" oninput="saveSenderInfo()" style="font-size:13px;">
+          <input type="email" id="sender-email" class="form-input" placeholder="이메일" oninput="saveSenderInfo()" style="font-size:13px;">
+          <input type="text" id="sender-phone" class="form-input" placeholder="연락처" oninput="saveSenderInfo()" style="font-size:13px;">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">✉️ 메일 제목</label>
+        <div id="send-mail-subject-output" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;font-weight:600;color:var(--text-primary);"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">📝 메일 본문 (미리보기)</label>
+        <div id="send-mail-preview" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--text-secondary);min-height:200px;max-height:400px;overflow-y:auto;">인플루언서와 발신자 정보를 입력해주세요.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-send-mail')">닫기</button>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-sm" onclick="copySendMailBodyOnly()">본문만 복사</button>
+        <button class="btn btn-ghost btn-sm" onclick="copySendMailContent()">📋 전체 복사</button>
+        <button class="btn btn-primary btn-sm" onclick="openMailtoFromSendMail()">✉️ 메일 앱으로 열기</button>
+      </div>
     </div>
   </div>
 </div>
@@ -4496,43 +4596,297 @@ function renderTemplates() {
 }
 
 function templateCard(t) {
+  // 구버전 호환 — body가 없으면 content 사용
+  const previewText = [t.hook, t.body || t.content].filter(Boolean).join('\n\n');
+  const subjectLine = t.subject ? `<div style="font-size:11px;color:var(--primary);font-weight:600;margin-bottom:6px;">✉️ ${t.subject}</div>` : '';
   return `<div class="tpl-card">
     <div class="tpl-card-header">
       <span class="tpl-card-title">${t.title || '제목없음'}</span>
       <div class="tpl-card-actions">
-        <button class="btn btn-ghost btn-xs" onclick="copyTemplate('${t.id}')">복사</button>
+        <button class="btn btn-primary btn-xs" onclick="openSendMailModal('${t.id}')" title="인플루언서별 변수 치환 후 복사/발송">📧 보내기</button>
         <button class="btn btn-ghost btn-xs" onclick="openTemplateModal('${t.id}')">수정</button>
         <button class="btn btn-ghost btn-xs" style="color:var(--danger);" onclick="deleteTemplate('${t.id}')">삭제</button>
       </div>
     </div>
-    <div class="tpl-card-content">${t.content || ''}</div>
+    ${subjectLine}
+    <div class="tpl-card-content">${previewText}</div>
   </div>`;
+}
+
+// ===== Send Mail (인플루언서 선택 → 변수 치환 → 복사/메일) =====
+function openSendMailModal(templateId) {
+  const t = allTemplates[templateId];
+  if (!t) { showToast('템플릿을 찾을 수 없습니다'); return; }
+  document.getElementById('send-mail-tpl-id').value = templateId;
+  document.getElementById('send-mail-tpl-name').textContent = t.title || '';
+
+  // 발신자 정보 채우기
+  const sender = getSenderInfo();
+  document.getElementById('sender-name').value = sender.name;
+  document.getElementById('sender-email').value = sender.email;
+  document.getElementById('sender-phone').value = sender.phone;
+
+  // 인플루언서 셀렉트 (현재 프로젝트 배정 우선)
+  const sel = document.getElementById('send-mail-inf');
+  const project = allProjects[currentProjectId];
+  const assignedIds = new Set();
+  if (project && project.assigned) {
+    (project.assigned.youtube || []).forEach(id => assignedIds.add(id));
+    (project.assigned.instagram || []).forEach(id => assignedIds.add(id));
+  }
+  const list = Object.entries(allInfluencers)
+    .map(([id, v]) => ({ id, name: v.name || '(이름없음)', followers: v.followers || 0, assigned: assignedIds.has(id) }))
+    .sort((a, b) => (b.assigned - a.assigned) || (b.followers - a.followers));
+  const assignedOpts = list.filter(i => i.assigned).map(i => `<option value="${i.id}">⭐ ${i.name} (${fmtNumK(i.followers)}) — 이 프로젝트 배정</option>`).join('');
+  const otherOpts = list.filter(i => !i.assigned).map(i => `<option value="${i.id}">${i.name} (${fmtNumK(i.followers)})</option>`).join('');
+  sel.innerHTML = '<option value="">— 인플루언서 선택 —</option>' + assignedOpts + otherOpts;
+
+  document.getElementById('send-mail-preview').textContent = '인플루언서와 발신자 정보를 입력해주세요.';
+  document.getElementById('send-mail-preview').style.color = 'var(--text-muted)';
+  openModal('modal-send-mail');
+}
+
+function saveSenderInfo() {
+  localStorage.setItem('baroezip_sender_name', document.getElementById('sender-name').value.trim());
+  localStorage.setItem('baroezip_sender_email', document.getElementById('sender-email').value.trim());
+  localStorage.setItem('baroezip_sender_phone', document.getElementById('sender-phone').value.trim());
+  renderSendMailPreview();
+}
+
+function renderSendMailPreview() {
+  const tplId = document.getElementById('send-mail-tpl-id').value;
+  const infId = document.getElementById('send-mail-inf').value;
+  const t = allTemplates[tplId];
+  const inf = allInfluencers[infId];
+  const project = allProjects[currentProjectId];
+  const sender = {
+    name: document.getElementById('sender-name').value.trim(),
+    email: document.getElementById('sender-email').value.trim(),
+    phone: document.getElementById('sender-phone').value.trim()
+  };
+  const previewEl = document.getElementById('send-mail-preview');
+  const subjectEl = document.getElementById('send-mail-subject-output');
+  if (!t || !inf) {
+    previewEl.textContent = '인플루언서를 선택해주세요.';
+    previewEl.style.color = 'var(--text-muted)';
+    subjectEl.textContent = '';
+    return;
+  }
+  const composed = composeFullEmail(t, inf, project, sender);
+  subjectEl.textContent = composed.subject || '(제목 없음)';
+  previewEl.textContent = composed.body;
+  previewEl.style.color = 'var(--text-primary)';
+}
+
+function copySendMailContent() {
+  const subj = document.getElementById('send-mail-subject-output').textContent;
+  const body = document.getElementById('send-mail-preview').textContent;
+  if (!body || body.startsWith('인플루언서를')) { showToast('인플루언서를 선택해주세요'); return; }
+  const text = (subj ? '[제목] ' + subj + '\n\n' : '') + body;
+  navigator.clipboard.writeText(text).then(() => showToast('메일 전체 복사됨!'));
+}
+
+function copySendMailBodyOnly() {
+  const body = document.getElementById('send-mail-preview').textContent;
+  if (!body || body.startsWith('인플루언서를')) { showToast('인플루언서를 선택해주세요'); return; }
+  navigator.clipboard.writeText(body).then(() => showToast('본문만 복사됨!'));
+}
+
+function openMailtoFromSendMail() {
+  const infId = document.getElementById('send-mail-inf').value;
+  const inf = allInfluencers[infId];
+  if (!inf || !inf.email) { showToast('인플루언서 이메일이 등록되어 있지 않습니다'); return; }
+  const subj = encodeURIComponent(document.getElementById('send-mail-subject-output').textContent);
+  const body = encodeURIComponent(document.getElementById('send-mail-preview').textContent);
+  window.location.href = `mailto:${inf.email}?subject=${subj}&body=${body}`;
+}
+
+// ===== Template Variables (변수 치환) =====
+const TPL_VARS_INF = [
+  { key: '채널명', desc: '인플루언서 이름' },
+  { key: '구독자수', desc: '구독자 (만 단위)' },
+  { key: '평균조회수_LONG', desc: 'LONG 평균' },
+  { key: '평균조회수_SHORT', desc: 'SHORTS 평균' },
+  { key: '평균좋아요', desc: '평균 좋아요' },
+  { key: '평균댓글', desc: '평균 댓글' },
+  { key: 'ER', desc: '인게이지먼트율' },
+  { key: '토픽', desc: '채널 주제' },
+  { key: '분석', desc: '채널 분석 요약' },
+  { key: '채널이메일', desc: '인플루언서 이메일' }
+];
+const TPL_VARS_META = [
+  { key: '프로젝트명', desc: '현재 프로젝트' },
+  { key: '담당자명', desc: '발신자 이름' },
+  { key: '담당자이메일', desc: '발신자 이메일' },
+  { key: '담당자연락처', desc: '발신자 연락처' },
+  { key: '오늘날짜', desc: 'YYYY-MM-DD' }
+];
+
+function getSenderInfo() {
+  return {
+    name: localStorage.getItem('baroezip_sender_name') || '',
+    email: localStorage.getItem('baroezip_sender_email') || '',
+    phone: localStorage.getItem('baroezip_sender_phone') || ''
+  };
+}
+
+function fmtNumK(n) {
+  n = Number(n) || 0;
+  if (n >= 10000) return (n / 10000).toFixed(n >= 100000 ? 0 : 1) + '만';
+  return n.toLocaleString();
+}
+
+function applyVariables(text, inf, project, sender) {
+  if (!text) return '';
+  const today = new Date().toISOString().slice(0, 10);
+  const map = {
+    '채널명': inf?.name || '',
+    '구독자수': inf?.followers ? fmtNumK(inf.followers) : '',
+    '평균조회수_LONG': inf?.avgViewsLong ? fmtNumK(inf.avgViewsLong) : '',
+    '평균조회수_SHORT': inf?.avgViewsShort ? fmtNumK(inf.avgViewsShort) : '',
+    '평균좋아요': inf?.avgLikes ? fmtNumK(inf.avgLikes) : '',
+    '평균댓글': inf?.avgComments ? fmtNumK(inf.avgComments) : '',
+    'ER': inf?.engagement != null ? inf.engagement + '%' : '',
+    '토픽': inf?.topic || '',
+    '분석': inf?.analysis || '',
+    '채널이메일': inf?.email || '',
+    '프로젝트명': project?.name || '',
+    '담당자명': sender?.name || '',
+    '담당자이메일': sender?.email || '',
+    '담당자연락처': sender?.phone || '',
+    '오늘날짜': today
+  };
+  return text.replace(/\{([^}]+)\}/g, (m, k) => (k in map ? map[k] : m));
+}
+
+function composeFullEmail(t, inf, project, sender) {
+  const subj = applyVariables(t.subject || '', inf, project, sender);
+  const parts = [];
+  if (t.hook) parts.push(applyVariables(t.hook, inf, project, sender));
+  if (t.body) parts.push(applyVariables(t.body, inf, project, sender));
+  if (t.conditions) parts.push(applyVariables(t.conditions, inf, project, sender));
+  if (t.cta) parts.push(applyVariables(t.cta, inf, project, sender));
+  if (t.signature) parts.push(applyVariables(t.signature, inf, project, sender));
+  // 구버전 호환: subject/hook/body 등이 모두 비어있고 content만 있는 템플릿
+  if (parts.length === 0 && t.content) parts.push(applyVariables(t.content, inf, project, sender));
+  const body = parts.join('\n\n');
+  return { subject: subj, body, full: (subj ? `[제목] ${subj}\n\n` : '') + body };
+}
+
+// 현재 포커스된 템플릿 필드를 추적 (변수 팔레트 클릭 삽입용)
+let lastFocusedTplField = null;
+function trackTplFieldFocus() {
+  document.querySelectorAll('.tpl-field').forEach(el => {
+    el.addEventListener('focus', () => { lastFocusedTplField = el; });
+  });
+}
+function insertVarIntoField(varKey) {
+  const el = lastFocusedTplField || document.getElementById('tpl-body');
+  if (!el) return;
+  const token = '{' + varKey + '}';
+  const start = el.selectionStart ?? el.value.length;
+  const end = el.selectionEnd ?? el.value.length;
+  el.value = el.value.slice(0, start) + token + el.value.slice(end);
+  el.focus();
+  el.selectionStart = el.selectionEnd = start + token.length;
+  renderTemplatePreview();
+}
+
+function renderVarPalette() {
+  const make = (v) => `<button type="button" class="btn btn-ghost btn-xs" onclick="insertVarIntoField('${v.key}')" title="${v.desc}" style="border:1px solid var(--border);background:#fff;font-size:11px;">{${v.key}}</button>`;
+  document.getElementById('var-palette-inf').innerHTML = TPL_VARS_INF.map(make).join('');
+  document.getElementById('var-palette-meta').innerHTML = TPL_VARS_META.map(make).join('');
+}
+
+function populatePreviewInfluencerSelect() {
+  const sel = document.getElementById('tpl-preview-inf');
+  const list = Object.entries(allInfluencers)
+    .map(([id, v]) => ({ id, name: v.name || '(이름없음)', followers: v.followers || 0 }))
+    .sort((a, b) => b.followers - a.followers);
+  sel.innerHTML = '<option value="">— 인플루언서 선택 —</option>' +
+    list.map(i => `<option value="${i.id}">${i.name} (${fmtNumK(i.followers)})</option>`).join('');
+}
+
+function renderTemplatePreview() {
+  const previewEl = document.getElementById('tpl-preview');
+  const infId = document.getElementById('tpl-preview-inf').value;
+  if (!infId) {
+    previewEl.textContent = '인플루언서를 선택하면 변수가 치환된 결과가 표시됩니다.';
+    previewEl.style.color = 'var(--text-muted)';
+    return;
+  }
+  const inf = allInfluencers[infId];
+  const project = allProjects[currentProjectId];
+  const sender = getSenderInfo();
+  const tpl = {
+    subject: document.getElementById('tpl-subject').value,
+    hook: document.getElementById('tpl-hook').value,
+    body: document.getElementById('tpl-body').value,
+    conditions: document.getElementById('tpl-conditions').value,
+    cta: document.getElementById('tpl-cta').value,
+    signature: document.getElementById('tpl-signature').value
+  };
+  const composed = composeFullEmail(tpl, inf, project, sender);
+  previewEl.textContent = composed.full || '(필드를 작성하면 미리보기가 표시됩니다)';
+  previewEl.style.color = 'var(--text-primary)';
+}
+
+function copyPreviewToClipboard() {
+  const text = document.getElementById('tpl-preview').textContent;
+  if (!text || text.startsWith('인플루언서를 선택하면')) {
+    showToast('인플루언서를 선택해주세요'); return;
+  }
+  navigator.clipboard.writeText(text).then(() => showToast('미리보기 복사됨!'));
 }
 
 function openTemplateModal(id) {
   editingTemplateId = id || null;
   document.getElementById('modal-tpl-title').textContent = id ? '템플릿 수정' : '템플릿 추가';
+  // Reset all fields
   document.getElementById('tpl-type').value = 'recruit';
   document.getElementById('tpl-title').value = '';
-  document.getElementById('tpl-content').value = '';
+  document.getElementById('tpl-subject').value = '';
+  document.getElementById('tpl-hook').value = '';
+  document.getElementById('tpl-body').value = '';
+  document.getElementById('tpl-conditions').value = '';
+  document.getElementById('tpl-cta').value = '';
+  document.getElementById('tpl-signature').value = '';
 
   if (id && allTemplates[id]) {
     const t = allTemplates[id];
     document.getElementById('tpl-type').value = t.type || 'recruit';
     document.getElementById('tpl-title').value = t.title || '';
-    document.getElementById('tpl-content').value = t.content || '';
+    document.getElementById('tpl-subject').value = t.subject || '';
+    document.getElementById('tpl-hook').value = t.hook || '';
+    // 구버전 호환: subject/hook 등이 없고 content만 있는 경우 → body로 매핑
+    document.getElementById('tpl-body').value = t.body || t.content || '';
+    document.getElementById('tpl-conditions').value = t.conditions || '';
+    document.getElementById('tpl-cta').value = t.cta || '';
+    document.getElementById('tpl-signature').value = t.signature || '';
   }
+
+  renderVarPalette();
+  populatePreviewInfluencerSelect();
+  renderTemplatePreview();
   openModal('modal-template');
+  setTimeout(trackTplFieldFocus, 100);
 }
 
 function saveTemplate() {
   const data = {
     type: document.getElementById('tpl-type').value,
     title: document.getElementById('tpl-title').value.trim(),
-    content: document.getElementById('tpl-content').value.trim(),
+    subject: document.getElementById('tpl-subject').value.trim(),
+    hook: document.getElementById('tpl-hook').value.trim(),
+    body: document.getElementById('tpl-body').value.trim(),
+    conditions: document.getElementById('tpl-conditions').value.trim(),
+    cta: document.getElementById('tpl-cta').value.trim(),
+    signature: document.getElementById('tpl-signature').value.trim(),
     updatedAt: Date.now()
   };
-  if (!data.title) { showToast('제목을 입력해주세요'); return; }
+  // 구버전 호환을 위해 content에도 통합 텍스트 저장 (다른 코드가 참조할 가능성)
+  data.content = [data.hook, data.body, data.conditions, data.cta, data.signature].filter(Boolean).join('\n\n');
+  if (!data.title) { showToast('템플릿 이름을 입력해주세요'); return; }
 
   if (!firebaseReady) {
     const id = editingTemplateId || 'local_' + Date.now();
@@ -4571,11 +4925,36 @@ function copyTemplate(id) {
 
 function seedDefaultTemplates() {
   const defaults = [
-    { type: 'recruit', title: '[DM] 릴스 크리에이터 섭외', content: '안녕하세요 {크리에이터명}님!\n\n바로이집에서 연락드립니다.\n{크리에이터명}님의 채널이 너무 좋아서 협업 제안드리고 싶습니다.\n\n관심 있으시면 답변 부탁드립니다!\n\n감사합니다.\n{담당자명}\n{연락처/이메일}' },
-    { type: 'recruit', title: '[DM] 경력 크리에이터 섭외', content: '안녕하세요 {크리에이터명}님,\n\n바로이집 마케팅팀입니다.\n\n현재 진행 중인 캠페인에 {크리에이터명}님을 모시고 싶어 연락드립니다.\n{구체적 콘텐츠}에 관한 협업이며, 상세 내용은 메일로 보내드리겠습니다.\n\n확인 부탁드립니다!\n{담당자명}' },
-    { type: 'recruit', title: '[DM] 프로필 기반 섭외', content: '{크리에이터명}님 안녕하세요!\n\n프로필 보고 연락드립니다. 최근 콘텐츠가 저희 브랜드와 잘 맞아 협업 의뢰드리고 싶습니다.\n\n관심 있으시면 편하게 답변 주세요!\n\n{담당자명} 드림' },
-    { type: 'guideline', title: '[메일] 인스타 릴스 협업 제안', content: '안녕하세요 {크리에이터명}님,\n\n바로이집 마케팅팀 {담당자명}입니다.\n\n인스타그램 릴스 협업을 제안드립니다.\n\n■ 브랜드: 바로이집\n■ 콘텐츠 유형: 인스타그램 릴스\n■ 내용: {구체적 콘텐츠}\n■ 일정: 가이드 전달 후 2주 내 업로드\n\n자세한 가이드는 별도로 전달드리겠습니다.\n긍정적 검토 부탁드립니다.\n\n감사합니다.\n{담당자명}\n{연락처/이메일}' },
-    { type: 'guideline', title: '[메일] 유튜브 PPL 제안', content: '{크리에이터명}님 안녕하세요,\n\n바로이집 {담당자명}입니다.\n\n유튜브 PPL 협업을 제안드립니다.\n\n■ 브랜드: 바로이집\n■ 콘텐츠 유형: 유튜브 PPL (롱폼/숏폼)\n■ 내용: {구체적 콘텐츠}\n■ 예상 일정: 가이드 전달 → 제작 → 컨펌 → 업로드\n\n세부 사항은 가이드라인으로 전달드리겠습니다.\n검토 후 회신 부탁드립니다.\n\n감사합니다.\n{담당자명}\n{연락처/이메일}' }
+    {
+      type: 'guideline',
+      title: '[메일] 부동산/재테크 채널 — 유튜브 PPL 제안',
+      subject: '[바로이집] {채널명}님과 부동산 AI 서비스 협업 제안드립니다',
+      hook: '안녕하세요 {채널명}님, 바로이집 마케팅팀 {담당자명}입니다.\n\n{채널명}님의 {토픽} 콘텐츠 평소 관심 있게 보고 있고, 특히 구독자 {구독자수}분과의 활발한 소통이 인상 깊었습니다.',
+      body: '바로이집은 부동산 시세·입지·리스크를 AI로 분석해주는 서비스인데, {채널명}님 시청자분들의 관심사와 정확히 겹친다고 판단해 협업을 제안드립니다.\n\n특히 평균 조회수 {평균조회수_LONG}회의 영상 도달력과 구독자 신뢰도가, 저희 서비스를 자연스럽게 소개하기에 최적이라고 보고 있습니다.',
+      conditions: '■ 포맷: 유튜브 PPL (롱폼 통합 광고 권장)\n■ 일정: 가이드 전달 후 2주 내 업로드\n■ 보상: 별도 협의 (편하신 단가 제안 부탁드립니다)\n■ 자유도: 시나리오/표현 방식은 {채널명}님 톤에 맞춰 자율 진행',
+      cta: '관심 있으시면 회신 한 줄이면 충분합니다. 상세 가이드와 서비스 소개 자료 바로 전달드릴게요.',
+      signature: '{담당자명}\n바로이집 마케팅팀\n{담당자이메일} / {담당자연락처}\n\n— {오늘날짜}'
+    },
+    {
+      type: 'guideline',
+      title: '[메일] 신혼/육아/라이프 채널 — 인스타 릴스 협업',
+      subject: '[바로이집] {채널명}님께 신혼부부 내집마련 서비스 협업 제안드립니다',
+      hook: '안녕하세요 {채널명}님, 바로이집 {담당자명}입니다.\n\n{채널명}님 채널({구독자수} 구독자)이 신혼/실거주 의사결정 시점의 분들께 큰 영향력을 가지고 계신 것을 보고 연락드립니다.',
+      body: '바로이집은 첫 집 마련을 고민하는 신혼부부가 가장 어려워하는 "이 매물이 진짜 괜찮은지"를 AI로 즉시 분석해주는 서비스입니다.\n\n{채널명}님 시청자 페르소나와 저희 핵심 사용자가 거의 일치해서, 인스타 릴스 1~2건 형태의 자연스러운 협업이 적합하다고 보고 있습니다.',
+      conditions: '■ 포맷: 인스타 릴스 1건 + 스토리 2~3건\n■ 일정: 가이드 전달 후 10일 내 업로드\n■ 보상: 시장가 기준 + 콘텐츠 활용권 별도 협의',
+      cta: '편하실 때 회신 부탁드립니다. 관심 있으시면 서비스 시연 영상과 함께 상세 안내드릴게요.',
+      signature: '{담당자명}\n바로이집 마케팅팀\n{담당자이메일} / {담당자연락처}'
+    },
+    {
+      type: 'recruit',
+      title: '[DM] 짧은 1차 컨택 (인스타/유튜브 공통)',
+      subject: '',
+      hook: '안녕하세요 {채널명}님! 바로이집 {담당자명}입니다.',
+      body: '{토픽} 콘텐츠 잘 보고 있어요. 부동산 AI 분석 서비스 협업 1건 제안드리고 싶은데 메일로 자세히 보내드려도 될까요?',
+      conditions: '',
+      cta: '편하신 이메일 주소 한 줄만 주시면 충분합니다 🙏',
+      signature: '{담당자명} / 바로이집'
+    }
   ];
 
   if (firebaseReady) {
