@@ -823,17 +823,115 @@ table { border-collapse: collapse; width: 100%; }
 .creator-save-status.saving { color: var(--primary); }
 .creator-save-status.saved { color: var(--success); }
 .creator-save-status.dirty { color: #F59E0B; }
-#creator-mail-body {
-  line-height: 1.85;
-  padding: 14px 16px;
-  font-size: 13.5px;
-}
 #creator-mail-subject {
   line-height: 1.6;
   padding: 12px 14px;
   font-size: 14px;
   font-weight: 500;
 }
+
+/* Mail body editor (contenteditable) */
+.mail-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
+}
+.mt-btn {
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: var(--radius-xs);
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-primary);
+  transition: all 0.15s;
+  padding: 0;
+}
+.mt-btn:hover { background: var(--surface); border-color: var(--border); }
+.mt-btn.active { background: var(--primary-light); border-color: var(--primary); color: var(--primary-dark); }
+.mt-btn.mt-small { font-size: 11px; font-weight: 700; }
+.mt-color { padding: 0; }
+.mt-color::after {
+  content: "A";
+  font-weight: 800;
+  font-size: 13px;
+}
+.mt-color-red::after { color: #DC2626; }
+.mt-color-blue::after { color: #2563EB; }
+.mt-color-default::after { color: #111827; }
+.mt-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 4px;
+}
+.mt-picker-wrap { position: relative; }
+.mt-picker {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  padding: 8px;
+  z-index: 50;
+  margin-top: 4px;
+}
+.mt-picker.open { display: block; }
+.mt-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 28px);
+  gap: 2px;
+}
+.mt-picker-grid span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.15s;
+}
+.mt-picker-grid span:hover { background: var(--primary-light); }
+.mail-editor {
+  width: 100%;
+  min-height: 280px;
+  max-height: 540px;
+  overflow-y: auto;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 0 0 var(--radius-xs) var(--radius-xs);
+  outline: none;
+  background: var(--surface);
+  font-size: 13.5px;
+  line-height: 1.85;
+  color: var(--text-primary);
+  font-family: var(--font);
+  transition: border-color 0.2s;
+  white-space: pre-wrap;
+}
+.mail-editor:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+.mail-editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.mail-editor b, .mail-editor strong { font-weight: 700; }
+.mail-editor i, .mail-editor em { font-style: italic; }
+.mail-editor u { text-decoration: underline; }
 
 @media (max-width: 900px) {
   .creator-mail-layout { grid-template-columns: 1fr; }
@@ -2328,8 +2426,43 @@ table { border-collapse: collapse; width: 100%; }
                       <label class="compose-label">메일 제목</label>
                       <input type="text" id="creator-mail-subject" class="form-input" placeholder="제목 입력...">
 
-                      <label class="compose-label">메일 본문 <span style="font-weight:400;color:var(--text-muted);font-size:11px;">(자유롭게 편집 가능 — 이 인플루언서만의 한마디 추가하세요)</span></label>
-                      <textarea id="creator-mail-body" class="form-textarea" rows="14" placeholder="본문 입력..."></textarea>
+                      <label class="compose-label">메일 본문 <span style="font-weight:400;color:var(--text-muted);font-size:11px;">(굵게·이모지·기호 사용 가능 — 이 인플루언서만의 한마디 추가하세요)</span></label>
+                      <div class="mail-toolbar">
+                        <button type="button" class="mt-btn" onmousedown="event.preventDefault()" onclick="mailExec('bold')" title="굵게 (Ctrl+B)"><b>B</b></button>
+                        <button type="button" class="mt-btn" onmousedown="event.preventDefault()" onclick="mailExec('italic')" title="기울임 (Ctrl+I)"><i>I</i></button>
+                        <button type="button" class="mt-btn" onmousedown="event.preventDefault()" onclick="mailExec('underline')" title="밑줄 (Ctrl+U)"><u>U</u></button>
+                        <span class="mt-divider"></span>
+                        <button type="button" class="mt-btn mt-color mt-color-red" onmousedown="event.preventDefault()" onclick="mailColor('#DC2626')" title="빨강"></button>
+                        <button type="button" class="mt-btn mt-color mt-color-blue" onmousedown="event.preventDefault()" onclick="mailColor('#2563EB')" title="파랑"></button>
+                        <button type="button" class="mt-btn mt-color mt-color-default" onmousedown="event.preventDefault()" onclick="mailColor('#111827')" title="검정"></button>
+                        <button type="button" class="mt-btn" onmousedown="event.preventDefault()" onclick="mailHighlight('#FEF08A')" title="형광펜">🖊</button>
+                        <span class="mt-divider"></span>
+                        <div class="mt-picker-wrap">
+                          <button type="button" class="mt-btn" onclick="toggleMailPicker('emoji')" title="이모지">😊</button>
+                          <div id="mail-picker-emoji" class="mt-picker">
+                            <div class="mt-picker-grid">
+                              <span onclick="insertMailChar('🙏')">🙏</span><span onclick="insertMailChar('✨')">✨</span><span onclick="insertMailChar('💡')">💡</span><span onclick="insertMailChar('🎬')">🎬</span><span onclick="insertMailChar('📺')">📺</span><span onclick="insertMailChar('📨')">📨</span>
+                              <span onclick="insertMailChar('🏠')">🏠</span><span onclick="insertMailChar('🏡')">🏡</span><span onclick="insertMailChar('🔑')">🔑</span><span onclick="insertMailChar('💼')">💼</span><span onclick="insertMailChar('💰')">💰</span><span onclick="insertMailChar('💸')">💸</span>
+                              <span onclick="insertMailChar('😊')">😊</span><span onclick="insertMailChar('😄')">😄</span><span onclick="insertMailChar('🙂')">🙂</span><span onclick="insertMailChar('👍')">👍</span><span onclick="insertMailChar('👋')">👋</span><span onclick="insertMailChar('✌️')">✌️</span>
+                              <span onclick="insertMailChar('🎯')">🎯</span><span onclick="insertMailChar('🔥')">🔥</span><span onclick="insertMailChar('⭐')">⭐</span><span onclick="insertMailChar('✅')">✅</span><span onclick="insertMailChar('❤️')">❤️</span><span onclick="insertMailChar('💜')">💜</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="mt-picker-wrap">
+                          <button type="button" class="mt-btn" onclick="toggleMailPicker('symbol')" title="기호">◆</button>
+                          <div id="mail-picker-symbol" class="mt-picker">
+                            <div class="mt-picker-grid">
+                              <span onclick="insertMailChar('• ')">•</span><span onclick="insertMailChar('◆ ')">◆</span><span onclick="insertMailChar('■ ')">■</span><span onclick="insertMailChar('▶ ')">▶</span><span onclick="insertMailChar('▸ ')">▸</span><span onclick="insertMailChar('▷ ')">▷</span>
+                              <span onclick="insertMailChar('→')">→</span><span onclick="insertMailChar('←')">←</span><span onclick="insertMailChar('↑')">↑</span><span onclick="insertMailChar('↓')">↓</span><span onclick="insertMailChar('⇒')">⇒</span><span onclick="insertMailChar('↔')">↔</span>
+                              <span onclick="insertMailChar('✓')">✓</span><span onclick="insertMailChar('✔')">✔</span><span onclick="insertMailChar('★')">★</span><span onclick="insertMailChar('☆')">☆</span><span onclick="insertMailChar('※')">※</span><span onclick="insertMailChar('§')">§</span>
+                              <span onclick="insertMailChar('「')">「</span><span onclick="insertMailChar('」')">」</span><span onclick="insertMailChar('『')">『</span><span onclick="insertMailChar('』')">』</span><span onclick="insertMailChar('〈')">〈</span><span onclick="insertMailChar('〉')">〉</span>
+                            </div>
+                          </div>
+                        </div>
+                        <span class="mt-divider"></span>
+                        <button type="button" class="mt-btn mt-small" onmousedown="event.preventDefault()" onclick="mailClearFormat()" title="서식 지우기">Tx</button>
+                      </div>
+                      <div id="creator-mail-body" class="mail-editor" contenteditable="true" data-placeholder="본문 입력..."></div>
                     </div>
                   </div>
                 </main>
@@ -4978,7 +5111,7 @@ function selectCreatorForMail(infId) {
   const draft = getMailDraft(currentProjectId, infId);
   if (draft && (draft.subject || draft.body)) {
     document.getElementById('creator-mail-subject').value = draft.subject || '';
-    document.getElementById('creator-mail-body').value = draft.body || '';
+    setMailBody(draft.body || '');
     // 셀렉트는 빈 상태로 (초안이 우선)
     document.getElementById('creator-tpl-select').value = '';
     showSaveStatus('saved', `저장됨 · ${formatTimeAgo(draft.updatedAt)}`);
@@ -4990,6 +5123,79 @@ function selectCreatorForMail(infId) {
 
   bindMailAutoSave();
 }
+
+// ===== Mail Editor Helpers (contenteditable) =====
+// 저장된 body는 HTML 또는 plain text일 수 있음. plain이면 줄바꿈을 <br>로 변환.
+function setMailBody(value) {
+  const el = document.getElementById('creator-mail-body');
+  if (!el) return;
+  // HTML 태그가 포함됐는지 간단히 판별
+  if (/<\/?(b|i|u|strong|em|span|br|div|p|font)\b/i.test(value || '')) {
+    el.innerHTML = value || '';
+  } else {
+    // plain text → HTML escape + 줄바꿈 변환
+    const escaped = (value || '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>');
+    el.innerHTML = escaped;
+  }
+}
+
+function getMailBodyHtml() {
+  const el = document.getElementById('creator-mail-body');
+  return el ? el.innerHTML : '';
+}
+
+function getMailBodyText() {
+  const el = document.getElementById('creator-mail-body');
+  if (!el) return '';
+  // <br> · 블록 종료 태그 → 줄바꿈으로 정규화
+  const clone = el.cloneNode(true);
+  clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+  clone.querySelectorAll('div, p').forEach(b => { b.append('\n'); });
+  return (clone.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function mailExec(cmd) {
+  document.getElementById('creator-mail-body').focus();
+  document.execCommand(cmd, false, null);
+  queueMailSave(false);
+}
+function mailColor(c) {
+  document.getElementById('creator-mail-body').focus();
+  document.execCommand('foreColor', false, c);
+  queueMailSave(false);
+}
+function mailHighlight(c) {
+  document.getElementById('creator-mail-body').focus();
+  document.execCommand('hiliteColor', false, c) || document.execCommand('backColor', false, c);
+  queueMailSave(false);
+}
+function mailClearFormat() {
+  document.getElementById('creator-mail-body').focus();
+  document.execCommand('removeFormat', false, null);
+  queueMailSave(false);
+}
+function insertMailChar(ch) {
+  const el = document.getElementById('creator-mail-body');
+  el.focus();
+  document.execCommand('insertText', false, ch);
+  // 픽커 닫기
+  document.querySelectorAll('.mt-picker.open').forEach(p => p.classList.remove('open'));
+  queueMailSave(false);
+}
+function toggleMailPicker(kind) {
+  const target = document.getElementById('mail-picker-' + kind);
+  const wasOpen = target.classList.contains('open');
+  document.querySelectorAll('.mt-picker.open').forEach(p => p.classList.remove('open'));
+  if (!wasOpen) target.classList.add('open');
+}
+// 외부 클릭 시 픽커 닫기
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.mt-picker-wrap') && !e.target.closest('.mt-picker')) {
+    document.querySelectorAll('.mt-picker.open').forEach(p => p.classList.remove('open'));
+  }
+});
 
 function applyTemplateForCreator() {
   if (!selectedCreatorId) return;
@@ -5006,7 +5212,7 @@ function applyTemplateForCreator() {
 
   // 사용자가 이미 작성한 내용이 있으면 confirm
   const hasContent = document.getElementById('creator-mail-subject').value.trim()
-    || document.getElementById('creator-mail-body').value.trim();
+    || getMailBodyText().trim();
   if (hasContent && !confirm('현재 작성한 메일을 템플릿 내용으로 덮어쓸까요?')) {
     document.getElementById('creator-tpl-select').value = '';
     return;
@@ -5016,7 +5222,7 @@ function applyTemplateForCreator() {
   if (!t) return;
   const composed = composeFullEmail(t, inf, project, sender);
   document.getElementById('creator-mail-subject').value = composed.subject;
-  document.getElementById('creator-mail-body').value = composed.body;
+  setMailBody(composed.body);
   // 즉시 저장
   queueMailSave(true);
 }
@@ -5040,6 +5246,16 @@ function bindMailAutoSave() {
   };
   subj.oninput = onInput;
   body.oninput = onInput;
+  // 키보드 단축키 (Ctrl+B/I/U)
+  body.onkeydown = (e) => {
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey) {
+      const k = e.key.toLowerCase();
+      if (k === 'b' || k === 'i' || k === 'u') {
+        e.preventDefault();
+        mailExec(k === 'b' ? 'bold' : (k === 'i' ? 'italic' : 'underline'));
+      }
+    }
+  };
 }
 
 function queueMailSave(immediate) {
@@ -5051,7 +5267,7 @@ function queueMailSave(immediate) {
 function saveMailDraftNow() {
   if (!selectedCreatorId || !currentProjectId) return;
   const subj = document.getElementById('creator-mail-subject').value;
-  const body = document.getElementById('creator-mail-body').value;
+  const body = getMailBodyHtml();
   const data = { subject: subj, body: body, updatedAt: Date.now() };
 
   showSaveStatus('saving', '저장 중...');
@@ -5107,17 +5323,30 @@ function saveSenderInlineInfo() {
 
 function copyCreatorMail() {
   const subj = document.getElementById('creator-mail-subject').value;
-  const body = document.getElementById('creator-mail-body').value;
-  if (!body) { showToast('메일 본문이 비어 있습니다'); return; }
-  const text = (subj ? '[제목] ' + subj + '\n\n' : '') + body;
-  navigator.clipboard.writeText(text).then(() => showToast('메일 복사됨!'));
+  const bodyHtml = getMailBodyHtml();
+  const bodyText = getMailBodyText();
+  if (!bodyText) { showToast('메일 본문이 비어 있습니다'); return; }
+  const headerPlain = subj ? '[제목] ' + subj + '\n\n' : '';
+  const headerHtml = subj ? `<div style="font-weight:700;margin-bottom:12px;">[제목] ${subj.replace(/</g,'&lt;')}</div>` : '';
+  const plainCombined = headerPlain + bodyText;
+  const htmlCombined = `<div style="font-family:Pretendard,-apple-system,Segoe UI,sans-serif;font-size:14px;line-height:1.85;color:#111827;">${headerHtml}${bodyHtml}</div>`;
+  // HTML + plain 두 형식으로 복사 (메일 클라이언트가 알아서 선택)
+  try {
+    const blobHtml = new Blob([htmlCombined], { type: 'text/html' });
+    const blobText = new Blob([plainCombined], { type: 'text/plain' });
+    const item = new ClipboardItem({ 'text/html': blobHtml, 'text/plain': blobText });
+    navigator.clipboard.write([item]).then(() => showToast('서식 포함해 복사됨!'));
+  } catch (e) {
+    // ClipboardItem 미지원 환경 → plain만
+    navigator.clipboard.writeText(plainCombined).then(() => showToast('메일 복사됨 (서식 없음)'));
+  }
 }
 
 function openMailtoForCreator() {
   const inf = allInfluencers[selectedCreatorId];
   if (!inf?.email) { showToast('이 인플루언서의 이메일이 등록되어 있지 않습니다'); return; }
   const subj = encodeURIComponent(document.getElementById('creator-mail-subject').value);
-  const body = encodeURIComponent(document.getElementById('creator-mail-body').value);
+  const body = encodeURIComponent(getMailBodyText());
   window.location.href = `mailto:${inf.email}?subject=${subj}&body=${body}`;
 }
 
