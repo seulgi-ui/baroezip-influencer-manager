@@ -3684,35 +3684,43 @@ async function fetchYouTubeData(url) {
     const stats = ch.statistics;
     const subs = Number(stats.subscriberCount) || 0;
 
-    // Get recent videos
-    const vidRes = await fetch(`https://www.googleapis.com/youtube/v3/search?channelId=${channelId}&type=video&order=date&maxResults=10&part=id&key=${YOUTUBE_API_KEY}`);
-    const vidData = await vidRes.json();
-    const videoIds = (vidData.items || []).map(v => v.id.videoId).filter(Boolean);
+    // Get recent videos via uploads playlist (롱폼 10개 + 숏폼 10개 분리 수집)
+    const uploadsId = 'UU' + channelId.slice(2);
+    const longs = [], shorts = [];
+    let totalLikes = 0, totalComments = 0, sampleCount = 0;
+    let pageToken = '';
+    const MAX_PAGES = 10;  // 최대 500개 영상까지 탐색
 
-    let avgViewsLong = 0, avgViewsShort = 0, avgLikes = 0, avgComments = 0;
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const plUrl = `https://www.googleapis.com/youtube/v3/playlistItems?playlistId=${uploadsId}&maxResults=50&part=contentDetails&key=${YOUTUBE_API_KEY}${pageToken ? '&pageToken=' + pageToken : ''}`;
+      const plRes = await fetch(plUrl);
+      const plData = await plRes.json();
+      const batchIds = (plData.items || []).map(v => v.contentDetails.videoId).filter(Boolean);
+      if (!batchIds.length) break;
 
-    if (videoIds.length) {
-      const detRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${videoIds.join(',')}&key=${YOUTUBE_API_KEY}`);
+      const detRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${batchIds.join(',')}&key=${YOUTUBE_API_KEY}`);
       const detData = await detRes.json();
 
-      const longs = [], shorts = [];
-      let totalLikes = 0, totalComments = 0;
-
       (detData.items || []).forEach(v => {
-        const dur = v.contentDetails.duration;
-        const sec = parseDuration(dur);
+        const sec = parseDuration(v.contentDetails.duration);
         const views = Number(v.statistics.viewCount) || 0;
-        totalLikes += Number(v.statistics.likeCount) || 0;
-        totalComments += Number(v.statistics.commentCount) || 0;
-        if (sec <= 60) shorts.push(views); else longs.push(views);
+        const lk = Number(v.statistics.likeCount) || 0;
+        const cm = Number(v.statistics.commentCount) || 0;
+        if (sec <= 60) {
+          if (shorts.length < 10) { shorts.push(views); totalLikes += lk; totalComments += cm; sampleCount++; }
+        } else {
+          if (longs.length < 10) { longs.push(views); totalLikes += lk; totalComments += cm; sampleCount++; }
+        }
       });
 
-      const total = detData.items.length;
-      avgViewsLong = longs.length ? Math.round(longs.reduce((a, b) => a + b, 0) / longs.length) : 0;
-      avgViewsShort = shorts.length ? Math.round(shorts.reduce((a, b) => a + b, 0) / shorts.length) : 0;
-      avgLikes = total ? Math.round(totalLikes / total) : 0;
-      avgComments = total ? Math.round(totalComments / total) : 0;
+      pageToken = plData.nextPageToken;
+      if (!pageToken || (longs.length >= 10 && shorts.length >= 10)) break;
     }
+
+    const avgViewsLong = longs.length ? Math.round(longs.reduce((a, b) => a + b, 0) / longs.length) : 0;
+    const avgViewsShort = shorts.length ? Math.round(shorts.reduce((a, b) => a + b, 0) / shorts.length) : 0;
+    const avgLikes = sampleCount ? Math.round(totalLikes / sampleCount) : 0;
+    const avgComments = sampleCount ? Math.round(totalComments / sampleCount) : 0;
 
     const engagement = subs ? ((avgLikes + avgComments) / subs * 100).toFixed(1) : 0;
 
