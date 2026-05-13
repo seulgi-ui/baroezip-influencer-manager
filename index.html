@@ -3698,7 +3698,7 @@ async function fetchYouTubeData(url) {
       const batchIds = (plData.items || []).map(v => v.contentDetails.videoId).filter(Boolean);
       if (!batchIds.length) break;
 
-      const detRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${batchIds.join(',')}&key=${YOUTUBE_API_KEY}`);
+      const detRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics,snippet&id=${batchIds.join(',')}&key=${YOUTUBE_API_KEY}`);
       const detData = await detRes.json();
 
       (detData.items || []).forEach(v => {
@@ -3706,11 +3706,19 @@ async function fetchYouTubeData(url) {
         const views = Number(v.statistics.viewCount) || 0;
         const lk = Number(v.statistics.likeCount) || 0;
         const cm = Number(v.statistics.commentCount) || 0;
-        if (sec <= 60) {
+        // SHORTS 식별: duration ≤ 60s + description/tags에 #shorts/#Shorts 단서가 있을 때만
+        // (60초 이하 일반 가로 영상이 shorts로 오분류되는 것 방지)
+        const desc = (v.snippet && v.snippet.description) || '';
+        const tags = (v.snippet && v.snippet.tags) || [];
+        const hasShortsHint = /#shorts?\b/i.test(desc) || tags.some(t => /shorts?/i.test(t));
+        const isShort = sec > 0 && sec <= 60 && hasShortsHint;
+
+        if (isShort) {
           if (shorts.length < 10) { shorts.push(views); totalLikes += lk; totalComments += cm; sampleCount++; }
-        } else {
+        } else if (sec > 60) {
           if (longs.length < 10) { longs.push(views); totalLikes += lk; totalComments += cm; sampleCount++; }
         }
+        // sec <= 60 인데 shorts 단서 없으면 (짧은 일반 영상) → 둘 다 미포함
       });
 
       pageToken = plData.nextPageToken;
