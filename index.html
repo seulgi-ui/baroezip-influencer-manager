@@ -812,6 +812,17 @@ table { border-collapse: collapse; width: 100%; }
   border-radius: var(--radius-sm);
 }
 .sender-inline-box input { font-size: 12px; padding: 6px 10px; }
+.creator-save-status {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 0 8px;
+  white-space: nowrap;
+  min-width: 80px;
+  text-align: right;
+}
+.creator-save-status.saving { color: var(--primary); }
+.creator-save-status.saved { color: var(--success); }
+.creator-save-status.dirty { color: #F59E0B; }
 
 @media (max-width: 900px) {
   .creator-mail-layout { grid-template-columns: 1fr; }
@@ -2288,6 +2299,7 @@ table { border-collapse: collapse; width: 100%; }
                         <select id="creator-tpl-select" class="form-select" style="font-size:13px;padding:6px 10px;width:auto;flex:1;" onchange="applyTemplateForCreator()">
                           <option value="">— 템플릿 불러오기 —</option>
                         </select>
+                        <span id="creator-save-status" class="creator-save-status" title="자동 저장됨"></span>
                         <button class="btn btn-ghost btn-xs" onclick="openSenderInline()" title="발신자 정보 편집">🖋 발신자</button>
                         <button class="btn btn-ghost btn-xs" onclick="copyCreatorMail()">📋 복사</button>
                         <button class="btn btn-primary btn-xs" onclick="openMailtoForCreator()">✉️ 메일앱 열기</button>
@@ -3302,7 +3314,8 @@ const PATHS = {
   influencers: 'influencer-manager/influencers',
   projects: 'influencer-manager/projects',
   templates: 'influencer-manager/templates',
-  assignments: 'influencer-manager/assignments'
+  assignments: 'influencer-manager/assignments',
+  mailDrafts: 'influencer-manager/mailDrafts'
 };
 
 // ===== Application State =====
@@ -3310,6 +3323,7 @@ let allInfluencers = {};
 let allProjects = {};
 let allTemplates = {};
 let allAssignments = {};
+let allMailDrafts = {};  // { projectId: { influencerId: { subject, body, updatedAt } } }
 let currentChannel = 'youtube';
 let currentSection = 'influencer';
 let currentProjectId = null;
@@ -3485,6 +3499,12 @@ function initRealtimeListeners() {
       renderReportBar();
     }
     renderProjects();
+  });
+
+  db.ref(PATHS.mailDrafts).on('value', snap => {
+    allMailDrafts = snap.val() || {};
+    // 선택된 인플루언서가 있고 다른 곳에서 저장된 변경이 들어왔을 때만 반영
+    // (자기 자신의 자동저장으로 인한 리렌더는 무한루프 방지를 위해 건너뜀)
   });
 }
 
@@ -4804,6 +4824,11 @@ function toggleAssignPanel() {
 
 // ===== Message Tab =====
 function switchMsgTab(tab) {
+  // 다른 탭으로 전환할 때 메일 초안 강제 저장 (msgTab 변경 전에 검사)
+  if (msgTab === 'creator' && tab !== 'creator' && selectedCreatorId && mailSaveTimer) {
+    clearTimeout(mailSaveTimer);
+    saveMailDraftNow();
+  }
   msgTab = tab;
   document.querySelectorAll('.msg-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   document.getElementById('msg-tab-creator').style.display = tab === 'creator' ? 'block' : 'none';
@@ -4872,6 +4897,11 @@ function renderCreatorMailList() {
 }
 
 function selectCreatorForMail(infId) {
+  // 이전 인플루언서의 미저장 변경 강제 저장
+  if (selectedCreatorId && selectedCreatorId !== infId && mailSaveTimer) {
+    clearTimeout(mailSaveTimer);
+    saveMailDraftNow();
+  }
   selectedCreatorId = infId;
   const inf = allInfluencers[infId];
   if (!inf) return;
@@ -4933,8 +4963,21 @@ function selectCreatorForMail(infId) {
   document.getElementById('sender-email-inline').value = sender.email;
   document.getElementById('sender-phone-inline').value = sender.phone;
 
-  // 템플릿 선택돼있으면 적용, 아니면 빈 상태
-  applyTemplateForCreator();
+  // 저장된 초안이 있으면 불러오고, 없으면 템플릿 셀렉트 적용 (또는 빈 상태)
+  const draft = getMailDraft(currentProjectId, infId);
+  if (draft && (draft.subject || draft.body)) {
+    document.getElementById('creator-mail-subject').value = draft.subject || '';
+    document.getElementById('creator-mail-body').value = draft.body || '';
+    // 셀렉트는 빈 상태로 (초안이 우선)
+    document.getElementById('creator-tpl-select').value = '';
+    showSaveStatus('saved', `저장됨 · ${formatTimeAgo(draft.updatedAt)}`);
+  } else {
+    document.getElementById('creator-tpl-select').value = '';
+    applyTemplateForCreator();
+    showSaveStatus('', '');
+  }
+
+  bindMailAutoSave();
 }
 
 function applyTemplateForCreator() {
@@ -4946,16 +4989,96 @@ function applyTemplateForCreator() {
   const sender = getSenderInfo();
 
   if (!tplId) {
-    // 빈 상태로 초기화 (사용자가 직접 작성하도록)
-    document.getElementById('creator-mail-subject').value = '';
-    document.getElementById('creator-mail-body').value = '';
+    // 셀렉트가 비워졌을 뿐 — 사용자가 작성중인 내용을 지우지 않는다
     return;
   }
+
+  // 사용자가 이미 작성한 내용이 있으면 confirm
+  const hasContent = document.getElementById('creator-mail-subject').value.trim()
+    || document.getElementById('creator-mail-body').value.trim();
+  if (hasContent && !confirm('현재 작성한 메일을 템플릿 내용으로 덮어쓸까요?')) {
+    document.getElementById('creator-tpl-select').value = '';
+    return;
+  }
+
   const t = allTemplates[tplId];
   if (!t) return;
   const composed = composeFullEmail(t, inf, project, sender);
   document.getElementById('creator-mail-subject').value = composed.subject;
   document.getElementById('creator-mail-body').value = composed.body;
+  // 즉시 저장
+  queueMailSave(true);
+}
+
+// ===== Mail Draft Auto-save =====
+function getMailDraft(projectId, infId) {
+  return allMailDrafts?.[projectId]?.[infId] || null;
+}
+
+let mailSaveTimer = null;
+let lastDraftInputAt = 0;
+
+function bindMailAutoSave() {
+  const subj = document.getElementById('creator-mail-subject');
+  const body = document.getElementById('creator-mail-body');
+  // 기존 핸들러 제거 후 재등록 (인플루언서 전환마다)
+  const onInput = () => {
+    lastDraftInputAt = Date.now();
+    showSaveStatus('dirty', '변경됨');
+    queueMailSave(false);
+  };
+  subj.oninput = onInput;
+  body.oninput = onInput;
+}
+
+function queueMailSave(immediate) {
+  clearTimeout(mailSaveTimer);
+  const fn = () => saveMailDraftNow();
+  mailSaveTimer = setTimeout(fn, immediate ? 0 : 1200);
+}
+
+function saveMailDraftNow() {
+  if (!selectedCreatorId || !currentProjectId) return;
+  const subj = document.getElementById('creator-mail-subject').value;
+  const body = document.getElementById('creator-mail-body').value;
+  const data = { subject: subj, body: body, updatedAt: Date.now() };
+
+  showSaveStatus('saving', '저장 중...');
+
+  if (firebaseReady) {
+    db.ref(`${PATHS.mailDrafts}/${currentProjectId}/${selectedCreatorId}`).set(data)
+      .then(() => {
+        // 로컬 캐시 동기화 (Firebase listener에서도 갱신되지만 즉시 반영)
+        if (!allMailDrafts[currentProjectId]) allMailDrafts[currentProjectId] = {};
+        allMailDrafts[currentProjectId][selectedCreatorId] = data;
+        showSaveStatus('saved', `저장됨 · ${formatTimeAgo(data.updatedAt)}`);
+      })
+      .catch(e => {
+        console.error('Save failed', e);
+        showSaveStatus('dirty', '저장 실패');
+      });
+  } else {
+    // 오프라인 — 로컬 캐시만
+    if (!allMailDrafts[currentProjectId]) allMailDrafts[currentProjectId] = {};
+    allMailDrafts[currentProjectId][selectedCreatorId] = data;
+    showSaveStatus('saved', `저장됨 · 오프라인`);
+  }
+}
+
+function showSaveStatus(cls, text) {
+  const el = document.getElementById('creator-save-status');
+  if (!el) return;
+  el.className = 'creator-save-status ' + (cls || '');
+  el.textContent = text || '';
+}
+
+function formatTimeAgo(ts) {
+  if (!ts) return '';
+  const diff = Date.now() - ts;
+  if (diff < 60000) return '방금 전';
+  if (diff < 3600000) return Math.floor(diff / 60000) + '분 전';
+  if (diff < 86400000) return Math.floor(diff / 3600000) + '시간 전';
+  return new Date(ts).toISOString().slice(5, 16).replace('T', ' ');
 }
 
 function openSenderInline() {
@@ -6960,6 +7083,14 @@ document.addEventListener('DOMContentLoaded', () => {
     renderInfluencers();
     renderProjects();
     navigate('mediamix');
+  }
+});
+
+// 페이지 이탈 직전 메일 초안 강제 저장 (탭 닫기 / 새로고침)
+window.addEventListener('beforeunload', () => {
+  if (mailSaveTimer && selectedCreatorId && currentProjectId) {
+    clearTimeout(mailSaveTimer);
+    saveMailDraftNow();
   }
 });
 </script>
