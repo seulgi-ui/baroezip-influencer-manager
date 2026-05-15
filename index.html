@@ -784,6 +784,31 @@ table { border-collapse: collapse; width: 100%; }
   border-radius: var(--radius);
   padding: 14px;
 }
+.send-channel-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface-2);
+  border-radius: var(--radius-xs);
+  margin-bottom: 12px;
+}
+.send-channel-toggle .sc-tab {
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.send-channel-toggle .sc-tab:hover { color: var(--text-primary); }
+.send-channel-toggle .sc-tab.active {
+  background: var(--surface);
+  color: var(--primary);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
 .compose-toolbar {
   display: flex;
   gap: 6px;
@@ -2355,18 +2380,11 @@ table { border-collapse: collapse; width: 100%; }
           <div class="collapse-header" onclick="toggleMsgPanel()">
             <h3>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              DM 발송 / 메일 발송 / 가이드라인
+              크리에이터별 발송 시안
             </h3>
             <span id="msg-collapse-arrow" class="collapse-arrow">▼</span>
           </div>
           <div id="msg-collapse-body" class="collapse-body">
-            <div class="msg-tabs">
-              <button class="msg-tab active" data-tab="creator" onclick="switchMsgTab('creator')">✉️ 크리에이터별 시안</button>
-              <button class="msg-tab" data-tab="dm" onclick="switchMsgTab('dm')">DM 템플릿</button>
-              <button class="msg-tab" data-tab="email" onclick="switchMsgTab('email')">메일 템플릿</button>
-              <button class="msg-tab" data-tab="guide" onclick="switchMsgTab('guide')">가이드라인</button>
-              <button class="btn btn-ghost btn-xs" onclick="openTemplateModal()" style="margin-left:auto;">+ 템플릿 추가</button>
-            </div>
 
             <!-- 크리에이터별 시안 -->
             <div id="msg-tab-creator">
@@ -2402,8 +2420,14 @@ table { border-collapse: collapse; width: 100%; }
                       </div>
                     </div>
 
-                    <!-- 메일 시안 -->
+                    <!-- 메일/DM 시안 -->
                     <div class="creator-mail-compose">
+                      <!-- 발송 채널 토글 (메일/DM) -->
+                      <div class="send-channel-toggle">
+                        <button type="button" class="sc-tab active" data-channel="mail" onclick="switchSendChannel('mail')">📧 메일</button>
+                        <button type="button" class="sc-tab" data-channel="dm" onclick="switchSendChannel('dm')">💬 DM</button>
+                      </div>
+
                       <div class="compose-toolbar">
                         <select id="creator-tpl-select" class="form-select" style="font-size:13px;padding:6px 10px;width:auto;flex:1;" onchange="applyTemplateForCreator()">
                           <option value="">— 템플릿 불러오기 —</option>
@@ -2411,7 +2435,7 @@ table { border-collapse: collapse; width: 100%; }
                         <span id="creator-save-status" class="creator-save-status" title="자동 저장됨"></span>
                         <button class="btn btn-ghost btn-xs" onclick="openSenderInline()" title="발신자 정보 편집">🖋 발신자</button>
                         <button class="btn btn-ghost btn-xs" onclick="copyCreatorMail()">📋 복사</button>
-                        <button class="btn btn-primary btn-xs" onclick="openMailtoForCreator()">✉️ 메일앱 열기</button>
+                        <button id="btn-open-mailto" class="btn btn-primary btn-xs" onclick="openMailtoForCreator()">✉️ 메일앱 열기</button>
                       </div>
 
                       <div id="sender-inline-box" class="sender-inline-box" style="display:none;">
@@ -2420,13 +2444,20 @@ table { border-collapse: collapse; width: 100%; }
                         <input type="text" id="sender-phone-inline" class="form-input" placeholder="연락처" oninput="saveSenderInlineInfo()">
                       </div>
 
-                      <label class="compose-label">받는 사람</label>
-                      <input type="text" id="creator-mail-to" class="form-input" readonly style="background:var(--surface-2);">
+                      <div id="mail-only-fields">
+                        <label class="compose-label">받는 사람</label>
+                        <input type="text" id="creator-mail-to" class="form-input" readonly style="background:var(--surface-2);">
 
-                      <label class="compose-label">메일 제목</label>
-                      <input type="text" id="creator-mail-subject" class="form-input" placeholder="제목 입력...">
+                        <label class="compose-label">메일 제목</label>
+                        <input type="text" id="creator-mail-subject" class="form-input" placeholder="제목 입력...">
+                      </div>
 
-                      <label class="compose-label">메일 본문 <span style="font-weight:400;color:var(--text-muted);font-size:11px;">(굵게·이모지·기호 사용 가능 — 이 인플루언서만의 한마디 추가하세요)</span></label>
+                      <div id="dm-only-fields" style="display:none;">
+                        <label class="compose-label">DM 받는 채널</label>
+                        <input type="text" id="creator-dm-to" class="form-input" readonly style="background:var(--surface-2);">
+                      </div>
+
+                      <label class="compose-label" id="mail-body-label">메일 본문 <span style="font-weight:400;color:var(--text-muted);font-size:11px;">(굵게·이모지·기호 사용 가능 — 이 인플루언서만의 한마디 추가하세요)</span></label>
                       <div class="mail-toolbar">
                         <button type="button" class="mt-btn" onmousedown="event.preventDefault()" onclick="mailExec('bold')" title="굵게 (Ctrl+B)"><b>B</b></button>
                         <button type="button" class="mt-btn" onmousedown="event.preventDefault()" onclick="mailExec('italic')" title="기울임 (Ctrl+I)"><i>I</i></button>
@@ -2469,28 +2500,6 @@ table { border-collapse: collapse; width: 100%; }
               </div>
             </div>
 
-            <div id="msg-tab-dm" style="display:none;"></div>
-            <div id="msg-tab-email" style="display:none;"></div>
-            <div id="msg-tab-guide" style="display:none;">
-              <div style="position:relative;">
-                <div class="guide-toolbar">
-                  <button id="btn-bold" onclick="execBold()" title="굵게"><b>B</b></button>
-                  <button id="btn-highlight" onclick="toggleHighlightDropdown()" title="형광펜">🖊</button>
-                  <div id="highlight-dropdown" class="highlight-dropdown">
-                    <div class="hl-btn" style="background:#FEF08A;" onclick="execHighlight('#FEF08A','')"></div>
-                    <div class="hl-btn" style="background:#FBCFE8;" onclick="execHighlight('#FBCFE8','pink')"></div>
-                    <div class="hl-btn" style="background:#BBF7D0;" onclick="execHighlight('#BBF7D0','green')"></div>
-                    <div class="hl-btn" style="background:#BFDBFE;" onclick="execHighlight('#BFDBFE','blue')"></div>
-                    <div class="hl-btn" style="background:#fff;border:2px solid #ccc;font-size:10px;display:flex;align-items:center;justify-content:center;" onclick="execHighlight(null,'remove')">✕</div>
-                  </div>
-                </div>
-                <div id="guide-content-editor" class="guide-editor" contenteditable="true"></div>
-              </div>
-              <div style="display:flex;gap:8px;margin-top:8px;">
-                <button class="btn btn-primary btn-sm" onclick="saveGuideContent()">저장</button>
-                <button class="btn btn-secondary btn-sm" onclick="copyGuideLink()">링크 복사</button>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -3641,6 +3650,7 @@ function initRealtimeListeners() {
       renderTrackTable();
       renderAssignPanel();
       renderReportBar();
+      renderCreatorMailList();
     }
     renderProjects();
   });
@@ -4724,8 +4734,9 @@ function renderProjectDetail(id) {
       </div>`;
   }
 
-  // Guide editor content
-  document.getElementById('guide-content-editor').innerHTML = p.guideContent || '';
+  // Guide editor content (탭 제거됨 — element가 있을 때만 갱신)
+  const guideEditor = document.getElementById('guide-content-editor');
+  if (guideEditor) guideEditor.innerHTML = p.guideContent || '';
 
   renderTrackTable();
   renderAssignPanel();
@@ -4967,19 +4978,46 @@ function toggleAssignPanel() {
 }
 
 // ===== Message Tab =====
+// 단일 탭(크리에이터별 시안)만 사용 — 외부 호출 호환용 stub.
 function switchMsgTab(tab) {
-  // 다른 탭으로 전환할 때 메일 초안 강제 저장 (msgTab 변경 전에 검사)
-  if (msgTab === 'creator' && tab !== 'creator' && selectedCreatorId && mailSaveTimer) {
+  msgTab = 'creator';
+  renderCreatorMailTab();
+}
+
+// ===== 발송 채널(메일/DM) 토글 =====
+let currentSendChannel = 'mail'; // 'mail' | 'dm'
+
+function switchSendChannel(channel) {
+  if (currentSendChannel === channel) return;
+  // 현재 작성 중 내용 즉시 저장
+  if (selectedCreatorId && mailSaveTimer) {
     clearTimeout(mailSaveTimer);
     saveMailDraftNow();
   }
-  msgTab = tab;
-  document.querySelectorAll('.msg-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  document.getElementById('msg-tab-creator').style.display = tab === 'creator' ? 'block' : 'none';
-  document.getElementById('msg-tab-dm').style.display = tab === 'dm' ? 'block' : 'none';
-  document.getElementById('msg-tab-email').style.display = tab === 'email' ? 'block' : 'none';
-  document.getElementById('msg-tab-guide').style.display = tab === 'guide' ? 'block' : 'none';
-  if (tab === 'creator') renderCreatorMailTab();
+  currentSendChannel = channel;
+
+  // 탭 active 갱신
+  document.querySelectorAll('.send-channel-toggle .sc-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.channel === channel);
+  });
+
+  // 필드 표시 토글
+  document.getElementById('mail-only-fields').style.display = channel === 'mail' ? '' : 'none';
+  document.getElementById('dm-only-fields').style.display = channel === 'dm' ? '' : 'none';
+
+  // 라벨/버튼 텍스트 갱신
+  const bodyLabel = document.getElementById('mail-body-label');
+  if (channel === 'mail') {
+    bodyLabel.innerHTML = '메일 본문 <span style="font-weight:400;color:var(--text-muted);font-size:11px;">(굵게·이모지·기호 사용 가능 — 이 인플루언서만의 한마디 추가하세요)</span>';
+  } else {
+    bodyLabel.innerHTML = 'DM 본문 <span style="font-weight:400;color:var(--text-muted);font-size:11px;">(짧고 친근한 1차 컨택 메시지)</span>';
+  }
+  const mailtoBtn = document.getElementById('btn-open-mailto');
+  if (mailtoBtn) mailtoBtn.style.display = channel === 'mail' ? '' : 'none';
+
+  // 템플릿 셀렉트 재구성 + 본문 로드
+  renderTemplateSelectForChannel();
+  if (selectedCreatorId) loadDraftForCurrentChannel();
 }
 
 // ===== Creator Mail Tab (크리에이터별 메일 시안) =====
@@ -4987,13 +5025,18 @@ let selectedCreatorId = null;
 
 function renderCreatorMailTab() {
   renderCreatorMailList();
-  // 템플릿 셀렉트 채우기 — guideline(메일) 타입만
+  renderTemplateSelectForChannel();
+}
+
+// 현재 발송 채널(메일/DM)에 맞는 템플릿만 셀렉트에 채움
+function renderTemplateSelectForChannel() {
   const sel = document.getElementById('creator-tpl-select');
-  if (sel) {
-    const mails = Object.entries(allTemplates).filter(([_, t]) => t.type === 'guideline');
-    sel.innerHTML = '<option value="">— 템플릿 불러오기 —</option>' +
-      mails.map(([id, t]) => `<option value="${id}">${t.title || '제목없음'}</option>`).join('');
-  }
+  if (!sel) return;
+  // 메일 = 'guideline' / DM = 'recruit'
+  const wantType = currentSendChannel === 'dm' ? 'recruit' : 'guideline';
+  const filtered = Object.entries(allTemplates).filter(([_, t]) => t.type === wantType);
+  sel.innerHTML = '<option value="">— 템플릿 불러오기 —</option>' +
+    filtered.map(([id, t]) => `<option value="${id}">${t.title || '제목없음'}</option>`).join('');
 }
 
 function renderCreatorMailList() {
@@ -5001,27 +5044,29 @@ function renderCreatorMailList() {
   if (!listEl) return;
   const q = (document.getElementById('creator-mail-search')?.value || '').trim().toLowerCase();
 
-  // 현재 프로젝트 배정 인플루언서 ID
-  const project = allProjects[currentProjectId];
-  const assignedIds = new Set();
-  if (project && project.assigned) {
-    (project.assigned.youtube || []).forEach(id => assignedIds.add(id));
-    (project.assigned.instagram || []).forEach(id => assignedIds.add(id));
-  }
+  // 현재 프로젝트 할당자만 표시 (assignments 컬렉션 기준)
+  const projAssigns = allAssignments[currentProjectId] || {};
+  const assignedIds = Object.keys(projAssigns);
 
-  let list = Object.entries(allInfluencers).map(([id, v]) => ({
-    id,
-    name: v.name || '(이름없음)',
-    followers: v.followers || 0,
-    profileImage: v.profileImage || '',
-    assigned: assignedIds.has(id)
-  }));
+  let list = assignedIds
+    .map(id => {
+      const v = allInfluencers[id];
+      if (!v) return null;
+      return {
+        id,
+        name: v.name || '(이름없음)',
+        followers: v.followers || 0,
+        profileImage: v.profileImage || '',
+      };
+    })
+    .filter(Boolean);
 
   if (q) list = list.filter(i => i.name.toLowerCase().includes(q));
-  list.sort((a, b) => (b.assigned - a.assigned) || (b.followers - a.followers));
+  list.sort((a, b) => b.followers - a.followers);
 
   if (!list.length) {
-    listEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px;">검색 결과 없음</div>';
+    listEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px;">' +
+      (q ? '검색 결과 없음' : '이 프로젝트에 배정된 인플루언서가 없습니다') + '</div>';
     return;
   }
 
@@ -5035,7 +5080,6 @@ function renderCreatorMailList() {
         <div class="cli-name">${i.name}</div>
         <div class="cli-sub">${fmtNumK(i.followers)} 구독자</div>
       </div>
-      ${i.assigned ? '<span class="cli-star" title="현재 프로젝트 배정됨">★</span>' : ''}
     </div>`;
   }).join('');
 }
@@ -5098,8 +5142,10 @@ function selectCreatorForMail(infId) {
   // 분석 메모 (강조)
   document.getElementById('creator-analysis-text').textContent = inf.analysis || '(채널 분석 메모 없음 — 인플루언서 상세 패널에서 입력 가능)';
 
-  // 메일 영역
+  // 받는 사람 영역 (메일/DM 각각)
   document.getElementById('creator-mail-to').value = inf.email ? `${inf.name} <${inf.email}>` : `${inf.name} (이메일 미등록)`;
+  const dmChannel = (inf.urlInstagram ? '인스타그램 DM' : (inf.urlYoutube ? '유튜브 채팅/이메일' : 'DM 채널 미등록'));
+  document.getElementById('creator-dm-to').value = `${inf.name} · ${dmChannel}`;
 
   // 발신자 정보 inline 박스 값 채우기 (한번도 안 채워졌을 때만)
   const sender = getSenderInfo();
@@ -5107,21 +5153,28 @@ function selectCreatorForMail(infId) {
   document.getElementById('sender-email-inline').value = sender.email;
   document.getElementById('sender-phone-inline').value = sender.phone;
 
-  // 저장된 초안이 있으면 불러오고, 없으면 템플릿 셀렉트 적용 (또는 빈 상태)
-  const draft = getMailDraft(currentProjectId, infId);
+  // 현재 채널의 초안 로드 (메일 or DM)
+  renderTemplateSelectForChannel();
+  loadDraftForCurrentChannel();
+
+  bindMailAutoSave();
+}
+
+// 현재 선택된 채널(메일/DM)에 해당하는 초안을 화면에 로드
+function loadDraftForCurrentChannel() {
+  if (!selectedCreatorId) return;
+  const draft = getMailDraft(currentProjectId, selectedCreatorId, currentSendChannel);
   if (draft && (draft.subject || draft.body)) {
     document.getElementById('creator-mail-subject').value = draft.subject || '';
     setMailBody(draft.body || '');
-    // 셀렉트는 빈 상태로 (초안이 우선)
     document.getElementById('creator-tpl-select').value = '';
     showSaveStatus('saved', `저장됨 · ${formatTimeAgo(draft.updatedAt)}`);
   } else {
+    document.getElementById('creator-mail-subject').value = '';
+    setMailBody('');
     document.getElementById('creator-tpl-select').value = '';
-    applyTemplateForCreator();
     showSaveStatus('', '');
   }
-
-  bindMailAutoSave();
 }
 
 // ===== Mail Editor Helpers (contenteditable) =====
@@ -5206,14 +5259,16 @@ function applyTemplateForCreator() {
   const sender = getSenderInfo();
 
   if (!tplId) {
-    // 셀렉트가 비워졌을 뿐 — 사용자가 작성중인 내용을 지우지 않는다
     return;
   }
 
+  const channel = currentSendChannel || 'mail';
+  const channelLabel = channel === 'dm' ? 'DM' : '메일';
+
   // 사용자가 이미 작성한 내용이 있으면 confirm
-  const hasContent = document.getElementById('creator-mail-subject').value.trim()
+  const hasContent = (channel === 'mail' && document.getElementById('creator-mail-subject').value.trim())
     || getMailBodyText().trim();
-  if (hasContent && !confirm('현재 작성한 메일을 템플릿 내용으로 덮어쓸까요?')) {
+  if (hasContent && !confirm(`현재 작성한 ${channelLabel}을(를) 템플릿 내용으로 덮어쓸까요?`)) {
     document.getElementById('creator-tpl-select').value = '';
     return;
   }
@@ -5221,15 +5276,27 @@ function applyTemplateForCreator() {
   const t = allTemplates[tplId];
   if (!t) return;
   const composed = composeFullEmail(t, inf, project, sender);
-  document.getElementById('creator-mail-subject').value = composed.subject;
+  if (channel === 'mail') {
+    document.getElementById('creator-mail-subject').value = composed.subject;
+  }
   setMailBody(composed.body);
   // 즉시 저장
   queueMailSave(true);
 }
 
-// ===== Mail Draft Auto-save =====
-function getMailDraft(projectId, infId) {
-  return allMailDrafts?.[projectId]?.[infId] || null;
+// ===== Mail/DM Draft Auto-save =====
+// 데이터 스키마:
+//   신규: mailDrafts/{projectId}/{infId}/{mail|dm} = { subject?, body, updatedAt }
+//   호환: mailDrafts/{projectId}/{infId}              = { subject, body, updatedAt }  ← 옛 포맷, mail로 간주
+function getMailDraft(projectId, infId, channel) {
+  const node = allMailDrafts?.[projectId]?.[infId];
+  if (!node) return null;
+  const ch = channel || currentSendChannel || 'mail';
+  // 옛 포맷 (subject/body가 노드 루트에 있음) → mail로 인식
+  if (node.subject !== undefined || node.body !== undefined) {
+    return ch === 'mail' ? node : null;
+  }
+  return node[ch] || null;
 }
 
 let mailSaveTimer = null;
@@ -5268,16 +5335,50 @@ function saveMailDraftNow() {
   if (!selectedCreatorId || !currentProjectId) return;
   const subj = document.getElementById('creator-mail-subject').value;
   const body = getMailBodyHtml();
-  const data = { subject: subj, body: body, updatedAt: Date.now() };
+  const channel = currentSendChannel || 'mail';
+  // DM은 subject를 저장하지 않음
+  const data = channel === 'mail'
+    ? { subject: subj, body: body, updatedAt: Date.now() }
+    : { body: body, updatedAt: Date.now() };
 
   showSaveStatus('saving', '저장 중...');
 
+  // 기존 옛 포맷(루트에 subject/body) 노드라면, 마이그레이션을 위해 부모 노드 전체를 재구성한다.
+  const existing = allMailDrafts?.[currentProjectId]?.[selectedCreatorId];
+  const isLegacy = existing && (existing.subject !== undefined || existing.body !== undefined);
+
+  const writePromise = (() => {
+    if (isLegacy && firebaseReady) {
+      // 옛 포맷을 새 포맷으로 변환 + 현재 채널 갱신
+      const migrated = {
+        mail: { subject: existing.subject || '', body: existing.body || '', updatedAt: existing.updatedAt || Date.now() },
+      };
+      migrated[channel] = data;
+      return db.ref(`${PATHS.mailDrafts}/${currentProjectId}/${selectedCreatorId}`).set(migrated)
+        .then(() => migrated);
+    }
+    if (firebaseReady) {
+      return db.ref(`${PATHS.mailDrafts}/${currentProjectId}/${selectedCreatorId}/${channel}`).set(data)
+        .then(() => null);
+    }
+    return Promise.resolve(null);
+  })();
+
   if (firebaseReady) {
-    db.ref(`${PATHS.mailDrafts}/${currentProjectId}/${selectedCreatorId}`).set(data)
-      .then(() => {
-        // 로컬 캐시 동기화 (Firebase listener에서도 갱신되지만 즉시 반영)
+    writePromise
+      .then((migrated) => {
         if (!allMailDrafts[currentProjectId]) allMailDrafts[currentProjectId] = {};
-        allMailDrafts[currentProjectId][selectedCreatorId] = data;
+        if (migrated) {
+          allMailDrafts[currentProjectId][selectedCreatorId] = migrated;
+        } else {
+          const cur = allMailDrafts[currentProjectId][selectedCreatorId] || {};
+          if (cur.subject !== undefined || cur.body !== undefined) {
+            // 안전 가드: 캐시가 옛 포맷이면 새 포맷으로 갈아끼움
+            allMailDrafts[currentProjectId][selectedCreatorId] = { [channel]: data };
+          } else {
+            allMailDrafts[currentProjectId][selectedCreatorId] = { ...cur, [channel]: data };
+          }
+        }
         showSaveStatus('saved', `저장됨 · ${formatTimeAgo(data.updatedAt)}`);
       })
       .catch(e => {
@@ -5285,9 +5386,14 @@ function saveMailDraftNow() {
         showSaveStatus('dirty', '저장 실패');
       });
   } else {
-    // 오프라인 — 로컬 캐시만
+    // 오프라인 — 로컬 캐시만 (채널별 분리)
     if (!allMailDrafts[currentProjectId]) allMailDrafts[currentProjectId] = {};
-    allMailDrafts[currentProjectId][selectedCreatorId] = data;
+    const cur = allMailDrafts[currentProjectId][selectedCreatorId] || {};
+    if (cur.subject !== undefined || cur.body !== undefined) {
+      allMailDrafts[currentProjectId][selectedCreatorId] = { [channel]: data };
+    } else {
+      allMailDrafts[currentProjectId][selectedCreatorId] = { ...cur, [channel]: data };
+    }
     showSaveStatus('saved', `저장됨 · 오프라인`);
   }
 }
@@ -5351,16 +5457,12 @@ function openMailtoForCreator() {
 }
 
 // ===== Templates =====
+// (DM/메일 템플릿 탭은 제거됨. 템플릿 데이터 자체는 보존 — 셀렉트 박스에서 불러오기로 사용)
 function renderTemplates() {
-  const dmDiv = document.getElementById('msg-tab-dm');
-  const emailDiv = document.getElementById('msg-tab-email');
-
-  const templates = Object.entries(allTemplates).map(([id, t]) => ({ id, ...t }));
-  const dm = templates.filter(t => t.type === 'recruit');
-  const email = templates.filter(t => t.type === 'guideline');
-
-  dmDiv.innerHTML = dm.map(t => templateCard(t)).join('') || '<div style="color:var(--text-muted);font-size:13px;padding:12px;">DM 템플릿이 없습니다</div>';
-  emailDiv.innerHTML = email.map(t => templateCard(t)).join('') || '<div style="color:var(--text-muted);font-size:13px;padding:12px;">메일 템플릿이 없습니다</div>';
+  // 현재 채널에 맞는 템플릿 셀렉트만 갱신
+  if (typeof renderTemplateSelectForChannel === 'function') {
+    renderTemplateSelectForChannel();
+  }
 }
 
 function templateCard(t) {
