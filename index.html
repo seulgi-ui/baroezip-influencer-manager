@@ -682,6 +682,36 @@ table { border-collapse: collapse; width: 100%; }
   flex-direction: column;
   gap: 4px;
 }
+.cli-group-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 10px 6px;
+  margin-top: 4px;
+  border-left: 3px solid #FF0000;
+  background: var(--surface-2);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.cli-group-header:first-child { margin-top: 0; }
+.cli-group-header .cli-group-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.cli-group-header .cli-group-label { flex: 1; color: var(--text-primary); font-size: 11.5px; }
+.cli-group-header .cli-group-count {
+  background: rgba(0,0,0,0.06);
+  color: var(--text-secondary);
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-weight: 700;
+}
 .creator-list-item {
   display: flex;
   align-items: center;
@@ -5126,36 +5156,60 @@ function renderCreatorMailList() {
     .map(id => {
       const v = allInfluencers[id];
       if (!v) return null;
+      const chans = v.channels || [];
+      const channel = chans.includes('youtube') ? 'youtube'
+                    : (chans.includes('instagram') ? 'instagram' : 'youtube');
       return {
         id,
         name: v.name || '(이름없음)',
         followers: v.followers || 0,
         profileImage: v.profileImage || '',
+        channel,
       };
     })
     .filter(Boolean);
 
   if (q) list = list.filter(i => i.name.toLowerCase().includes(q));
-  list.sort((a, b) => b.followers - a.followers);
 
-  if (!list.length) {
+  // 채널별 분리 + 각 그룹 내 구독자 많은 순
+  const ytList = list.filter(i => i.channel === 'youtube').sort((a, b) => b.followers - a.followers);
+  const igList = list.filter(i => i.channel === 'instagram').sort((a, b) => b.followers - a.followers);
+
+  if (!ytList.length && !igList.length) {
     listEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px;">' +
       (q ? '검색 결과 없음' : '이 프로젝트에 배정된 인플루언서가 없습니다') + '</div>';
     return;
   }
 
-  listEl.innerHTML = list.map(i => {
+  function renderItem(i) {
     const avatar = i.profileImage
       ? `<img class="cli-avatar" src="${i.profileImage}" alt="">`
       : `<div class="cli-avatar">${(i.name[0] || '?').toUpperCase()}</div>`;
+    const subLabel = i.channel === 'instagram' ? '팔로워' : '구독자';
     return `<div class="creator-list-item ${selectedCreatorId === i.id ? 'active' : ''}" onclick="selectCreatorForMail('${i.id}')">
       ${avatar}
       <div class="cli-info">
         <div class="cli-name">${i.name}</div>
-        <div class="cli-sub">${fmtNumK(i.followers)} 구독자</div>
+        <div class="cli-sub">${fmtNumK(i.followers)} ${subLabel}</div>
       </div>
     </div>`;
-  }).join('');
+  }
+
+  function renderGroup(icon, label, items, color) {
+    if (!items.length) return '';
+    return `<div class="cli-group-header" style="border-left-color:${color};">
+      <span class="cli-group-icon">${icon}</span>
+      <span class="cli-group-label">${label}</span>
+      <span class="cli-group-count">${items.length}</span>
+    </div>${items.map(renderItem).join('')}`;
+  }
+
+  const ytIcon = '<svg width="14" height="10" viewBox="0 0 24 17" fill="#FF0000"><path d="M23.5 2.5c-.3-1-1-1.8-2-2.1C19.6 0 12 0 12 0S4.4 0 2.5.4c-1 .3-1.7 1.1-2 2.1C0 4.4 0 8.3 0 8.3s0 3.9.5 5.8c.3 1 1 1.8 2 2.1 1.9.5 9.5.5 9.5.5s7.6 0 9.5-.5c1-.3 1.7-1.1 2-2.1.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 12V4.7l6.4 3.6L9.5 12z"/></svg>';
+  const igIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="#E1306C"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.2 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1.1.4 2.2.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.9c-.1 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1.1.4-2.2.4-1.3.1-1.6.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1.1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.2-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1.1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zM12 0C8.7 0 8.3 0 7 .1 5.7.1 4.8.3 4 .6 3.2.9 2.5 1.3 1.8 2 1.1 2.7.7 3.4.4 4.2.2 5 0 5.9 0 7.2 0 8.5 0 8.9 0 12s0 3.7.1 5c0 1.3.2 2.2.5 3 .3.8.7 1.5 1.4 2.2.7.7 1.4 1.1 2.2 1.4.8.3 1.7.5 3 .5 1.3.1 1.7.1 5 .1s3.7 0 5-.1c1.3 0 2.2-.2 3-.5.8-.3 1.5-.7 2.2-1.4.7-.7 1.1-1.4 1.4-2.2.3-.8.5-1.7.5-3 .1-1.3.1-1.7.1-5s0-3.7-.1-5c0-1.3-.2-2.2-.5-3-.3-.8-.7-1.5-1.4-2.2C21.3 1.3 20.6.9 19.8.6 19 .3 18.1.1 16.8.1 15.5 0 15.1 0 12 0zm0 5.8a6.2 6.2 0 100 12.4 6.2 6.2 0 000-12.4zM12 16a4 4 0 110-8 4 4 0 010 8zm6.4-10.8a1.44 1.44 0 100 2.88 1.44 1.44 0 000-2.88z"/></svg>';
+
+  listEl.innerHTML =
+    renderGroup(ytIcon, '유튜브', ytList, '#FF0000') +
+    renderGroup(igIcon, '인스타그램', igList, '#E1306C');
 }
 
 function selectCreatorForMail(infId) {
