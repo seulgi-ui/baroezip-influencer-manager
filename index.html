@@ -3371,6 +3371,7 @@ table { border-collapse: collapse; width: 100%; }
           <option value="confirmed">컨펌완료</option>
           <option value="scheduled">업로드예정</option>
           <option value="done">완료</option>
+          <option value="excluded">제외</option>
         </select>
       </div>
       <div class="form-group">
@@ -3494,7 +3495,8 @@ const STATUS_MAP = {
   producing: { label: '제작중', color: '#3B82F6' },
   confirmed: { label: '컨펌완료', color: '#06B6D4' },
   scheduled: { label: '업로드예정', color: '#EC4899' },
-  done: { label: '완료', color: '#64748B' }
+  done: { label: '완료', color: '#64748B' },
+  excluded: { label: '제외', color: '#DC2626' }
 };
 
 const TT_LABELS = ['리스트업', '리스트컨펌', '섭외진행', '가이드배포', '릴리즈'];
@@ -4602,11 +4604,15 @@ function renderProjects() {
 
   grid.innerHTML = items.map(p => {
     const assigns = allAssignments[p.id] || {};
-    const assignCount = Object.keys(assigns).length;
+    const allEntries = Object.values(assigns);
+    // 제외된 인플루언서는 분모에서 빼서 진행률 계산
+    const activeEntries = allEntries.filter(a => a.status !== 'excluded');
+    const assignCount = allEntries.length;
+    const activeCount = activeEntries.length;
     const statusCounts = {};
-    Object.values(assigns).forEach(a => { const s = a.status || 'recruiting'; statusCounts[s] = (statusCounts[s] || 0) + 1; });
+    allEntries.forEach(a => { const s = a.status || 'recruiting'; statusCounts[s] = (statusCounts[s] || 0) + 1; });
     const doneCount = statusCounts['done'] || 0;
-    const progressPct = assignCount ? Math.round(doneCount / assignCount * 100) : 0;
+    const progressPct = activeCount ? Math.round(doneCount / activeCount * 100) : 0;
 
     // Calculate total cost
     const totalCost = Object.values(assigns).reduce((s, a) => s + (a.cost || 0), 0);
@@ -4784,11 +4790,17 @@ function renderTrackTable() {
       const avatar = e.inf.profileImage
         ? `<img src="${e.inf.profileImage}" style="width:28px;height:28px;border-radius:8px;object-fit:cover;vertical-align:middle;margin-right:6px;">`
         : `<span style="display:inline-flex;width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#A855F7,#6366F1);color:#fff;font-size:11px;font-weight:800;align-items:center;justify-content:center;margin-right:6px;vertical-align:middle;">${initial}</span>`;
-      html += `<tr>
-        <td style="cursor:pointer;" onclick="openDetailPanel('${e.infId}')"><div style="display:flex;align-items:center;">${avatar}<span style="font-weight:600;">${e.inf.name || '(삭제됨)'}</span></div></td>
+      const isExcluded = e.status === 'excluded';
+      const rowStyle = isExcluded ? 'background:#FEF2F2;opacity:0.75;' : '';
+      const nameStyle = isExcluded ? 'font-weight:600;text-decoration:line-through;color:#9CA3AF;' : 'font-weight:600;';
+      const reasonHtml = isExcluded
+        ? `<div style="font-size:11px;color:#DC2626;margin-top:3px;margin-left:34px;cursor:pointer;" onclick="event.stopPropagation();editExcludeReason('${e.infId}')" title="클릭하면 사유 수정">📌 ${e.excludeReason ? escapeHtml(e.excludeReason) : '사유 미입력 (클릭하여 입력)'}</div>`
+        : '';
+      html += `<tr style="${rowStyle}">
+        <td style="cursor:pointer;" onclick="openDetailPanel('${e.infId}')"><div style="display:flex;align-items:center;">${avatar}<span style="${nameStyle}">${e.inf.name || '(삭제됨)'}</span></div>${reasonHtml}</td>
         <td>${chBadge}</td>
         <td><input type="number" value="${e.cost || 0}" style="width:60px;" onchange="saveTrackField('${currentProjectId}','${e.infId}','cost',Number(this.value))"></td>
-        <td><select onchange="saveTrackField('${currentProjectId}','${e.infId}','status',this.value)" style="color:#fff;background:${st.color};border-color:${st.color};border-radius:12px;padding:3px 8px;font-size:11px;font-weight:600;">
+        <td><select onchange="handleStatusChange('${e.infId}', this, '${e.status || 'recruiting'}')" style="color:#fff;background:${st.color};border-color:${st.color};border-radius:12px;padding:3px 8px;font-size:11px;font-weight:600;">
           ${Object.entries(STATUS_MAP).map(([k, v]) => `<option value="${k}" ${k === e.status ? 'selected' : ''} style="color:#333;background:#fff;">${v.label}</option>`).join('')}
         </select></td>
         <td><select onchange="saveTrackField('${currentProjectId}','${e.infId}','contentType',this.value)">
@@ -4820,6 +4832,63 @@ function saveTrackField(projId, infId, field, value) {
     renderTrackTable();
     renderReportBar();
   }
+}
+
+// 여러 필드 동시 저장
+function saveTrackFields(projId, infId, fields) {
+  const payload = { ...fields, updatedAt: Date.now() };
+  if (firebaseReady) {
+    db.ref(PATHS.assignments + '/' + projId + '/' + infId).update(payload);
+  } else {
+    if (!allAssignments[projId]) allAssignments[projId] = {};
+    if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
+    Object.assign(allAssignments[projId][infId], payload);
+    renderTrackTable();
+    renderReportBar();
+  }
+}
+
+// 상태 변경 핸들러 — '제외' 선택 시 사유 입력
+function handleStatusChange(infId, sel, prevStatus) {
+  const newStatus = sel.value;
+  const projId = currentProjectId;
+  if (newStatus === 'excluded') {
+    const existing = (allAssignments[projId] || {})[infId] || {};
+    const reason = prompt('제외 사유를 입력해주세요:\n(예: 단가 협의 불발, 회신 없음, 채널 톤 불일치 등)', existing.excludeReason || '');
+    if (reason === null) {
+      // 취소 — 셀렉트 원복
+      sel.value = prevStatus || 'recruiting';
+      return;
+    }
+    saveTrackFields(projId, infId, { status: 'excluded', excludeReason: reason.trim() });
+  } else {
+    // 다른 상태로 전환 시 excludeReason 클리어
+    const existing = (allAssignments[projId] || {})[infId] || {};
+    if (existing.excludeReason) {
+      saveTrackFields(projId, infId, { status: newStatus, excludeReason: '' });
+    } else {
+      saveTrackField(projId, infId, 'status', newStatus);
+    }
+  }
+}
+
+// 제외 사유 재편집 (사유 텍스트 클릭 시)
+function editExcludeReason(infId) {
+  const projId = currentProjectId;
+  const existing = (allAssignments[projId] || {})[infId] || {};
+  const reason = prompt('제외 사유를 수정해주세요:', existing.excludeReason || '');
+  if (reason === null) return;
+  saveTrackField(projId, infId, 'excludeReason', reason.trim());
+}
+
+// HTML 이스케이프
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 // ===== Upload URL Crawling =====
