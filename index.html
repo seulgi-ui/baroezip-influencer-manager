@@ -643,6 +643,178 @@ table { border-collapse: collapse; width: 100%; }
   justify-content: center;
 }
 .modal-overlay.open { display: flex; }
+
+/* ===== 제외 사유 모달 ===== */
+.exclude-modal {
+  max-width: 520px;
+  width: 92%;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25), 0 6px 18px rgba(0,0,0,0.08);
+  border: 1px solid rgba(0,0,0,0.04);
+}
+.exclude-modal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px 18px;
+  background: linear-gradient(135deg, #FEF2F2 0%, #FFE4E6 100%);
+  border-bottom: 1px solid #FECACA;
+  position: relative;
+}
+.exclude-modal-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #DC2626, #B91C1C);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 12px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(220,38,38,0.3);
+  flex-shrink: 0;
+}
+.exclude-modal-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #7F1D1D;
+  letter-spacing: -0.3px;
+  flex: 1;
+}
+.exclude-modal-close {
+  background: rgba(0,0,0,0.05);
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 18px;
+  color: #7F1D1D;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.exclude-modal-close:hover { background: rgba(0,0,0,0.12); }
+
+.exclude-modal-body {
+  padding: 22px 24px;
+}
+.exclude-modal-target {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 11px 14px;
+  margin-bottom: 18px;
+}
+.exclude-modal-target-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #64748B;
+  background: #fff;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+.exclude-modal-target-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.2px;
+}
+
+.exclude-modal-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 8px;
+}
+.exclude-modal-counter {
+  font-size: 11px;
+  color: #94A3B8;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.exclude-modal-textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 14px 16px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  resize: vertical;
+  background: #fff;
+  color: #0F172A;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+.exclude-modal-textarea:focus {
+  outline: none;
+  border-color: #DC2626;
+  box-shadow: 0 0 0 4px rgba(220,38,38,0.1);
+}
+.exclude-modal-textarea::placeholder { color: #94A3B8; }
+
+.exclude-modal-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 14px;
+}
+.exclude-modal-suggestions-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #94A3B8;
+  margin-right: 4px;
+  letter-spacing: 0.3px;
+}
+.exclude-chip {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  color: #475569;
+  padding: 5px 11px;
+  border-radius: 14px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.exclude-chip:hover {
+  border-color: #DC2626;
+  color: #DC2626;
+  background: #FEF2F2;
+}
+
+.exclude-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 24px 20px;
+  border-top: 1px solid #F1F5F9;
+  background: #FAFBFD;
+}
+.exclude-modal-confirm {
+  background: linear-gradient(135deg, #DC2626, #B91C1C) !important;
+  border-color: #B91C1C !important;
+  box-shadow: 0 2px 8px rgba(220,38,38,0.25) !important;
+  font-weight: 700 !important;
+}
+.exclude-modal-confirm:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 4px 12px rgba(220,38,38,0.35) !important;
+}
 .modal {
   background: var(--surface);
   border-radius: var(--radius);
@@ -2606,6 +2778,47 @@ table { border-collapse: collapse; width: 100%; }
     </div>
   </section>
 
+</div>
+
+<!-- 제외 사유 입력 Modal -->
+<div class="modal-overlay" id="modal-exclude-reason">
+  <div class="modal exclude-modal">
+    <div class="exclude-modal-head">
+      <div class="exclude-modal-badge">제외</div>
+      <h3 class="exclude-modal-title">제외 사유를 입력해주세요</h3>
+      <button class="exclude-modal-close" onclick="cancelExcludeReason()" aria-label="닫기">×</button>
+    </div>
+    <div class="exclude-modal-body">
+      <div class="exclude-modal-target">
+        <span class="exclude-modal-target-label">대상</span>
+        <span class="exclude-modal-target-name" id="exclude-modal-name">—</span>
+      </div>
+      <label class="exclude-modal-label" for="exclude-modal-textarea">
+        사유를 자세히 작성해주세요
+        <span class="exclude-modal-counter" id="exclude-modal-counter">0 / 200</span>
+      </label>
+      <textarea
+        id="exclude-modal-textarea"
+        class="exclude-modal-textarea"
+        rows="4"
+        maxlength="200"
+        placeholder="예) 단가 협의 불발 / 회신 없음 / 채널 톤 불일치 / 일정 미스매치 등 — 가능하면 구체적으로 적어주세요."
+        oninput="updateExcludeReasonCounter()"
+      ></textarea>
+      <div class="exclude-modal-suggestions" id="exclude-modal-suggestions">
+        <span class="exclude-modal-suggestions-label">자주 쓰는 사유</span>
+        <button type="button" class="exclude-chip" onclick="setExcludeReasonText('단가 협의 불발')">단가 협의 불발</button>
+        <button type="button" class="exclude-chip" onclick="setExcludeReasonText('회신 없음')">회신 없음</button>
+        <button type="button" class="exclude-chip" onclick="setExcludeReasonText('채널 톤 불일치')">채널 톤 불일치</button>
+        <button type="button" class="exclude-chip" onclick="setExcludeReasonText('일정 미스매치')">일정 미스매치</button>
+        <button type="button" class="exclude-chip" onclick="setExcludeReasonText('PPL 정책상 진행 불가')">PPL 정책상 진행 불가</button>
+      </div>
+    </div>
+    <div class="exclude-modal-footer">
+      <button class="btn btn-secondary" onclick="cancelExcludeReason()">취소</button>
+      <button class="btn btn-primary exclude-modal-confirm" onclick="confirmExcludeReason()">제외 처리</button>
+    </div>
+  </div>
 </div>
 
 <!-- Media Mix Modal -->
@@ -4878,19 +5091,75 @@ function saveTrackFields(projId, infId, fields) {
   }
 }
 
-// 상태 변경 핸들러 — '제외' 선택 시 사유 입력
+// 제외 모달 컨텍스트
+let _excludeCtx = { infId: null, prevStatus: null, selectEl: null, mode: 'set' };
+
+function openExcludeReasonModal({ infId, prevStatus, selectEl, mode }) {
+  const projId = currentProjectId;
+  const inf = allInfluencers[infId] || {};
+  const existing = (allAssignments[projId] || {})[infId] || {};
+
+  _excludeCtx = { infId, prevStatus, selectEl, mode };
+
+  document.getElementById('exclude-modal-name').textContent = inf.name || '(이름없음)';
+  const ta = document.getElementById('exclude-modal-textarea');
+  ta.value = existing.excludeReason || '';
+  updateExcludeReasonCounter();
+
+  const overlay = document.getElementById('modal-exclude-reason');
+  overlay.classList.add('open');
+  setTimeout(() => ta.focus(), 50);
+}
+
+function updateExcludeReasonCounter() {
+  const ta = document.getElementById('exclude-modal-textarea');
+  const counter = document.getElementById('exclude-modal-counter');
+  if (ta && counter) counter.textContent = `${ta.value.length} / 200`;
+}
+
+function setExcludeReasonText(text) {
+  const ta = document.getElementById('exclude-modal-textarea');
+  ta.value = text;
+  updateExcludeReasonCounter();
+  ta.focus();
+}
+
+function cancelExcludeReason() {
+  // 상태 변경 흐름이면 셀렉트 원복
+  if (_excludeCtx.mode === 'set' && _excludeCtx.selectEl) {
+    _excludeCtx.selectEl.value = _excludeCtx.prevStatus || 'recruiting';
+  }
+  document.getElementById('modal-exclude-reason').classList.remove('open');
+  _excludeCtx = { infId: null, prevStatus: null, selectEl: null, mode: 'set' };
+}
+
+function confirmExcludeReason() {
+  const ta = document.getElementById('exclude-modal-textarea');
+  const reason = (ta.value || '').trim();
+  const { infId, mode } = _excludeCtx;
+  const projId = currentProjectId;
+
+  if (!infId) {
+    cancelExcludeReason();
+    return;
+  }
+
+  if (mode === 'set') {
+    saveTrackFields(projId, infId, { status: 'excluded', excludeReason: reason });
+  } else {
+    saveTrackField(projId, infId, 'excludeReason', reason);
+  }
+
+  document.getElementById('modal-exclude-reason').classList.remove('open');
+  _excludeCtx = { infId: null, prevStatus: null, selectEl: null, mode: 'set' };
+}
+
+// 상태 변경 핸들러 — '제외' 선택 시 모달 띄움
 function handleStatusChange(infId, sel, prevStatus) {
   const newStatus = sel.value;
   const projId = currentProjectId;
   if (newStatus === 'excluded') {
-    const existing = (allAssignments[projId] || {})[infId] || {};
-    const reason = prompt('제외 사유를 입력해주세요:\n(예: 단가 협의 불발, 회신 없음, 채널 톤 불일치 등)', existing.excludeReason || '');
-    if (reason === null) {
-      // 취소 — 셀렉트 원복
-      sel.value = prevStatus || 'recruiting';
-      return;
-    }
-    saveTrackFields(projId, infId, { status: 'excluded', excludeReason: reason.trim() });
+    openExcludeReasonModal({ infId, prevStatus, selectEl: sel, mode: 'set' });
   } else {
     // 다른 상태로 전환 시 excludeReason 클리어
     const existing = (allAssignments[projId] || {})[infId] || {};
@@ -4904,11 +5173,7 @@ function handleStatusChange(infId, sel, prevStatus) {
 
 // 제외 사유 재편집 (사유 텍스트 클릭 시)
 function editExcludeReason(infId) {
-  const projId = currentProjectId;
-  const existing = (allAssignments[projId] || {})[infId] || {};
-  const reason = prompt('제외 사유를 수정해주세요:', existing.excludeReason || '');
-  if (reason === null) return;
-  saveTrackField(projId, infId, 'excludeReason', reason.trim());
+  openExcludeReasonModal({ infId, prevStatus: 'excluded', selectEl: null, mode: 'edit' });
 }
 
 // HTML 이스케이프
