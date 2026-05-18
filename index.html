@@ -2434,6 +2434,43 @@ table { border-collapse: collapse; width: 100%; }
 .inf-table .name-sub { font-size: 11px; color: var(--text-muted); }
 .inf-table .num-unit { font-size: 11px; color: var(--text-muted); font-weight: 400; }
 .inf-table .price-cell { font-weight: 800; color: var(--text-primary); }
+.price-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 2px 6px 2px 4px;
+  transition: all 0.12s;
+}
+.price-input-wrap:hover { background: var(--surface); border-color: var(--border); }
+.price-input-wrap:focus-within {
+  background: #fff;
+  border-color: #0066FF;
+  box-shadow: 0 0 0 3px rgba(0,102,255,0.12);
+}
+.price-inline-input {
+  width: 56px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-primary);
+  text-align: right;
+  padding: 3px 2px;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+}
+.price-inline-input::-webkit-outer-spin-button,
+.price-inline-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.price-inline-input:focus { outline: none; }
+.price-inline-input::placeholder { color: #CBD5E1; font-weight: 600; }
+.price-inline-unit { font-size: 10.5px; font-weight: 700; color: var(--text-muted); }
 .inf-table .tp-row { display: flex; gap: 4px; }
 .inf-table .tp { padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 600; background: #F5F3FF; color: #7C3AED; }
 .inf-table .action-dots {
@@ -2442,21 +2479,18 @@ table { border-collapse: collapse; width: 100%; }
 }
 .inf-table .action-dots:hover { background: var(--surface-2); border-color: var(--border); }
 
-/* 인플루언서 행 액션 팝오버 메뉴 */
-.inf-actions-wrap { position: relative; display: inline-block; }
+/* 인플루언서 행 액션 팝오버 메뉴 — position: fixed로 테이블 overflow 무시 */
+.inf-actions-wrap { display: inline-block; }
 .inf-action-menu {
   display: none;
-  position: absolute;
-  right: 0;
-  top: 32px;
+  position: fixed;
   background: #fff;
   border: 1px solid #E2E8F0;
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.06);
-  min-width: 110px;
-  z-index: 50;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15), 0 2px 6px rgba(0,0,0,0.08);
+  min-width: 120px;
+  z-index: 9999;
   padding: 4px;
-  overflow: hidden;
 }
 .inf-action-menu.open { display: block; }
 .inf-action-item {
@@ -4766,23 +4800,38 @@ function deleteInfluencerWithCleanup(id) {
   closeDetailPanel();
 }
 
-// 액션 메뉴 토글
+// 액션 메뉴 토글 — fixed positioning으로 anchor 기준 화면 좌표 계산
 function toggleInfActionMenu(id, anchor) {
   const menu = document.getElementById('inf-menu-' + id);
   if (!menu) return;
   const wasOpen = menu.classList.contains('open');
   closeAllInfActionMenus();
-  if (!wasOpen) menu.classList.add('open');
+  if (!wasOpen) {
+    // anchor의 viewport 좌표 기준으로 메뉴 위치 결정
+    const rect = anchor.getBoundingClientRect();
+    const menuWidth = 130;
+    let left = rect.right - menuWidth;
+    if (left < 8) left = 8;
+    if (left + menuWidth > window.innerWidth - 8) left = window.innerWidth - menuWidth - 8;
+    let top = rect.bottom + 4;
+    // 아래 공간 부족하면 위로 띄움
+    if (top + 90 > window.innerHeight) top = rect.top - 90;
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+    menu.classList.add('open');
+  }
 }
 function closeAllInfActionMenus() {
   document.querySelectorAll('.inf-action-menu.open').forEach(m => m.classList.remove('open'));
 }
 // 바깥 클릭으로 메뉴 닫기
 document.addEventListener('click', (e) => {
-  if (!e.target.closest('.inf-actions-wrap')) {
+  if (!e.target.closest('.inf-actions-wrap') && !e.target.closest('.inf-action-menu')) {
     closeAllInfActionMenus();
   }
 });
+// 스크롤 시 메뉴 자동 닫기 (fixed positioning이라 따라가지 않음)
+window.addEventListener('scroll', closeAllInfActionMenus, true);
 
 function toggleFavorite(id, current) {
   const val = !current;
@@ -4791,6 +4840,20 @@ function toggleFavorite(id, current) {
   } else {
     allInfluencers[id].favorite = val;
     renderInfluencers();
+  }
+}
+
+// 인플루언서 단가 변경 (인라인 입력)
+function updateInfPrice(id, priceKey, value) {
+  const num = value === '' ? 0 : Number(value);
+  if (isNaN(num) || num < 0) return;
+  if (firebaseReady) {
+    db.ref(PATHS.influencers + '/' + id).update({ [priceKey]: num, updatedAt: Date.now() });
+  } else {
+    if (allInfluencers[id]) {
+      allInfluencers[id][priceKey] = num;
+      renderInfluencers();
+    }
   }
 }
 
@@ -4992,7 +5055,7 @@ function renderInfluencers() {
     ).join('');
     const commonTds = `
       <td class="num">${inf.engagement ? inf.engagement.toFixed(1) + '%' : '-'}</td>
-      <td class="price-cell">${inf[priceKey] ? fmt(inf[priceKey]) + '<span class="num-unit">만</span>' : '-'}</td>
+      <td class="price-cell"><div class="price-input-wrap"><input type="number" class="price-inline-input" value="${inf[priceKey] != null && inf[priceKey] !== 0 ? inf[priceKey] : ''}" placeholder="-" min="0" step="10" onclick="event.stopPropagation();" onchange="event.stopPropagation();updateInfPrice('${inf.id}','${priceKey}',this.value)"><span class="price-inline-unit">만</span></div></td>
       <td><select class="contact-select contact-${cs}" onclick="event.stopPropagation();" onchange="event.stopPropagation();updateContactStatus('${inf.id}', this)">${csOpts}</select></td>
       <td><div class="tp-row">${topics.map(t => `<span class="tp">${t}</span>`).join('')}</div></td>
       <td><div class="inf-actions-wrap"><span class="action-dots" onclick="event.stopPropagation();toggleInfActionMenu('${inf.id}', this)">⋮</span><div class="inf-action-menu" id="inf-menu-${inf.id}">
