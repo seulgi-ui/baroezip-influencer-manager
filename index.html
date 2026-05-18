@@ -644,6 +644,228 @@ table { border-collapse: collapse; width: 100%; }
 }
 .modal-overlay.open { display: flex; }
 
+/* ===== 회신 메모 사이드 패널 (Drawer) ===== */
+.memo-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 460px;
+  max-width: 90vw;
+  height: 100vh;
+  background: #fff;
+  border-left: 1px solid #E2E8F0;
+  box-shadow: -8px 0 32px rgba(0,0,0,0.08);
+  z-index: 1000;
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.2, 0.85, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+.memo-drawer.open { transform: translateX(0); }
+
+.memo-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 18px 20px 16px;
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  border-bottom: 1px solid #BFDBFE;
+  flex-shrink: 0;
+}
+.memo-drawer-head-left { display: flex; gap: 12px; align-items: flex-start; }
+.memo-drawer-badge {
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 4px 11px;
+  border-radius: 11px;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(37,99,235,0.3);
+  margin-top: 2px;
+}
+.memo-drawer-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+.memo-drawer-meta {
+  font-size: 11.5px;
+  color: #64748B;
+  margin-top: 3px;
+  font-weight: 600;
+}
+.memo-drawer-close {
+  background: rgba(0,0,0,0.05);
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 18px;
+  color: #1E3A8A;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.memo-drawer-close:hover { background: rgba(0,0,0,0.12); }
+
+.memo-drawer-add {
+  padding: 14px 20px;
+  background: #FAFBFD;
+  border-bottom: 1px solid #E2E8F0;
+  flex-shrink: 0;
+}
+.memo-add-types {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.memo-type-btn {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  color: #475569;
+  padding: 6px 10px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.memo-type-btn:hover { border-color: #2563EB; color: #2563EB; }
+.memo-type-btn.active {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(37,99,235,0.25);
+}
+.memo-add-textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+  padding: 11px 13px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 8px;
+  resize: vertical;
+  background: #fff;
+  color: #0F172A;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.memo-add-textarea:focus {
+  outline: none;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+.memo-add-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+.memo-add-hint { font-size: 11px; color: #94A3B8; font-weight: 600; }
+.memo-add-submit {
+  background: linear-gradient(135deg, #2563EB, #1D4ED8) !important;
+  border-color: #1D4ED8 !important;
+  font-weight: 700 !important;
+}
+.memo-add-submit:disabled {
+  background: #CBD5E1 !important;
+  border-color: #CBD5E1 !important;
+  cursor: not-allowed;
+  filter: none !important;
+}
+
+.memo-drawer-timeline {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 20px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #F8FAFC;
+}
+.memo-timeline-empty {
+  text-align: center;
+  padding: 36px 20px;
+  color: #94A3B8;
+  font-size: 13px;
+}
+.memo-timeline-empty-icon { font-size: 32px; margin-bottom: 10px; opacity: 0.5; }
+
+.memo-card {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-left: 3px solid #94A3B8;
+  border-radius: 8px;
+  padding: 11px 13px;
+  transition: box-shadow 0.15s;
+}
+.memo-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.memo-card.type-received { border-left-color: #10B981; }
+.memo-card.type-sent { border-left-color: #2563EB; }
+.memo-card.type-internal { border-left-color: #F59E0B; }
+
+.memo-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 7px;
+  font-size: 11px;
+}
+.memo-card-type {
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 8px;
+  font-size: 10px;
+  letter-spacing: 0.3px;
+}
+.memo-card.type-received .memo-card-type { background: #D1FAE5; color: #047857; }
+.memo-card.type-sent .memo-card-type { background: #DBEAFE; color: #1D4ED8; }
+.memo-card.type-internal .memo-card-type { background: #FEF3C7; color: #B45309; }
+.memo-card-time { color: #94A3B8; font-weight: 600; font-size: 10.5px; }
+.memo-card-actions { display: flex; gap: 4px; }
+.memo-card-action {
+  background: transparent;
+  border: none;
+  color: #94A3B8;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.memo-card-action:hover { background: #F1F5F9; color: #475569; }
+.memo-card-content {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #1E293B;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.memo-card-edit-textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+  padding: 9px 11px;
+  border: 1.5px solid #2563EB;
+  border-radius: 6px;
+  resize: vertical;
+  box-sizing: border-box;
+  background: #fff;
+  margin-top: 4px;
+}
+.memo-card-edit-textarea:focus { outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.memo-card-edit-actions { display: flex; gap: 6px; margin-top: 6px; justify-content: flex-end; }
+
 /* ===== 회신/메모 모달 (블루 톤) ===== */
 .memo-modal {
   max-width: 560px;
@@ -3018,6 +3240,43 @@ table { border-collapse: collapse; width: 100%; }
 
 </div>
 
+<!-- 회신 메모 사이드 패널 (Drawer) -->
+<div class="memo-drawer" id="memo-drawer">
+  <div class="memo-drawer-header">
+    <div class="memo-drawer-head-left">
+      <div class="memo-drawer-badge">회신 로그</div>
+      <div>
+        <div class="memo-drawer-name" id="memo-drawer-name">—</div>
+        <div class="memo-drawer-meta" id="memo-drawer-meta">—</div>
+      </div>
+    </div>
+    <button class="memo-drawer-close" onclick="closeMemoPanel()" aria-label="닫기">×</button>
+  </div>
+
+  <div class="memo-drawer-add">
+    <div class="memo-add-types">
+      <button type="button" class="memo-type-btn active" data-type="received" onclick="setMemoType('received', this)">📥 받은 회신</button>
+      <button type="button" class="memo-type-btn" data-type="sent" onclick="setMemoType('sent', this)">📤 보낸 내용</button>
+      <button type="button" class="memo-type-btn" data-type="internal" onclick="setMemoType('internal', this)">📝 내부 메모</button>
+    </div>
+    <textarea
+      id="memo-add-textarea"
+      class="memo-add-textarea"
+      rows="4"
+      placeholder="새 회신·메모를 적어주세요. Ctrl+Enter로 빠른 저장 가능합니다."
+      oninput="updateMemoAddState()"
+    ></textarea>
+    <div class="memo-add-footer">
+      <span class="memo-add-hint">Ctrl + Enter 로 저장</span>
+      <button class="btn btn-primary btn-sm memo-add-submit" id="memo-add-submit" onclick="addMemoEntry()" disabled>＋ 추가</button>
+    </div>
+  </div>
+
+  <div class="memo-drawer-timeline" id="memo-drawer-timeline">
+    <!-- 카드들 동적 렌더링 -->
+  </div>
+</div>
+
 <!-- 회신/메모 입력 Modal -->
 <div class="modal-overlay" id="modal-memo-input">
   <div class="modal memo-modal">
@@ -4175,6 +4434,7 @@ function initRealtimeListeners() {
       renderAssignPanel();
       renderReportBar();
       renderCreatorMailList();
+      if (typeof refreshMemoPanelIfOpen === 'function') refreshMemoPanelIfOpen();
     }
     renderProjects();
   });
@@ -5321,14 +5581,17 @@ function renderTrackTable() {
       const reasonHtml = isExcluded
         ? `<div style="font-size:11px;color:#DC2626;margin-top:3px;margin-left:34px;cursor:pointer;" onclick="event.stopPropagation();editExcludeReason('${e.infId}')" title="클릭하면 사유 수정">📌 ${e.excludeReason ? escapeHtml(e.excludeReason) : '사유 미입력 (클릭하여 입력)'}</div>`
         : '';
-      // 회신/진행 메모 (제외 외 모든 상태)
-      const memoHtml = (!isExcluded && e.memo)
-        ? `<div class="row-memo-text" onclick="event.stopPropagation();openMemoModal('${e.infId}')" title="클릭하여 수정">📝 ${escapeHtml(e.memo)}</div>`
+      // 회신/진행 메모 (제외 외 모든 상태) — memos 배열 기반
+      const memoArr = getMemoList(e);
+      const memoCount = memoArr.length;
+      const previewText = memoCount ? memoArr.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0].content.split('\n')[0] : '';
+      const memoHtml = (!isExcluded && memoCount)
+        ? `<div class="row-memo-text" onclick="event.stopPropagation();openMemoPanel('${e.infId}')" title="클릭하여 회신 로그 열기">📝 ${escapeHtml(previewText)}${memoCount > 1 ? ` <span style="opacity:0.7;">+${memoCount - 1}건</span>` : ''}</div>`
         : '';
       // 상태 셀렉트 옆 메모 아이콘 (제외 상태 제외)
-      const memoBtnCls = e.memo ? 'memo-icon-btn has-memo' : 'memo-icon-btn';
+      const memoBtnCls = memoCount ? 'memo-icon-btn has-memo' : 'memo-icon-btn';
       const memoIconBtn = !isExcluded
-        ? `<button class="${memoBtnCls}" onclick="event.stopPropagation();openMemoModal('${e.infId}')" title="${e.memo ? '메모 수정' : '회신·진행 메모 추가'}">📝</button>`
+        ? `<button class="${memoBtnCls}" onclick="event.stopPropagation();openMemoPanel('${e.infId}')" title="${memoCount ? `회신 로그 (${memoCount}건)` : '회신·진행 메모 추가'}">📝${memoCount > 1 ? `<span style="font-size:9px;font-weight:800;margin-left:2px;">${memoCount}</span>` : ''}</button>`
         : '';
       html += `<tr style="${rowStyle}">
         <td style="cursor:pointer;" onclick="openDetailPanel('${e.infId}')"><div style="display:flex;align-items:center;">${avatar}<span style="${nameStyle}">${e.inf.name || '(삭제됨)'}</span></div>${reasonHtml}${memoHtml}</td>
@@ -5383,66 +5646,255 @@ function saveTrackFields(projId, infId, fields) {
   }
 }
 
-// ===== 회신/메모 모달 =====
-let _memoCtx = { infId: null };
+// ===== 회신 메모 사이드 패널 (시계열 카드) =====
+let _memoPanelCtx = { infId: null, type: 'received' };
 
-function openMemoModal(infId) {
+const MEMO_TYPE_LABEL = {
+  received: '📥 받은 회신',
+  sent: '📤 보낸 내용',
+  internal: '📝 내부 메모',
+};
+
+// 어셈블리 노드에서 memos 배열 추출 (옛 memo 호환)
+function getMemoList(assign) {
+  if (!assign) return [];
+  if (Array.isArray(assign.memos) && assign.memos.length) return assign.memos.slice();
+  // Firebase에서 배열이 객체로 올 수 있음
+  if (assign.memos && typeof assign.memos === 'object') {
+    return Object.values(assign.memos);
+  }
+  // 옛 단일 memo 호환 → 첫 카드로 변환
+  if (assign.memo && String(assign.memo).trim()) {
+    return [{
+      id: 'legacy_' + (assign.updatedAt || Date.now()),
+      type: 'internal',
+      content: String(assign.memo).trim(),
+      createdAt: assign.updatedAt || Date.now(),
+      updatedAt: assign.updatedAt || Date.now(),
+    }];
+  }
+  return [];
+}
+
+// memos 배열을 Firebase에 저장 (+ 마지막 카드 요약을 memo 필드에 동기화)
+function saveMemoList(projId, infId, memos) {
+  const sorted = memos.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  // 행 미리보기용 memo는 가장 최근 카드의 첫 줄
+  const previewLine = sorted.length
+    ? sorted[0].content.split('\n')[0].slice(0, 100)
+    : '';
+  if (firebaseReady) {
+    db.ref(PATHS.assignments + '/' + projId + '/' + infId).update({
+      memos: sorted,
+      memo: previewLine,
+      updatedAt: Date.now(),
+    });
+  } else {
+    if (!allAssignments[projId]) allAssignments[projId] = {};
+    if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
+    allAssignments[projId][infId].memos = sorted;
+    allAssignments[projId][infId].memo = previewLine;
+    renderTrackTable();
+  }
+}
+
+// ===== 패널 열기/닫기 =====
+function openMemoModal(infId) { openMemoPanel(infId); }  // 기존 호출처 호환
+
+function openMemoPanel(infId) {
   const projId = currentProjectId;
   const inf = allInfluencers[infId] || {};
   const existing = (allAssignments[projId] || {})[infId] || {};
   const st = STATUS_MAP[existing.status || 'recruiting'] || STATUS_MAP.recruiting;
 
-  _memoCtx = { infId };
+  _memoPanelCtx = { infId, type: 'received' };
 
-  document.getElementById('memo-modal-name').textContent = inf.name || '(이름없음)';
-  const statusEl = document.getElementById('memo-modal-status');
-  statusEl.textContent = st.label;
-  statusEl.style.background = st.color + '22';
-  statusEl.style.color = st.color;
+  document.getElementById('memo-drawer-name').textContent = inf.name || '(이름없음)';
+  document.getElementById('memo-drawer-meta').textContent =
+    `${(inf.channels && inf.channels.includes('instagram')) ? 'Instagram' : 'YouTube'}  ·  ${st.label}`;
 
-  const ta = document.getElementById('memo-modal-textarea');
-  ta.value = existing.memo || '';
-  updateMemoCounter();
+  // 타입 버튼 리셋
+  document.querySelectorAll('.memo-type-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.type === 'received');
+  });
+  document.getElementById('memo-add-textarea').value = '';
+  updateMemoAddState();
 
-  document.getElementById('modal-memo-input').classList.add('open');
-  setTimeout(() => ta.focus(), 50);
+  renderMemoTimeline();
+
+  document.getElementById('memo-drawer').classList.add('open');
+  setTimeout(() => document.getElementById('memo-add-textarea').focus(), 200);
 }
 
-function updateMemoCounter() {
-  const ta = document.getElementById('memo-modal-textarea');
-  const counter = document.getElementById('memo-modal-counter');
-  if (ta && counter) counter.textContent = `${ta.value.length} / 5000`;
+function closeMemoPanel() {
+  document.getElementById('memo-drawer').classList.remove('open');
+  _memoPanelCtx = { infId: null, type: 'received' };
 }
 
-function setMemoText(text) {
-  const ta = document.getElementById('memo-modal-textarea');
-  // 기존 내용 있으면 줄바꿈 후 추가, 없으면 그대로
-  const current = ta.value.trim();
-  ta.value = current ? `${current}\n${text}` : text;
-  updateMemoCounter();
-  ta.focus();
+function setMemoType(type, btn) {
+  _memoPanelCtx.type = type;
+  document.querySelectorAll('.memo-type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
 }
 
-function clearMemo() {
-  const ta = document.getElementById('memo-modal-textarea');
+function updateMemoAddState() {
+  const ta = document.getElementById('memo-add-textarea');
+  const btn = document.getElementById('memo-add-submit');
+  btn.disabled = !((ta.value || '').trim());
+}
+
+// Ctrl+Enter로 빠른 저장
+document.addEventListener('keydown', (e) => {
+  if (e.target && e.target.id === 'memo-add-textarea' && (e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    addMemoEntry();
+  }
+});
+
+// ===== CRUD =====
+function addMemoEntry() {
+  const { infId, type } = _memoPanelCtx;
+  if (!infId) return;
+  const ta = document.getElementById('memo-add-textarea');
+  const content = (ta.value || '').trim();
+  if (!content) return;
+
+  const projId = currentProjectId;
+  const existing = (allAssignments[projId] || {})[infId] || {};
+  const memos = getMemoList(existing);
+  const now = Date.now();
+  memos.unshift({
+    id: 'mem_' + now + '_' + Math.random().toString(36).slice(2, 7),
+    type: type || 'received',
+    content,
+    createdAt: now,
+    updatedAt: now,
+  });
+  saveMemoList(projId, infId, memos);
+
+  // 입력창 초기화
   ta.value = '';
-  updateMemoCounter();
+  updateMemoAddState();
+
+  // 로컬 캐시도 즉시 반영
+  if (!allAssignments[projId]) allAssignments[projId] = {};
+  if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
+  allAssignments[projId][infId].memos = memos;
+
+  renderMemoTimeline();
   ta.focus();
 }
 
-function cancelMemo() {
-  document.getElementById('modal-memo-input').classList.remove('open');
-  _memoCtx = { infId: null };
+function deleteMemoEntry(entryId) {
+  const { infId } = _memoPanelCtx;
+  if (!infId) return;
+  if (!confirm('이 메모를 삭제할까요?')) return;
+  const projId = currentProjectId;
+  const existing = (allAssignments[projId] || {})[infId] || {};
+  const memos = getMemoList(existing).filter(m => m.id !== entryId);
+  saveMemoList(projId, infId, memos);
+  if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
+  allAssignments[projId][infId].memos = memos;
+  renderMemoTimeline();
 }
 
-function confirmMemo() {
-  const ta = document.getElementById('memo-modal-textarea');
-  const text = (ta.value || '').trim();
-  const { infId } = _memoCtx;
-  if (!infId) { cancelMemo(); return; }
-  saveTrackField(currentProjectId, infId, 'memo', text);
-  document.getElementById('modal-memo-input').classList.remove('open');
-  _memoCtx = { infId: null };
+function startEditMemoEntry(entryId) {
+  const card = document.querySelector(`.memo-card[data-id="${entryId}"]`);
+  if (!card) return;
+  const contentEl = card.querySelector('.memo-card-content');
+  const original = contentEl.dataset.raw || contentEl.textContent;
+  card.dataset.editing = '1';
+  contentEl.innerHTML = `
+    <textarea class="memo-card-edit-textarea" rows="4">${escapeHtml(original)}</textarea>
+    <div class="memo-card-edit-actions">
+      <button class="btn btn-secondary btn-xs" onclick="cancelEditMemoEntry('${entryId}')">취소</button>
+      <button class="btn btn-primary btn-xs" onclick="saveEditMemoEntry('${entryId}')">저장</button>
+    </div>
+  `;
+  contentEl.querySelector('textarea').focus();
+}
+
+function cancelEditMemoEntry(entryId) {
+  renderMemoTimeline();
+}
+
+function saveEditMemoEntry(entryId) {
+  const { infId } = _memoPanelCtx;
+  const card = document.querySelector(`.memo-card[data-id="${entryId}"]`);
+  if (!card) return;
+  const newContent = card.querySelector('textarea').value.trim();
+  if (!newContent) return;
+  const projId = currentProjectId;
+  const existing = (allAssignments[projId] || {})[infId] || {};
+  const memos = getMemoList(existing).map(m =>
+    m.id === entryId ? { ...m, content: newContent, updatedAt: Date.now() } : m
+  );
+  saveMemoList(projId, infId, memos);
+  if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
+  allAssignments[projId][infId].memos = memos;
+  renderMemoTimeline();
+}
+
+// ===== 타임라인 렌더링 =====
+function renderMemoTimeline() {
+  const { infId } = _memoPanelCtx;
+  const container = document.getElementById('memo-drawer-timeline');
+  if (!container || !infId) return;
+  const projId = currentProjectId;
+  const existing = (allAssignments[projId] || {})[infId] || {};
+  const memos = getMemoList(existing).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+  if (!memos.length) {
+    container.innerHTML = `
+      <div class="memo-timeline-empty">
+        <div class="memo-timeline-empty-icon">💬</div>
+        <div>아직 기록된 회신·메모가 없습니다.</div>
+        <div style="margin-top:6px;font-size:11.5px;color:#CBD5E1;">위에서 새 회신을 추가해보세요.</div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = memos.map(m => {
+    const type = m.type || 'internal';
+    const typeLabel = MEMO_TYPE_LABEL[type] || MEMO_TYPE_LABEL.internal;
+    const timeStr = fmtMemoTime(m.createdAt);
+    const editedStr = (m.updatedAt && m.updatedAt > (m.createdAt + 1000))
+      ? ` <span style="color:#94A3B8;">(수정됨)</span>` : '';
+    return `<div class="memo-card type-${type}" data-id="${m.id}">
+      <div class="memo-card-head">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="memo-card-type">${typeLabel}</span>
+          <span class="memo-card-time">${timeStr}${editedStr}</span>
+        </div>
+        <div class="memo-card-actions">
+          <button class="memo-card-action" onclick="startEditMemoEntry('${m.id}')" title="수정">✎</button>
+          <button class="memo-card-action" onclick="deleteMemoEntry('${m.id}')" title="삭제">🗑</button>
+        </div>
+      </div>
+      <div class="memo-card-content" data-raw="${escapeHtml(m.content)}">${escapeHtml(m.content)}</div>
+    </div>`;
+  }).join('');
+}
+
+function fmtMemoTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mi = String(d.getMinutes()).padStart(2, '0');
+  return sameDay ? `오늘 ${hh}:${mi}` : `${yyyy}.${mm}.${dd} ${hh}:${mi}`;
+}
+
+// Firebase 리스너에서 assignments 갱신 시 패널도 자동 갱신 (열려있을 때)
+function refreshMemoPanelIfOpen() {
+  if (_memoPanelCtx.infId && document.getElementById('memo-drawer').classList.contains('open')) {
+    renderMemoTimeline();
+  }
 }
 
 // 제외 모달 컨텍스트
