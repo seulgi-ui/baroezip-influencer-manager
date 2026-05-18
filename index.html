@@ -5339,9 +5339,10 @@ function renderTrackTable() {
         </select>${memoIconBtn}</div></td>
         <td><select onchange="saveTrackField('${currentProjectId}','${e.infId}','contentType',this.value)">
           <option value="">-</option>
-          <option value="feed" ${e.contentType === 'feed' ? 'selected' : ''}>피드</option>
           <option value="long" ${e.contentType === 'long' ? 'selected' : ''}>롱폼</option>
           <option value="short" ${e.contentType === 'short' ? 'selected' : ''}>숏폼</option>
+          <option value="reels" ${e.contentType === 'reels' ? 'selected' : ''}>릴스</option>
+          <option value="feed" ${e.contentType === 'feed' ? 'selected' : ''}>피드</option>
         </select></td>
         <td><input type="text" value="${e.uploadUrl || ''}" placeholder="URL 입력" onchange="saveTrackField('${currentProjectId}','${e.infId}','uploadUrl',this.value)" style="width:140px;"></td>
         <td style="font-weight:600;">${fmt(e.views)}</td>
