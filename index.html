@@ -3034,13 +3034,13 @@ table { border-collapse: collapse; width: 100%; }
       </div>
       <label class="memo-modal-label" for="memo-modal-textarea">
         회신 내용·진행 상황을 자유롭게 적어주세요
-        <span class="memo-modal-counter" id="memo-modal-counter">0 / 500</span>
+        <span class="memo-modal-counter" id="memo-modal-counter">0 / 5000</span>
       </label>
       <textarea
         id="memo-modal-textarea"
         class="memo-modal-textarea"
         rows="5"
-        maxlength="500"
+        maxlength="5000"
         placeholder="예) 단가 협의 중 (1회 120만원 제안 받음) / 가이드 검토 후 회신 예정 / 5월 둘째 주 업로드 예정 등 — 회신 내용, 다음 액션, 결정사항을 기록해두세요."
         oninput="updateMemoCounter()"
       ></textarea>
@@ -5411,7 +5411,7 @@ function openMemoModal(infId) {
 function updateMemoCounter() {
   const ta = document.getElementById('memo-modal-textarea');
   const counter = document.getElementById('memo-modal-counter');
-  if (ta && counter) counter.textContent = `${ta.value.length} / 500`;
+  if (ta && counter) counter.textContent = `${ta.value.length} / 5000`;
 }
 
 function setMemoText(text) {
