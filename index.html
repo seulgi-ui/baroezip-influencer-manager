@@ -3067,7 +3067,7 @@ table { border-collapse: collapse; width: 100%; }
           <select id="inf-contact" class="filter-chip-new" onchange="renderInfluencers()">
             <option value="">컨택 전체</option>
             <option value="none">미연락</option>
-            <option value="contacting">연락중</option>
+            <option value="contacting">컨택예정</option>
             <option value="waiting">회신대기</option>
             <option value="negotiating">협의중</option>
             <option value="confirmed">확정</option>
@@ -3943,7 +3943,7 @@ table { border-collapse: collapse; width: 100%; }
             <label class="form-label">컨택 상태</label>
             <select id="inf-contact-status" class="form-select">
               <option value="none">미연락</option>
-              <option value="contacting">연락중</option>
+              <option value="contacting">컨택예정</option>
               <option value="waiting">회신대기</option>
               <option value="negotiating">협의중</option>
               <option value="confirmed">확정</option>
@@ -4979,7 +4979,7 @@ function renderInfluencers() {
 
     // Contact status
     const cs = inf.contactStatus || 'none';
-    const csMap = { none:'미연락', contacting:'연락중', waiting:'회신대기', negotiating:'협의중', confirmed:'확정', rejected:'거절' };
+    const csMap = { none:'미연락', contacting:'컨택예정', waiting:'회신대기', negotiating:'협의중', confirmed:'확정', rejected:'거절' };
 
     // Build columns based on channel
     const starTd = `<td>${compareMode
@@ -7612,7 +7612,7 @@ function exportCSV() {
   let items = Object.values(allInfluencers).filter(i => (i.channels || []).includes(currentChannel));
 
   const headers = ['이름','채널','구독자','조회수(Long)','조회수(Short)','평균좋아요','평균댓글','인게이지먼트율(%)','단가(만원)','CPV(원)','컨택상태','주제','이메일','메모'];
-  const csMap = { none:'미연락', contacting:'연락중', waiting:'회신대기', negotiating:'협의중', confirmed:'확정', rejected:'거절' };
+  const csMap = { none:'미연락', contacting:'컨택예정', waiting:'회신대기', negotiating:'협의중', confirmed:'확정', rejected:'거절' };
 
   const rows = items.map(inf => {
     const price = inf[priceKey] || 0;
