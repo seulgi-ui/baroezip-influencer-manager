@@ -1107,6 +1107,48 @@ table { border-collapse: collapse; width: 100%; }
   box-shadow: 0 4px 12px rgba(37,99,235,0.35) !important;
 }
 
+/* 업로드 예정일 셀 */
+.upload-date-cell { position: relative; display: inline-block; }
+.upload-date-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  background: #F3F4F6;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1F2937;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  min-width: 86px;
+  justify-content: space-between;
+  font-family: inherit;
+}
+.upload-date-display:hover {
+  background: #DBEAFE;
+  color: #1D4ED8;
+  border-color: #93C5FD;
+}
+.upload-date-display.empty {
+  color: #9CA3AF;
+  font-weight: 500;
+  background: transparent;
+  border: 1px dashed #CBD5E1;
+}
+.upload-date-display.empty:hover { color: #2563EB; border-color: #2563EB; background: #EFF6FF; }
+.upload-date-caret { font-size: 9px; opacity: 0.6; margin-left: 2px; }
+.upload-date-hidden {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* 진행 현황 테이블 - 메모 아이콘 버튼 */
 .memo-icon-btn {
   display: inline-flex;
@@ -5970,7 +6012,7 @@ function renderTrackTable() {
           <option value="feed" ${e.contentType === 'feed' ? 'selected' : ''}>피드</option>
           <option value="image" ${e.contentType === 'image' ? 'selected' : ''}>이미지</option>
         </select></td>
-        <td><input type="date" value="${e.uploadDate || ''}" onchange="saveTrackField('${currentProjectId}','${e.infId}','uploadDate',this.value)" style="width:120px;font-size:12px;"></td>
+        <td><div class="upload-date-cell"><button type="button" class="upload-date-display ${e.uploadDate ? '' : 'empty'}" onclick="this.nextElementSibling.showPicker && this.nextElementSibling.showPicker(); this.nextElementSibling.focus(); this.nextElementSibling.click();">${formatUploadDate(e.uploadDate)}<span class="upload-date-caret">▾</span></button><input type="date" class="upload-date-hidden" value="${e.uploadDate || ''}" onchange="saveTrackField('${currentProjectId}','${e.infId}','uploadDate',this.value)"></div></td>
         <td><input type="text" value="${e.uploadUrl || ''}" placeholder="URL 입력" onchange="saveTrackField('${currentProjectId}','${e.infId}','uploadUrl',this.value)" style="width:140px;"></td>
         <td style="font-weight:600;">${fmt(e.views)}</td>
         <td style="font-weight:600;">${fmt(e.likes)}</td>
@@ -6408,6 +6450,15 @@ function handleStatusChange(infId, sel, prevStatus) {
 // 제외 사유 재편집 (사유 텍스트 클릭 시)
 function editExcludeReason(infId) {
   openExcludeReasonModal({ infId, prevStatus: 'excluded', selectEl: null, mode: 'edit' });
+}
+
+// 업로드 예정일 포맷 (예: "6/12(금)")
+function formatUploadDate(yyyy_mm_dd) {
+  if (!yyyy_mm_dd) return '날짜 선택';
+  const d = new Date(yyyy_mm_dd + 'T00:00:00');
+  if (isNaN(d.getTime())) return '날짜 선택';
+  const days = ['일', '월', '화', '수', '목', '금', '토'];
+  return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
 }
 
 // HTML 이스케이프
