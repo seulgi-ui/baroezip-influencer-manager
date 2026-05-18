@@ -745,6 +745,51 @@ table { border-collapse: collapse; width: 100%; }
   color: #fff;
   box-shadow: 0 1px 4px rgba(37,99,235,0.25);
 }
+.memo-add-date-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.memo-add-date-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.2px;
+  flex-shrink: 0;
+}
+.memo-add-date-input {
+  flex: 1;
+  min-width: 180px;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 6px 10px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 7px;
+  background: #fff;
+  color: #0F172A;
+  transition: border-color 0.15s;
+}
+.memo-add-date-input:focus {
+  outline: none;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+.memo-add-date-quick {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  color: #475569;
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.memo-add-date-quick:hover { border-color: #2563EB; color: #2563EB; background: #EFF6FF; }
+
 .memo-add-textarea {
   width: 100%;
   font-family: inherit;
@@ -758,6 +803,23 @@ table { border-collapse: collapse; width: 100%; }
   color: #0F172A;
   transition: border-color 0.15s;
   box-sizing: border-box;
+}
+
+/* 카드 편집 모드 — 날짜/타입 선택 */
+.memo-card-edit-meta {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.memo-card-edit-meta select,
+.memo-card-edit-meta input[type="datetime-local"] {
+  font-size: 11.5px;
+  padding: 4px 8px;
+  border: 1px solid #CBD5E1;
+  border-radius: 5px;
+  background: #fff;
 }
 .memo-add-textarea:focus {
   outline: none;
@@ -3259,6 +3321,12 @@ table { border-collapse: collapse; width: 100%; }
       <button type="button" class="memo-type-btn" data-type="sent" onclick="setMemoType('sent', this)">📤 보낸 내용</button>
       <button type="button" class="memo-type-btn" data-type="internal" onclick="setMemoType('internal', this)">📝 내부 메모</button>
     </div>
+    <div class="memo-add-date-row">
+      <label class="memo-add-date-label">📅 수신·회신 일시</label>
+      <input type="datetime-local" id="memo-add-date" class="memo-add-date-input">
+      <button type="button" class="memo-add-date-quick" onclick="setMemoAddDate('now')">지금</button>
+      <button type="button" class="memo-add-date-quick" onclick="setMemoAddDate('today')">오늘 09:00</button>
+    </div>
     <textarea
       id="memo-add-textarea"
       class="memo-add-textarea"
@@ -5584,7 +5652,9 @@ function renderTrackTable() {
       // 회신/진행 메모 (제외 외 모든 상태) — memos 배열 기반
       const memoArr = getMemoList(e);
       const memoCount = memoArr.length;
-      const previewText = memoCount ? memoArr.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0].content.split('\n')[0] : '';
+      const previewText = memoCount
+        ? memoArr.sort((a, b) => (b.eventDate || b.createdAt || 0) - (a.eventDate || a.createdAt || 0))[0].content.split('\n')[0]
+        : '';
       const memoHtml = (!isExcluded && memoCount)
         ? `<div class="row-memo-text" onclick="event.stopPropagation();openMemoPanel('${e.infId}')" title="클릭하여 회신 로그 열기">📝 ${escapeHtml(previewText)}${memoCount > 1 ? ` <span style="opacity:0.7;">+${memoCount - 1}건</span>` : ''}</div>`
         : '';
@@ -5718,12 +5788,36 @@ function openMemoPanel(infId) {
     b.classList.toggle('active', b.dataset.type === 'received');
   });
   document.getElementById('memo-add-textarea').value = '';
+  // 날짜 입력 — 기본값: 지금
+  setMemoAddDate('now');
   updateMemoAddState();
 
   renderMemoTimeline();
 
   document.getElementById('memo-drawer').classList.add('open');
   setTimeout(() => document.getElementById('memo-add-textarea').focus(), 200);
+}
+
+// datetime-local input 포맷 변환 (YYYY-MM-DDTHH:MM)
+function toLocalDtInput(ts) {
+  const d = new Date(ts);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// 빠른 선택 버튼 ('지금' / '오늘 09:00')
+function setMemoAddDate(mode) {
+  const input = document.getElementById('memo-add-date');
+  if (!input) return;
+  if (mode === 'now') {
+    input.value = toLocalDtInput(Date.now());
+  } else if (mode === 'today') {
+    const d = new Date();
+    d.setHours(9, 0, 0, 0);
+    input.value = toLocalDtInput(d.getTime());
+  } else if (typeof mode === 'number') {
+    input.value = toLocalDtInput(mode);
+  }
 }
 
 function closeMemoPanel() {
@@ -5759,6 +5853,14 @@ function addMemoEntry() {
   const content = (ta.value || '').trim();
   if (!content) return;
 
+  // 사용자 지정 일시 (datetime-local 값 → epoch ms)
+  const dateInput = document.getElementById('memo-add-date');
+  let eventDate = Date.now();
+  if (dateInput && dateInput.value) {
+    const t = new Date(dateInput.value).getTime();
+    if (!isNaN(t)) eventDate = t;
+  }
+
   const projId = currentProjectId;
   const existing = (allAssignments[projId] || {})[infId] || {};
   const memos = getMemoList(existing);
@@ -5767,6 +5869,7 @@ function addMemoEntry() {
     id: 'mem_' + now + '_' + Math.random().toString(36).slice(2, 7),
     type: type || 'received',
     content,
+    eventDate,
     createdAt: now,
     updatedAt: now,
   });
@@ -5774,6 +5877,7 @@ function addMemoEntry() {
 
   // 입력창 초기화
   ta.value = '';
+  setMemoAddDate('now');
   updateMemoAddState();
 
   // 로컬 캐시도 즉시 반영
@@ -5801,11 +5905,27 @@ function deleteMemoEntry(entryId) {
 function startEditMemoEntry(entryId) {
   const card = document.querySelector(`.memo-card[data-id="${entryId}"]`);
   if (!card) return;
+  const { infId } = _memoPanelCtx;
+  const projId = currentProjectId;
+  const existing = (allAssignments[projId] || {})[infId] || {};
+  const memo = getMemoList(existing).find(m => m.id === entryId);
+  if (!memo) return;
+
   const contentEl = card.querySelector('.memo-card-content');
-  const original = contentEl.dataset.raw || contentEl.textContent;
+  const original = memo.content || '';
+  const dtVal = toLocalDtInput(memo.eventDate || memo.createdAt || Date.now());
+
   card.dataset.editing = '1';
   contentEl.innerHTML = `
     <textarea class="memo-card-edit-textarea" rows="4">${escapeHtml(original)}</textarea>
+    <div class="memo-card-edit-meta">
+      <select id="edit-type-${entryId}">
+        <option value="received" ${memo.type === 'received' ? 'selected' : ''}>📥 받은 회신</option>
+        <option value="sent" ${memo.type === 'sent' ? 'selected' : ''}>📤 보낸 내용</option>
+        <option value="internal" ${memo.type === 'internal' ? 'selected' : ''}>📝 내부 메모</option>
+      </select>
+      <input type="datetime-local" id="edit-date-${entryId}" value="${dtVal}">
+    </div>
     <div class="memo-card-edit-actions">
       <button class="btn btn-secondary btn-xs" onclick="cancelEditMemoEntry('${entryId}')">취소</button>
       <button class="btn btn-primary btn-xs" onclick="saveEditMemoEntry('${entryId}')">저장</button>
@@ -5824,10 +5944,19 @@ function saveEditMemoEntry(entryId) {
   if (!card) return;
   const newContent = card.querySelector('textarea').value.trim();
   if (!newContent) return;
+  const newType = document.getElementById(`edit-type-${entryId}`)?.value || 'received';
+  const dtInput = document.getElementById(`edit-date-${entryId}`);
+  let newEventDate = null;
+  if (dtInput && dtInput.value) {
+    const t = new Date(dtInput.value).getTime();
+    if (!isNaN(t)) newEventDate = t;
+  }
   const projId = currentProjectId;
   const existing = (allAssignments[projId] || {})[infId] || {};
   const memos = getMemoList(existing).map(m =>
-    m.id === entryId ? { ...m, content: newContent, updatedAt: Date.now() } : m
+    m.id === entryId
+      ? { ...m, content: newContent, type: newType, eventDate: newEventDate || m.eventDate || m.createdAt, updatedAt: Date.now() }
+      : m
   );
   saveMemoList(projId, infId, memos);
   if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
@@ -5842,7 +5971,10 @@ function renderMemoTimeline() {
   if (!container || !infId) return;
   const projId = currentProjectId;
   const existing = (allAssignments[projId] || {})[infId] || {};
-  const memos = getMemoList(existing).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  // eventDate 우선, 없으면 createdAt — 최신이 위
+  const memos = getMemoList(existing).sort(
+    (a, b) => (b.eventDate || b.createdAt || 0) - (a.eventDate || a.createdAt || 0)
+  );
 
   if (!memos.length) {
     container.innerHTML = `
@@ -5858,14 +5990,16 @@ function renderMemoTimeline() {
   container.innerHTML = memos.map(m => {
     const type = m.type || 'internal';
     const typeLabel = MEMO_TYPE_LABEL[type] || MEMO_TYPE_LABEL.internal;
-    const timeStr = fmtMemoTime(m.createdAt);
+    // 사용자 지정 일시 (eventDate) 우선 표시
+    const displayTs = m.eventDate || m.createdAt;
+    const timeStr = fmtMemoTime(displayTs);
     const editedStr = (m.updatedAt && m.updatedAt > (m.createdAt + 1000))
       ? ` <span style="color:#94A3B8;">(수정됨)</span>` : '';
     return `<div class="memo-card type-${type}" data-id="${m.id}">
       <div class="memo-card-head">
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="memo-card-type">${typeLabel}</span>
-          <span class="memo-card-time">${timeStr}${editedStr}</span>
+          <span class="memo-card-time">📅 ${timeStr}${editedStr}</span>
         </div>
         <div class="memo-card-actions">
           <button class="memo-card-action" onclick="startEditMemoEntry('${m.id}')" title="수정">✎</button>
