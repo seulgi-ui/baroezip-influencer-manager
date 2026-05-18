@@ -5676,6 +5676,7 @@ function renderTrackTable() {
           <option value="short" ${e.contentType === 'short' ? 'selected' : ''}>숏폼</option>
           <option value="reels" ${e.contentType === 'reels' ? 'selected' : ''}>릴스</option>
           <option value="feed" ${e.contentType === 'feed' ? 'selected' : ''}>피드</option>
+          <option value="image" ${e.contentType === 'image' ? 'selected' : ''}>이미지</option>
         </select></td>
         <td><input type="text" value="${e.uploadUrl || ''}" placeholder="URL 입력" onchange="saveTrackField('${currentProjectId}','${e.infId}','uploadUrl',this.value)" style="width:140px;"></td>
         <td style="font-weight:600;">${fmt(e.views)}</td>
