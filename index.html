@@ -2502,6 +2502,33 @@ table { border-collapse: collapse; width: 100%; }
 .contact-confirmed { background: #D1FAE5; color: #059669; }
 .contact-rejected { background: #FEE2E2; color: #EF4444; }
 
+/* 인플루언서 행 - 컨택 드롭다운 (배지 스타일 유지) */
+.contact-select {
+  padding: 3px 22px 3px 10px;
+  border-radius: 12px;
+  font-size: 10.5px;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'><path d='M2 4 L5 7 L8 4' stroke='currentColor' fill='none' stroke-width='1.5' stroke-linecap='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 8px;
+  transition: filter 0.15s;
+  min-width: 76px;
+}
+.contact-select:hover { filter: brightness(0.97); }
+.contact-select:focus { outline: 2px solid rgba(0,102,255,0.3); outline-offset: 1px; }
+.contact-select.contact-none { background-color: #F3F4F6; color: #6B7280; }
+.contact-select.contact-contacting { background-color: #FEF3C7; color: #B45309; }
+.contact-select.contact-waiting { background-color: #DBEAFE; color: #1D4ED8; }
+.contact-select.contact-negotiating { background-color: #F3E8FF; color: #6D28D9; }
+.contact-select.contact-confirmed { background-color: #D1FAE5; color: #047857; }
+.contact-select.contact-rejected { background-color: #FEE2E2; color: #DC2626; }
+.contact-select option { background: #fff; color: #1a1a1a; font-weight: 600; }
+
 /* CPV Cell */
 .cpv-cell { font-size: 12px; font-weight: 700; }
 .cpv-good { color: #059669; }
@@ -3079,8 +3106,7 @@ table { border-collapse: collapse; width: 100%; }
                 <th style="width:60px;" class="sortable" data-sort="avgLikes" onclick="toggleSort('avgLikes')">좋아요 <span class="sort-arrow"></span></th>
                 <th style="width:55px;" class="sortable" data-sort="engagement" onclick="toggleSort('engagement')">ER <span class="sort-arrow"></span></th>
                 <th style="width:70px;" class="sortable" data-sort="price" onclick="toggleSort('price')">단가 <span class="sort-arrow"></span></th>
-                <th style="width:55px;" class="sortable" data-sort="cpv" onclick="toggleSort('cpv')">CPV <span class="sort-arrow"></span></th>
-                <th style="width:70px;">컨택</th>
+                <th style="width:90px;">컨택</th>
                 <th style="width:80px;">주제</th>
                 <th style="width:36px;"></th>
               </tr>
@@ -4462,8 +4488,7 @@ function switchChannel(ch) {
       <th style="width:60px;" class="sortable" data-sort="avgLikes" onclick="toggleSort('avgLikes')">좋아요 <span class="sort-arrow"></span></th>
       <th style="width:55px;" class="sortable" data-sort="engagement" onclick="toggleSort('engagement')">ER <span class="sort-arrow"></span></th>
       <th style="width:70px;" class="sortable" data-sort="price" onclick="toggleSort('price')">단가 <span class="sort-arrow"></span></th>
-      <th style="width:55px;" class="sortable" data-sort="cpv" onclick="toggleSort('cpv')">CPV <span class="sort-arrow"></span></th>
-      <th style="width:70px;">컨택</th>
+      <th style="width:90px;">컨택</th>
       <th style="width:80px;">주제</th>
       <th style="width:36px;"></th>`;
   } else {
@@ -4477,8 +4502,7 @@ function switchChannel(ch) {
       <th style="width:70px;" class="sortable" data-sort="avgLikes" onclick="toggleSort('avgLikes')">좋아요 <span class="sort-arrow"></span></th>
       <th style="width:55px;" class="sortable" data-sort="engagement" onclick="toggleSort('engagement')">ER <span class="sort-arrow"></span></th>
       <th style="width:70px;" class="sortable" data-sort="price" onclick="toggleSort('price')">단가 <span class="sort-arrow"></span></th>
-      <th style="width:55px;" class="sortable" data-sort="cpv" onclick="toggleSort('cpv')">CPV <span class="sort-arrow"></span></th>
-      <th style="width:70px;">컨택</th>
+      <th style="width:90px;">컨택</th>
       <th style="width:80px;">주제</th>
       <th style="width:36px;"></th>`;
   }
@@ -4770,6 +4794,21 @@ function toggleFavorite(id, current) {
   }
 }
 
+// 인플루언서 컨택 상태 변경 (드롭다운에서 호출)
+function updateContactStatus(id, sel) {
+  const val = sel.value;
+  // 셀렉트 자체 색상 즉시 갱신
+  sel.className = 'contact-select contact-' + val;
+  if (firebaseReady) {
+    db.ref(PATHS.influencers + '/' + id).update({ contactStatus: val, updatedAt: Date.now() });
+  } else {
+    if (allInfluencers[id]) {
+      allInfluencers[id].contactStatus = val;
+      renderInfluencers();
+    }
+  }
+}
+
 // ===== Number Formatting (만 단위) =====
 function fmtK(n) {
   if (n == null || isNaN(n) || n === 0) return '-';
@@ -4948,11 +4987,13 @@ function renderInfluencers() {
       : `<button class="star-btn ${inf.favorite ? 'active' : ''}" onclick="event.stopPropagation();toggleFavorite('${inf.id}',${!!inf.favorite})">★</button>`
     }</td>`;
     const nameTd = `<td><div class="name-cell">${avatarHtml}<div><div class="name-text">${inf.name || ''}</div><div class="name-sub">${inf.analysis ? inf.analysis.substring(0, 25) + '...' : ''}</div></div></div></td>`;
+    const csOpts = Object.entries(csMap).map(([k, label]) =>
+      `<option value="${k}" ${k === cs ? 'selected' : ''}>${label}</option>`
+    ).join('');
     const commonTds = `
       <td class="num">${inf.engagement ? inf.engagement.toFixed(1) + '%' : '-'}</td>
       <td class="price-cell">${inf[priceKey] ? fmt(inf[priceKey]) + '<span class="num-unit">만</span>' : '-'}</td>
-      <td class="cpv-cell ${cpvClass}">${cpvText}</td>
-      <td><span class="contact-badge contact-${cs}">${csMap[cs] || '미연락'}</span></td>
+      <td><select class="contact-select contact-${cs}" onclick="event.stopPropagation();" onchange="event.stopPropagation();updateContactStatus('${inf.id}', this)">${csOpts}</select></td>
       <td><div class="tp-row">${topics.map(t => `<span class="tp">${t}</span>`).join('')}</div></td>
       <td><div class="inf-actions-wrap"><span class="action-dots" onclick="event.stopPropagation();toggleInfActionMenu('${inf.id}', this)">⋮</span><div class="inf-action-menu" id="inf-menu-${inf.id}">
         <button class="inf-action-item" onclick="event.stopPropagation();closeAllInfActionMenus();openInfluencerModal('${inf.id}')">✎ 수정</button>
