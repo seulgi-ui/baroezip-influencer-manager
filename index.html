@@ -3109,7 +3109,8 @@ table { border-collapse: collapse; width: 100%; }
           </select>
         </div>
         <div class="search-bar-wrap" style="margin-top:8px;">
-          <button class="action-chip" onclick="refreshAllInfluencers()" title="전체 인플루언서 YouTube 통계 갱신">🔄 전체 새로고침</button>
+          <button class="action-chip" onclick="refreshAllInfluencers()" title="전체 인플루언서 YouTube 통계 갱신 (빠름·SHORTS 부정확)">🔄 전체 새로고침</button>
+          <button class="action-chip" onclick="recrawlAllAccurate()" title="모든 YouTube 채널 SHORTS/LONG 정확 식별 (느림·정확)" style="background:#FEF3C7;border-color:#F59E0B;color:#B45309;">⚡ 전체 정확 재크롤</button>
           <button class="action-chip" onclick="exportCSV()">📥 CSV 내보내기</button>
           <button class="action-chip" id="btn-compare-toggle" onclick="toggleCompareMode()">⚖️ 비교 모드</button>
           <button class="action-chip compare-active-only" id="btn-compare-run" onclick="showCompareModal()" style="display:none;">📊 선택 비교 (<span id="compare-count">0</span>명)</button>
@@ -3399,6 +3400,18 @@ table { border-collapse: collapse; width: 100%; }
 </div>
 
 <!-- 회신 메모 사이드 패널 (Drawer) -->
+<!-- 전체 정확 재크롤 진행률 박스 -->
+<div id="bulk-recrawl-box" style="display:none; position:fixed; top:16px; right:16px; z-index:9999; background:#fff; border:1.5px solid #F59E0B; border-radius:12px; box-shadow:0 12px 32px rgba(0,0,0,0.18); padding:14px 18px; min-width:340px; max-width:420px; font-size:13px;">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+    <span style="background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;font-size:10px;font-weight:800;padding:3px 9px;border-radius:10px;letter-spacing:0.5px;">전체 정확 재크롤</span>
+    <span id="bulk-recrawl-title" style="font-weight:700;color:#1a1a1a;flex:1;">준비 중...</span>
+  </div>
+  <div style="height:6px;background:#F1F5F9;border-radius:3px;overflow:hidden;margin-bottom:8px;">
+    <div id="bulk-recrawl-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#F59E0B,#D97706);border-radius:3px;transition:width 0.3s;"></div>
+  </div>
+  <div id="bulk-recrawl-detail" style="font-size:11.5px;color:#64748B;line-height:1.5;font-weight:500;">시작 중...</div>
+</div>
+
 <div class="memo-drawer" id="memo-drawer">
   <div class="memo-drawer-header">
     <div class="memo-drawer-head-left">
@@ -5393,13 +5406,146 @@ async function isShortsAccurate(videoId) {
 }
 
 // ===== Accurate Re-crawl for one influencer =====
+// URL에서 channel ID 추출 (channel/UCxxx 직접 / @handle → API로 변환)
+async function resolveYoutubeChannelId(urlYoutube) {
+  if (!urlYoutube) return null;
+  const ytChannelMatch = urlYoutube.match(/youtube\.com\/channel\/(UC[\w-]+)/);
+  if (ytChannelMatch) return ytChannelMatch[1];
+  const ytHandleMatch = urlYoutube.match(/youtube\.com\/@([^/?&#]+)/);
+  if (ytHandleMatch) {
+    const handle = decodeURIComponent(ytHandleMatch[1]);
+    const r = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=${encodeURIComponent(handle)}&key=${YOUTUBE_API_KEY}`);
+    const d = await r.json();
+    if (d.items && d.items.length) return d.items[0].id;
+  }
+  return null;
+}
+
+// 인플루언서 1명 정확 재크롤 (재사용 가능 일반화 함수)
+// onProgress(msg) 콜백으로 외부에 진행 상황 전달
+async function recrawlAccurateForInfluencer(infId, onProgress) {
+  const inf = allInfluencers[infId];
+  if (!inf) return null;
+  onProgress && onProgress('채널 ID 확인중...');
+  const channelId = await resolveYoutubeChannelId(inf.urlYoutube);
+  if (!channelId) return null;
+
+  const uploadsId = 'UU' + channelId.slice(2);
+  const allIds = [];
+  let token = '';
+  for (let p = 0; p < 4; p++) {
+    const u = `https://www.googleapis.com/youtube/v3/playlistItems?playlistId=${uploadsId}&maxResults=50&part=contentDetails&key=${YOUTUBE_API_KEY}${token ? '&pageToken=' + token : ''}`;
+    const r = await fetch(u);
+    const d = await r.json();
+    (d.items || []).forEach(it => { if (it.contentDetails?.videoId) allIds.push(it.contentDetails.videoId); });
+    token = d.nextPageToken;
+    if (!token) break;
+  }
+  onProgress && onProgress(`영상 ${allIds.length}개 수집 완료. 메트릭 조회중...`);
+
+  const details = {};
+  for (let i = 0; i < allIds.length; i += 50) {
+    const batch = allIds.slice(i, i + 50);
+    const dr = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${batch.join(',')}&key=${YOUTUBE_API_KEY}`);
+    const dd = await dr.json();
+    (dd.items || []).forEach(v => { details[v.id] = v; });
+  }
+
+  const longs = [], shorts = [];
+  let totalLikes = 0, totalComments = 0, sc = 0, checked = 0;
+  for (const vid of allIds) {
+    if (longs.length >= 10 && shorts.length >= 10) break;
+    const v = details[vid];
+    if (!v) continue;
+    const sec = parseDuration(v.contentDetails?.duration || '');
+    const views = Number(v.statistics?.viewCount) || 0;
+    const lk = Number(v.statistics?.likeCount) || 0;
+    const cm = Number(v.statistics?.commentCount) || 0;
+    let isShort;
+    if (sec > 180) {
+      isShort = false;
+    } else {
+      checked++;
+      onProgress && onProgress(`SHORTS 식별중... (${checked}개 검증 / L ${longs.length}/10, S ${shorts.length}/10)`);
+      const result = await isShortsAccurate(vid);
+      if (result === null) isShort = sec > 0 && sec <= 60;
+      else isShort = result;
+    }
+    if (isShort) {
+      if (shorts.length < 10) { shorts.push(views); totalLikes += lk; totalComments += cm; sc++; }
+    } else if (sec > 0) {
+      if (longs.length < 10) { longs.push(views); totalLikes += lk; totalComments += cm; sc++; }
+    }
+  }
+
+  const avgL = longs.length ? Math.round(longs.reduce((a, b) => a + b, 0) / longs.length) : 0;
+  const avgS = shorts.length ? Math.round(shorts.reduce((a, b) => a + b, 0) / shorts.length) : 0;
+  const avgLk = sc ? Math.round(totalLikes / sc) : 0;
+  const avgCm = sc ? Math.round(totalComments / sc) : 0;
+  const eng = inf.followers ? Number(((avgLk + avgCm) / inf.followers * 100).toFixed(2)) : 0;
+
+  const patch = { avgViewsLong: avgL, avgViewsShort: avgS, avgLikes: avgLk, avgComments: avgCm, engagement: eng, updatedAt: Date.now() };
+  if (firebaseReady) {
+    await db.ref(PATHS.influencers + '/' + infId).update(patch);
+  } else {
+    allInfluencers[infId] = { ...allInfluencers[infId], ...patch };
+  }
+  return { avgL, avgS, longs: longs.length, shorts: shorts.length };
+}
+
+// 전체 YouTube 인플루언서 일괄 정확 재크롤
+async function recrawlAllAccurate() {
+  if (YOUTUBE_API_KEY === 'YOUR_YOUTUBE_API_KEY') { showToast('YouTube API 키를 설정해주세요'); return; }
+  const yts = Object.entries(allInfluencers).filter(([id, i]) =>
+    (i.channels || []).includes('youtube') && i.urlYoutube
+  );
+  if (!yts.length) { showToast('YouTube 채널이 없습니다'); return; }
+
+  const estMin = Math.max(2, Math.round(yts.length * 1.5));
+  if (!confirm(
+    `${yts.length}개 YouTube 채널을 순차적으로 정확 재크롤합니다.\n` +
+    `채널당 약 1~2분 소요 — 총 ${estMin}분 정도 예상됩니다.\n\n` +
+    `진행 중에는 브라우저 탭을 닫거나 새로고침하지 마세요.\n\n` +
+    `진행하시겠습니까?`
+  )) return;
+
+  const box = document.getElementById('bulk-recrawl-box');
+  const titleEl = document.getElementById('bulk-recrawl-title');
+  const detailEl = document.getElementById('bulk-recrawl-detail');
+  const barEl = document.getElementById('bulk-recrawl-bar');
+  box.style.display = 'block';
+
+  let done = 0, ok = 0, fail = 0;
+  const start = Date.now();
+  for (const [id, inf] of yts) {
+    done++;
+    titleEl.textContent = `정확 재크롤 ${done} / ${yts.length} · ${inf.name}`;
+    barEl.style.width = Math.round(done / yts.length * 100) + '%';
+    try {
+      const result = await recrawlAccurateForInfluencer(id, (msg) => {
+        detailEl.textContent = `↳ ${msg}`;
+      });
+      if (result) { ok++; detailEl.textContent = `✓ ${inf.name} — LONG ${fmt(result.avgL)} / SHORTS ${fmt(result.avgS)}`; }
+      else { fail++; detailEl.textContent = `⚠ ${inf.name} — 스킵 (URL 형식 불가)`; }
+    } catch (e) {
+      fail++;
+      detailEl.textContent = `❌ ${inf.name} — 오류: ${e.message}`;
+      console.error('Recrawl error', inf.name, e);
+    }
+  }
+  const elapsedSec = Math.round((Date.now() - start) / 1000);
+  titleEl.textContent = `완료 — ${ok}개 성공 / ${fail}개 실패 (${Math.floor(elapsedSec / 60)}분 ${elapsedSec % 60}초)`;
+  detailEl.textContent = '5초 후 자동으로 닫힙니다.';
+  showToast(`일괄 정확 재크롤 완료 — 성공 ${ok} / 실패 ${fail}`);
+  setTimeout(() => { box.style.display = 'none'; if (typeof renderInfluencers === 'function') renderInfluencers(); }, 5000);
+}
+
 async function recrawlAccurateForDetail() {
   if (!detailInfluencerId) return;
   const inf = allInfluencers[detailInfluencerId];
   if (!inf) return;
-  const ytMatch = (inf.urlYoutube || '').match(/youtube\.com\/channel\/(UC[\w-]+)/);
-  if (!ytMatch) { showToast('YouTube 채널 URL이 필요합니다'); return; }
-  const channelId = ytMatch[1];
+  const channelId = await resolveYoutubeChannelId(inf.urlYoutube);
+  if (!channelId) { showToast('YouTube 채널 URL이 필요합니다 (handle 변환 실패)'); return; }
 
   if (!confirm('유튜브 페이지를 직접 조회해 SHORTS/LONG을 정확히 식별합니다.\n채널당 1~2분 소요. 진행하시겠습니까?')) return;
 
@@ -5412,86 +5558,17 @@ async function recrawlAccurateForDetail() {
   progress.textContent = '영상 목록 수집중...';
 
   try {
-    const uploadsId = 'UU' + channelId.slice(2);
-    const allIds = [];
-    let token = '';
-    for (let p = 0; p < 4; p++) {
-      const u = `https://www.googleapis.com/youtube/v3/playlistItems?playlistId=${uploadsId}&maxResults=50&part=contentDetails&key=${YOUTUBE_API_KEY}${token ? '&pageToken=' + token : ''}`;
-      const r = await fetch(u);
-      const d = await r.json();
-      (d.items || []).forEach(it => { if (it.contentDetails?.videoId) allIds.push(it.contentDetails.videoId); });
-      token = d.nextPageToken;
-      if (!token) break;
-    }
-    progress.textContent = `영상 ${allIds.length}개 수집 완료. 상세 메트릭 조회중...`;
+    // 일반화 함수 호출 (중복 제거)
+    const result = await recrawlAccurateForInfluencer(detailInfluencerId, (msg) => {
+      progress.textContent = msg;
+    });
+    if (!result) throw new Error('재크롤 실패');
+    const { avgL, avgS, longs: longsLen, shorts: shortsLen } = result;
+    // (기존 후속 토스트/리렌더 코드와 호환되도록 dummy 값 유지)
+    const longs = { length: longsLen };
+    const shorts = { length: shortsLen };
 
-    // Get details
-    const details = {};
-    for (let i = 0; i < allIds.length; i += 50) {
-      const batch = allIds.slice(i, i + 50);
-      const dr = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${batch.join(',')}&key=${YOUTUBE_API_KEY}`);
-      const dd = await dr.json();
-      (dd.items || []).forEach(v => { details[v.id] = v; });
-    }
-
-    const longs = [], shorts = [];
-    let totalLikes = 0, totalComments = 0, sc = 0;
-    let checked = 0;
-
-    for (const vid of allIds) {
-      if (longs.length >= 10 && shorts.length >= 10) break;
-      const v = details[vid];
-      if (!v) continue;
-      const sec = parseDuration(v.contentDetails?.duration || '');
-      const views = Number(v.statistics?.viewCount) || 0;
-      const lk = Number(v.statistics?.likeCount) || 0;
-      const cm = Number(v.statistics?.commentCount) || 0;
-
-      let isShort;
-      if (sec > 180) {
-        isShort = false;  // 3분 초과는 무조건 long
-      } else {
-        checked++;
-        progress.textContent = `SHORTS 식별 확인중... (${checked}개 영상 검증 / longs ${longs.length}/10, shorts ${shorts.length}/10)`;
-        const result = await isShortsAccurate(vid);
-        if (result === null) {
-          // 프록시 실패 시 duration 기준 fallback
-          isShort = sec > 0 && sec <= 60;
-        } else {
-          isShort = result;
-        }
-      }
-
-      if (isShort) {
-        if (shorts.length < 10) { shorts.push(views); totalLikes += lk; totalComments += cm; sc++; }
-      } else if (sec > 0) {
-        if (longs.length < 10) { longs.push(views); totalLikes += lk; totalComments += cm; sc++; }
-      }
-    }
-
-    const avgL = longs.length ? Math.round(longs.reduce((a, b) => a + b, 0) / longs.length) : 0;
-    const avgS = shorts.length ? Math.round(shorts.reduce((a, b) => a + b, 0) / shorts.length) : 0;
-    const avgLk = sc ? Math.round(totalLikes / sc) : 0;
-    const avgCm = sc ? Math.round(totalComments / sc) : 0;
-    const eng = inf.followers ? Number(((avgLk + avgCm) / inf.followers * 100).toFixed(2)) : 0;
-
-    progress.textContent = `완료: LONG ${longs.length}개 (평균 ${fmt(avgL)}), SHORTS ${shorts.length}개 (평균 ${fmt(avgS)}). 저장중...`;
-
-    const patch = {
-      avgViewsLong: avgL,
-      avgViewsShort: avgS,
-      avgLikes: avgLk,
-      avgComments: avgCm,
-      engagement: eng,
-      updatedAt: Date.now()
-    };
-
-    if (firebaseReady) {
-      await db.ref(PATHS.influencers + '/' + detailInfluencerId).update(patch);
-    } else {
-      allInfluencers[detailInfluencerId] = { ...allInfluencers[detailInfluencerId], ...patch };
-    }
-    progress.textContent = `✓ 완료 — LONG ${fmt(avgL)} / SHORTS ${fmt(avgS)} / 좋아요 ${fmt(avgLk)} / 댓글 ${fmt(avgCm)}`;
+    progress.textContent = `✓ 완료 — LONG ${longs.length}개 평균 ${fmt(avgL)} / SHORTS ${shorts.length}개 평균 ${fmt(avgS)}`;
     progress.style.background = '#ECFDF5';
     progress.style.color = '#065F46';
     showToast('정확 재크롤 완료');
