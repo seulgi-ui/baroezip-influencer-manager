@@ -644,6 +644,244 @@ table { border-collapse: collapse; width: 100%; }
 }
 .modal-overlay.open { display: flex; }
 
+/* ===== 회신/메모 모달 (블루 톤) ===== */
+.memo-modal {
+  max-width: 560px;
+  width: 92%;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25), 0 6px 18px rgba(0,0,0,0.08);
+  border: 1px solid rgba(0,0,0,0.04);
+}
+.memo-modal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px 18px;
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  border-bottom: 1px solid #BFDBFE;
+}
+.memo-modal-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 12px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(37,99,235,0.3);
+  flex-shrink: 0;
+}
+.memo-modal-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #1E3A8A;
+  letter-spacing: -0.3px;
+  flex: 1;
+}
+.memo-modal-close {
+  background: rgba(0,0,0,0.05);
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 18px;
+  color: #1E3A8A;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.memo-modal-close:hover { background: rgba(0,0,0,0.12); }
+
+.memo-modal-body { padding: 22px 24px; }
+.memo-modal-target {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 11px 14px;
+  margin-bottom: 18px;
+}
+.memo-modal-target-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #64748B;
+  background: #fff;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+.memo-modal-target-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.2px;
+  flex: 1;
+}
+.memo-modal-target-status {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 10px;
+  background: #E2E8F0;
+  color: #475569;
+}
+.memo-modal-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 8px;
+}
+.memo-modal-counter {
+  font-size: 11px;
+  color: #94A3B8;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.memo-modal-textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 14px 16px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  resize: vertical;
+  background: #fff;
+  color: #0F172A;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+  min-height: 110px;
+}
+.memo-modal-textarea:focus {
+  outline: none;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
+}
+.memo-modal-textarea::placeholder { color: #94A3B8; }
+
+.memo-modal-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 14px;
+}
+.memo-modal-suggestions-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #94A3B8;
+  margin-right: 4px;
+  letter-spacing: 0.3px;
+}
+.memo-chip {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  color: #475569;
+  padding: 5px 11px;
+  border-radius: 14px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.memo-chip:hover {
+  border-color: #2563EB;
+  color: #2563EB;
+  background: #EFF6FF;
+}
+
+.memo-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 24px 20px;
+  border-top: 1px solid #F1F5F9;
+  background: #FAFBFD;
+  align-items: center;
+}
+.memo-modal-confirm {
+  background: linear-gradient(135deg, #2563EB, #1D4ED8) !important;
+  border-color: #1D4ED8 !important;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.25) !important;
+  font-weight: 700 !important;
+}
+.memo-modal-confirm:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 4px 12px rgba(37,99,235,0.35) !important;
+}
+
+/* 진행 현황 테이블 - 메모 아이콘 버튼 */
+.memo-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  margin-left: 6px;
+  transition: all 0.15s;
+  font-size: 13px;
+  padding: 0;
+  vertical-align: middle;
+}
+.memo-icon-btn:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+  color: #2563EB;
+}
+.memo-icon-btn.has-memo {
+  background: #DBEAFE;
+  border-color: #2563EB;
+  color: #1D4ED8;
+}
+.memo-icon-btn.has-memo::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2563EB;
+  margin-left: -4px;
+  margin-top: -14px;
+  border: 1.5px solid #fff;
+}
+
+/* 이름 아래 메모 노출 */
+.row-memo-text {
+  font-size: 11px;
+  color: #2563EB;
+  margin-top: 3px;
+  margin-left: 34px;
+  cursor: pointer;
+  padding: 2px 6px;
+  background: #EFF6FF;
+  border-radius: 4px;
+  display: inline-block;
+  border-left: 2px solid #2563EB;
+  max-width: 95%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.row-memo-text:hover { background: #DBEAFE; }
+
 /* ===== 제외 사유 모달 ===== */
 .exclude-modal {
   max-width: 520px;
@@ -2778,6 +3016,49 @@ table { border-collapse: collapse; width: 100%; }
     </div>
   </section>
 
+</div>
+
+<!-- 회신/메모 입력 Modal -->
+<div class="modal-overlay" id="modal-memo-input">
+  <div class="modal memo-modal">
+    <div class="memo-modal-head">
+      <div class="memo-modal-badge">메모</div>
+      <h3 class="memo-modal-title">회신 내용·진행 메모를 기록해주세요</h3>
+      <button class="memo-modal-close" onclick="cancelMemo()" aria-label="닫기">×</button>
+    </div>
+    <div class="memo-modal-body">
+      <div class="memo-modal-target">
+        <span class="memo-modal-target-label">대상</span>
+        <span class="memo-modal-target-name" id="memo-modal-name">—</span>
+        <span class="memo-modal-target-status" id="memo-modal-status">—</span>
+      </div>
+      <label class="memo-modal-label" for="memo-modal-textarea">
+        회신 내용·진행 상황을 자유롭게 적어주세요
+        <span class="memo-modal-counter" id="memo-modal-counter">0 / 500</span>
+      </label>
+      <textarea
+        id="memo-modal-textarea"
+        class="memo-modal-textarea"
+        rows="5"
+        maxlength="500"
+        placeholder="예) 단가 협의 중 (1회 120만원 제안 받음) / 가이드 검토 후 회신 예정 / 5월 둘째 주 업로드 예정 등 — 회신 내용, 다음 액션, 결정사항을 기록해두세요."
+        oninput="updateMemoCounter()"
+      ></textarea>
+      <div class="memo-modal-suggestions">
+        <span class="memo-modal-suggestions-label">자주 쓰는 메모</span>
+        <button type="button" class="memo-chip" onclick="setMemoText('단가 협의 중')">단가 협의 중</button>
+        <button type="button" class="memo-chip" onclick="setMemoText('회신 받음 (긍정적)')">회신 받음 (긍정적)</button>
+        <button type="button" class="memo-chip" onclick="setMemoText('가이드 검토 중')">가이드 검토 중</button>
+        <button type="button" class="memo-chip" onclick="setMemoText('업로드 일정 조율 중')">업로드 일정 조율 중</button>
+        <button type="button" class="memo-chip" onclick="setMemoText('재발송 필요')">재발송 필요</button>
+      </div>
+    </div>
+    <div class="memo-modal-footer">
+      <button class="btn btn-ghost" onclick="clearMemo()" id="memo-clear-btn" style="margin-right:auto;">메모 지우기</button>
+      <button class="btn btn-secondary" onclick="cancelMemo()">취소</button>
+      <button class="btn btn-primary memo-modal-confirm" onclick="confirmMemo()">저장</button>
+    </div>
+  </div>
 </div>
 
 <!-- 제외 사유 입력 Modal -->
@@ -5036,16 +5317,26 @@ function renderTrackTable() {
       const isExcluded = e.status === 'excluded';
       const rowStyle = isExcluded ? 'background:#FEF2F2;opacity:0.75;' : '';
       const nameStyle = isExcluded ? 'font-weight:600;text-decoration:line-through;color:#9CA3AF;' : 'font-weight:600;';
+      // 제외 사유 (제외 상태일 때만 빨강)
       const reasonHtml = isExcluded
         ? `<div style="font-size:11px;color:#DC2626;margin-top:3px;margin-left:34px;cursor:pointer;" onclick="event.stopPropagation();editExcludeReason('${e.infId}')" title="클릭하면 사유 수정">📌 ${e.excludeReason ? escapeHtml(e.excludeReason) : '사유 미입력 (클릭하여 입력)'}</div>`
         : '';
+      // 회신/진행 메모 (제외 외 모든 상태)
+      const memoHtml = (!isExcluded && e.memo)
+        ? `<div class="row-memo-text" onclick="event.stopPropagation();openMemoModal('${e.infId}')" title="클릭하여 수정">📝 ${escapeHtml(e.memo)}</div>`
+        : '';
+      // 상태 셀렉트 옆 메모 아이콘 (제외 상태 제외)
+      const memoBtnCls = e.memo ? 'memo-icon-btn has-memo' : 'memo-icon-btn';
+      const memoIconBtn = !isExcluded
+        ? `<button class="${memoBtnCls}" onclick="event.stopPropagation();openMemoModal('${e.infId}')" title="${e.memo ? '메모 수정' : '회신·진행 메모 추가'}">📝</button>`
+        : '';
       html += `<tr style="${rowStyle}">
-        <td style="cursor:pointer;" onclick="openDetailPanel('${e.infId}')"><div style="display:flex;align-items:center;">${avatar}<span style="${nameStyle}">${e.inf.name || '(삭제됨)'}</span></div>${reasonHtml}</td>
+        <td style="cursor:pointer;" onclick="openDetailPanel('${e.infId}')"><div style="display:flex;align-items:center;">${avatar}<span style="${nameStyle}">${e.inf.name || '(삭제됨)'}</span></div>${reasonHtml}${memoHtml}</td>
         <td>${chBadge}</td>
         <td><input type="number" value="${e.cost || 0}" style="width:60px;" onchange="saveTrackField('${currentProjectId}','${e.infId}','cost',Number(this.value))"></td>
-        <td><select onchange="handleStatusChange('${e.infId}', this, '${e.status || 'recruiting'}')" style="color:#fff;background:${st.color};border-color:${st.color};border-radius:12px;padding:3px 8px;font-size:11px;font-weight:600;">
+        <td><div style="display:flex;align-items:center;"><select onchange="handleStatusChange('${e.infId}', this, '${e.status || 'recruiting'}')" style="color:#fff;background:${st.color};border-color:${st.color};border-radius:12px;padding:3px 8px;font-size:11px;font-weight:600;">
           ${Object.entries(STATUS_MAP).map(([k, v]) => `<option value="${k}" ${k === e.status ? 'selected' : ''} style="color:#333;background:#fff;">${v.label}</option>`).join('')}
-        </select></td>
+        </select>${memoIconBtn}</div></td>
         <td><select onchange="saveTrackField('${currentProjectId}','${e.infId}','contentType',this.value)">
           <option value="">-</option>
           <option value="feed" ${e.contentType === 'feed' ? 'selected' : ''}>피드</option>
@@ -5089,6 +5380,68 @@ function saveTrackFields(projId, infId, fields) {
     renderTrackTable();
     renderReportBar();
   }
+}
+
+// ===== 회신/메모 모달 =====
+let _memoCtx = { infId: null };
+
+function openMemoModal(infId) {
+  const projId = currentProjectId;
+  const inf = allInfluencers[infId] || {};
+  const existing = (allAssignments[projId] || {})[infId] || {};
+  const st = STATUS_MAP[existing.status || 'recruiting'] || STATUS_MAP.recruiting;
+
+  _memoCtx = { infId };
+
+  document.getElementById('memo-modal-name').textContent = inf.name || '(이름없음)';
+  const statusEl = document.getElementById('memo-modal-status');
+  statusEl.textContent = st.label;
+  statusEl.style.background = st.color + '22';
+  statusEl.style.color = st.color;
+
+  const ta = document.getElementById('memo-modal-textarea');
+  ta.value = existing.memo || '';
+  updateMemoCounter();
+
+  document.getElementById('modal-memo-input').classList.add('open');
+  setTimeout(() => ta.focus(), 50);
+}
+
+function updateMemoCounter() {
+  const ta = document.getElementById('memo-modal-textarea');
+  const counter = document.getElementById('memo-modal-counter');
+  if (ta && counter) counter.textContent = `${ta.value.length} / 500`;
+}
+
+function setMemoText(text) {
+  const ta = document.getElementById('memo-modal-textarea');
+  // 기존 내용 있으면 줄바꿈 후 추가, 없으면 그대로
+  const current = ta.value.trim();
+  ta.value = current ? `${current}\n${text}` : text;
+  updateMemoCounter();
+  ta.focus();
+}
+
+function clearMemo() {
+  const ta = document.getElementById('memo-modal-textarea');
+  ta.value = '';
+  updateMemoCounter();
+  ta.focus();
+}
+
+function cancelMemo() {
+  document.getElementById('modal-memo-input').classList.remove('open');
+  _memoCtx = { infId: null };
+}
+
+function confirmMemo() {
+  const ta = document.getElementById('memo-modal-textarea');
+  const text = (ta.value || '').trim();
+  const { infId } = _memoCtx;
+  if (!infId) { cancelMemo(); return; }
+  saveTrackField(currentProjectId, infId, 'memo', text);
+  document.getElementById('modal-memo-input').classList.remove('open');
+  _memoCtx = { infId: null };
 }
 
 // 제외 모달 컨텍스트
