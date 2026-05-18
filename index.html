@@ -3352,6 +3352,7 @@ table { border-collapse: collapse; width: 100%; }
                 <th style="width:80px;">단가(만원)<div class="th-resizer"></div></th>
                 <th style="width:100px;">현황<div class="th-resizer"></div></th>
                 <th style="width:80px;">유형<div class="th-resizer"></div></th>
+                <th style="width:130px;">업로드 예정일<div class="th-resizer"></div></th>
                 <th style="width:160px;">업로드 링크<div class="th-resizer"></div></th>
                 <th style="width:80px;">조회수<div class="th-resizer"></div></th>
                 <th style="width:70px;">좋아요<div class="th-resizer"></div></th>
@@ -5754,8 +5755,9 @@ function renderProjects() {
     const doneCount = statusCounts['done'] || 0;
     const progressPct = activeCount ? Math.round(doneCount / activeCount * 100) : 0;
 
-    // Calculate total cost
-    const totalCost = Object.values(assigns).reduce((s, a) => s + (a.cost || 0), 0);
+    // 단가는 '섭외완료 이후' 상태만 집계
+    const COST_INC = new Set(['recruited', 'guide', 'producing', 'confirmed', 'scheduled', 'done']);
+    const totalCost = Object.values(assigns).filter(a => COST_INC.has(a.status || 'recruiting')).reduce((s, a) => s + (a.cost || 0), 0);
 
     // Date range display
     const dateStr = p.startDate && p.endDate ? `${p.startDate} ~ ${p.endDate}` : p.startDate || p.endDate || '미정';
@@ -5809,7 +5811,9 @@ function renderProjectDetail(id) {
   // Overview with icons + D-day
   const assigns = allAssignments[id] || {};
   const assignCount = Object.keys(assigns).length;
-  const totalCost = Object.values(assigns).reduce((s, a) => s + (a.cost || 0), 0);
+  // 단가는 '섭외완료 이후' 상태만 집계
+  const COST_INCLUDE = new Set(['recruited', 'guide', 'producing', 'confirmed', 'scheduled', 'done']);
+  const totalCost = Object.values(assigns).filter(a => COST_INCLUDE.has(a.status || 'recruiting')).reduce((s, a) => s + (a.cost || 0), 0);
   const doneCount = Object.values(assigns).filter(a => a.status === 'done').length;
 
   // D-day calculation
@@ -5921,7 +5925,7 @@ function renderTrackTable() {
   let html = '';
   [['youtube', '유튜브'], ['instagram', '인스타그램']].forEach(([key, label]) => {
     if (!groups[key].length) return;
-    html += `<tr class="track-group-header"><td colspan="10">${label} (${groups[key].length})</td></tr>`;
+    html += `<tr class="track-group-header"><td colspan="11">${label} (${groups[key].length})</td></tr>`;
     groups[key].forEach(e => {
       const st = STATUS_MAP[e.status] || STATUS_MAP.recruiting;
       const chBadge = key === 'youtube' ? '<span class="badge badge-youtube"><svg width="14" height="10" viewBox="0 0 24 17" fill="#FF0000"><path d="M23.5 2.5c-.3-1-1-1.8-2-2.1C19.6 0 12 0 12 0S4.4 0 2.5.4c-1 .3-1.7 1.1-2 2.1C0 4.4 0 8.3 0 8.3s0 3.9.5 5.8c.3 1 1 1.8 2 2.1 1.9.5 9.5.5 9.5.5s7.6 0 9.5-.5c1-.3 1.7-1.1 2-2.1.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 12V4.7l6.4 3.6L9.5 12z"/></svg></span>' : '<span class="badge badge-instagram"><svg width="14" height="14" viewBox="0 0 24 24" fill="#E1306C"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.2 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1.1.4 2.2.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.9c-.1 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1.1.4-2.2.4-1.3.1-1.6.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1.1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.2-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1.1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zM12 0C8.7 0 8.3 0 7 .1 5.7.1 4.8.3 4 .6 3.2.9 2.5 1.3 1.8 2 1.1 2.7.7 3.4.4 4.2.2 5 0 5.9 0 7.2 0 8.5 0 8.9 0 12s0 3.7.1 5c0 1.3.2 2.2.5 3 .3.8.7 1.5 1.4 2.2.7.7 1.4 1.1 2.2 1.4.8.3 1.7.5 3 .5 1.3.1 1.7.1 5 .1s3.7 0 5-.1c1.3 0 2.2-.2 3-.5.8-.3 1.5-.7 2.2-1.4.7-.7 1.1-1.4 1.4-2.2.3-.8.5-1.7.5-3 .1-1.3.1-1.7.1-5s0-3.7-.1-5c0-1.3-.2-2.2-.5-3-.3-.8-.7-1.5-1.4-2.2C21.3 1.3 20.6.9 19.8.6 19 .3 18.1.1 16.8.1 15.5 0 15.1 0 12 0zm0 5.8a6.2 6.2 0 100 12.4 6.2 6.2 0 000-12.4zM12 16a4 4 0 110-8 4 4 0 010 8zm6.4-10.8a1.44 1.44 0 100 2.88 1.44 1.44 0 000-2.88z"/></svg></span>';
@@ -5966,6 +5970,7 @@ function renderTrackTable() {
           <option value="feed" ${e.contentType === 'feed' ? 'selected' : ''}>피드</option>
           <option value="image" ${e.contentType === 'image' ? 'selected' : ''}>이미지</option>
         </select></td>
+        <td><input type="date" value="${e.uploadDate || ''}" onchange="saveTrackField('${currentProjectId}','${e.infId}','uploadDate',this.value)" style="width:120px;font-size:12px;"></td>
         <td><input type="text" value="${e.uploadUrl || ''}" placeholder="URL 입력" onchange="saveTrackField('${currentProjectId}','${e.infId}','uploadUrl',this.value)" style="width:140px;"></td>
         <td style="font-weight:600;">${fmt(e.views)}</td>
         <td style="font-weight:600;">${fmt(e.likes)}</td>
@@ -7604,7 +7609,11 @@ function renderReportBar() {
   }).join('');
 
   // Metrics
-  const totalCost = entries.reduce((s, e) => s + (e.cost || 0), 0);
+  // 단가는 '섭외완료 이후' 상태만 집계 (recruiting/priceTalk/excluded 제외)
+  const COST_INCLUDE = new Set(['recruited', 'guide', 'producing', 'confirmed', 'scheduled', 'done']);
+  const costEntries = entries.filter(e => COST_INCLUDE.has(e.status || 'recruiting'));
+  const totalCost = costEntries.reduce((s, e) => s + (e.cost || 0), 0);
+  const costCount = costEntries.length;
   const totalViews = entries.reduce((s, e) => s + (e.views || 0), 0);
   const totalLikes = entries.reduce((s, e) => s + (e.likes || 0), 0);
   const totalComments = entries.reduce((s, e) => s + (e.comments || 0), 0);
@@ -7613,7 +7622,7 @@ function renderReportBar() {
     <div class="report-donut">${donutSvg}</div>
     <div class="report-legend">${legend}</div>
     <div class="report-metrics">
-      <div class="metric-card"><div class="metric-label">총 단가</div><div class="metric-value">${fmt(totalCost)}<span style="font-size:12px;font-weight:400;">만</span></div><div class="metric-sub">평균 ${total ? fmt(Math.round(totalCost / total)) : 0}만</div></div>
+      <div class="metric-card"><div class="metric-label">총 단가 <span style="font-size:9.5px;color:var(--text-muted);font-weight:500;">(섭외완료↑ ${costCount}명)</span></div><div class="metric-value">${fmt(totalCost)}<span style="font-size:12px;font-weight:400;">만</span></div><div class="metric-sub">평균 ${costCount ? fmt(Math.round(totalCost / costCount)) : 0}만</div></div>
       <div class="metric-card"><div class="metric-label">총 조회수</div><div class="metric-value">${fmt(totalViews)}</div><div class="metric-sub">평균 ${total ? fmt(Math.round(totalViews / total)) : 0}</div></div>
       <div class="metric-card"><div class="metric-label">총 좋아요</div><div class="metric-value">${fmt(totalLikes)}</div><div class="metric-sub">평균 ${total ? fmt(Math.round(totalLikes / total)) : 0}</div></div>
       <div class="metric-card"><div class="metric-label">총 댓글</div><div class="metric-value">${fmt(totalComments)}</div><div class="metric-sub">평균 ${total ? fmt(Math.round(totalComments / total)) : 0}</div></div>
