@@ -2442,6 +2442,42 @@ table { border-collapse: collapse; width: 100%; }
 }
 .inf-table .action-dots:hover { background: var(--surface-2); border-color: var(--border); }
 
+/* 인플루언서 행 액션 팝오버 메뉴 */
+.inf-actions-wrap { position: relative; display: inline-block; }
+.inf-action-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 32px;
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.06);
+  min-width: 110px;
+  z-index: 50;
+  padding: 4px;
+  overflow: hidden;
+}
+.inf-action-menu.open { display: block; }
+.inf-action-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background 0.12s;
+  white-space: nowrap;
+}
+.inf-action-item:hover { background: #F1F5F9; }
+.inf-action-item.danger { color: #DC2626; }
+.inf-action-item.danger:hover { background: #FEF2F2; }
+
 /* Action Chips */
 .action-chip {
   padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
@@ -4658,6 +4694,72 @@ function deleteInfluencer(id) {
   closeDetailPanel();
 }
 
+// 인플루언서 삭제 + 모든 프로젝트의 assignments / mailDrafts 동시 정리
+function deleteInfluencerWithCleanup(id) {
+  const inf = allInfluencers[id];
+  if (!inf) return;
+  // 사용 중인 프로젝트 카운트
+  let usedProjects = 0;
+  Object.keys(allAssignments || {}).forEach(pid => {
+    if (allAssignments[pid] && allAssignments[pid][id]) usedProjects++;
+  });
+
+  const usageNote = usedProjects > 0
+    ? `\n\n⚠ 현재 ${usedProjects}개 프로젝트에 배정되어 있습니다.\n관련 배정·메일초안·회신메모도 함께 삭제됩니다.`
+    : '';
+  if (!confirm(`정말 "${inf.name || ''}"을(를) 삭제하시겠습니까?${usageNote}\n\n이 작업은 되돌릴 수 없습니다.`)) {
+    return;
+  }
+
+  if (firebaseReady) {
+    const updates = {};
+    updates[PATHS.influencers + '/' + id] = null;
+    // 모든 프로젝트에서 이 인플루언서의 배정/메일초안 제거
+    Object.keys(allAssignments || {}).forEach(pid => {
+      if (allAssignments[pid] && allAssignments[pid][id]) {
+        updates[PATHS.assignments + '/' + pid + '/' + id] = null;
+      }
+    });
+    Object.keys(allMailDrafts || {}).forEach(pid => {
+      if (allMailDrafts[pid] && allMailDrafts[pid][id]) {
+        updates[PATHS.mailDrafts + '/' + pid + '/' + id] = null;
+      }
+    });
+    db.ref().update(updates)
+      .then(() => showToast(`"${inf.name}" 삭제 완료`))
+      .catch(e => { console.error(e); showToast('삭제 실패'); });
+  } else {
+    delete allInfluencers[id];
+    Object.keys(allAssignments || {}).forEach(pid => {
+      if (allAssignments[pid] && allAssignments[pid][id]) delete allAssignments[pid][id];
+    });
+    Object.keys(allMailDrafts || {}).forEach(pid => {
+      if (allMailDrafts[pid] && allMailDrafts[pid][id]) delete allMailDrafts[pid][id];
+    });
+    renderInfluencers();
+    showToast(`"${inf.name}" 삭제 완료`);
+  }
+  closeDetailPanel();
+}
+
+// 액션 메뉴 토글
+function toggleInfActionMenu(id, anchor) {
+  const menu = document.getElementById('inf-menu-' + id);
+  if (!menu) return;
+  const wasOpen = menu.classList.contains('open');
+  closeAllInfActionMenus();
+  if (!wasOpen) menu.classList.add('open');
+}
+function closeAllInfActionMenus() {
+  document.querySelectorAll('.inf-action-menu.open').forEach(m => m.classList.remove('open'));
+}
+// 바깥 클릭으로 메뉴 닫기
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.inf-actions-wrap')) {
+    closeAllInfActionMenus();
+  }
+});
+
 function toggleFavorite(id, current) {
   const val = !current;
   if (firebaseReady) {
@@ -4852,7 +4954,10 @@ function renderInfluencers() {
       <td class="cpv-cell ${cpvClass}">${cpvText}</td>
       <td><span class="contact-badge contact-${cs}">${csMap[cs] || '미연락'}</span></td>
       <td><div class="tp-row">${topics.map(t => `<span class="tp">${t}</span>`).join('')}</div></td>
-      <td><span class="action-dots" onclick="event.stopPropagation();openInfluencerModal('${inf.id}')">⋮</span></td>`;
+      <td><div class="inf-actions-wrap"><span class="action-dots" onclick="event.stopPropagation();toggleInfActionMenu('${inf.id}', this)">⋮</span><div class="inf-action-menu" id="inf-menu-${inf.id}">
+        <button class="inf-action-item" onclick="event.stopPropagation();closeAllInfActionMenus();openInfluencerModal('${inf.id}')">✎ 수정</button>
+        <button class="inf-action-item danger" onclick="event.stopPropagation();closeAllInfActionMenus();deleteInfluencerWithCleanup('${inf.id}')">🗑 삭제</button>
+      </div></div></td>`;
 
     if (isYT) {
       return `<tr onclick="openDetailPanel('${inf.id}')">${starTd}${nameTd}
