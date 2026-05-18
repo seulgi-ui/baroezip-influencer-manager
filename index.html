@@ -7604,19 +7604,32 @@ async function refreshAllInfluencers() {
   if (!confirm(`${ytInfs.length}개 YouTube 채널 통계를 갱신하시겠습니까?\nAPI 할당량이 소모됩니다.`)) return;
 
   showToast(`${ytInfs.length}개 채널 갱신 시작...`);
-  let done = 0;
+  let done = 0, skipped = 0;
   for (const [id, inf] of ytInfs) {
     try {
       const url = inf.urlYoutube;
+      // URL 형식 1: youtube.com/channel/UCxxx  (직접 ID)
+      // URL 형식 2: youtube.com/@handle        (handle을 forHandle로 변환)
       const chMatch = url.match(/youtube\.com\/channel\/(UC[\w-]+)/);
-      if (!chMatch) continue;
-      const channelId = chMatch[1];
+      const handleMatch = url.match(/youtube\.com\/@([^/?&#]+)/);
 
-      // Fetch channel info
-      const chRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=${channelId}&key=${YOUTUBE_API_KEY}`);
-      const chData = await chRes.json();
-      if (!chData.items || !chData.items.length) continue;
+      let chData;
+      if (chMatch) {
+        const channelId = chMatch[1];
+        const chRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet,id&id=${channelId}&key=${YOUTUBE_API_KEY}`);
+        chData = await chRes.json();
+      } else if (handleMatch) {
+        const handle = decodeURIComponent(handleMatch[1]);
+        const chRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet,id&forHandle=${encodeURIComponent(handle)}&key=${YOUTUBE_API_KEY}`);
+        chData = await chRes.json();
+      } else {
+        skipped++;
+        continue;
+      }
+
+      if (!chData.items || !chData.items.length) { skipped++; continue; }
       const ch = chData.items[0];
+      const channelId = ch.id;
       const subs = Number(ch.statistics.subscriberCount) || 0;
       const profileImg = (ch.snippet.thumbnails || {}).medium || {};
 
