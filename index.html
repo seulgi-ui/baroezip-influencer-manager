@@ -4876,7 +4876,11 @@ function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 // ===== Navigation =====
-function navigate(section) {
+// 유효 섹션 화이트리스트
+const VALID_SECTIONS = ['mediamix', 'calendar', 'creatives', 'pr', 'influencer', 'projects'];
+
+function navigate(section, opts) {
+  if (!VALID_SECTIONS.includes(section)) section = 'mediamix';
   currentSection = section;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.section === section));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -4887,7 +4891,25 @@ function navigate(section) {
   if (section === 'calendar') renderCalendar();
   if (section === 'creatives') renderCreatives();
   if (section === 'pr') renderPrPlan();
+
+  // URL hash 동기화 (hashchange 이벤트 무한루프 방지 위해 옵션으로 분기)
+  if (!opts || !opts.fromHash) {
+    const newHash = '#' + section;
+    if (location.hash !== newHash) {
+      history.replaceState(null, '', newHash);
+    }
+  }
 }
+
+// 페이지 로드/뒤로가기 시 hash에 맞춰 섹션 복원
+function applySectionFromHash() {
+  const hash = (location.hash || '').replace(/^#/, '');
+  if (hash && VALID_SECTIONS.includes(hash)) {
+    navigate(hash, { fromHash: true });
+  }
+}
+
+window.addEventListener('hashchange', applySectionFromHash);
 
 // ===== Standalone Guide Check =====
 function checkGuideView() {
@@ -9839,7 +9861,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initSidebarResize();
     renderInfluencers();
     renderProjects();
-    navigate('mediamix');
+    // URL hash가 있으면 그 섹션으로, 없으면 기본 mediamix
+    const hash = (location.hash || '').replace(/^#/, '');
+    navigate(VALID_SECTIONS.includes(hash) ? hash : 'mediamix');
   }
 });
 
