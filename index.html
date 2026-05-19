@@ -1243,8 +1243,36 @@ table { border-collapse: collapse; width: 100%; }
   display: flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: 800;
 }
-.tl-name-cell .tl-name-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tl-name-cell .tl-name-channel { font-size: 9.5px; color: #94A3B8; font-weight: 600; }
+.tl-name-cell .tl-name-text { flex: 1; overflow: hidden; min-width: 0; }
+.tl-name-cell .tl-name-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tl-name-cell .tl-name-channel { font-size: 9.5px; color: #94A3B8; font-weight: 600; margin-top: 1px; }
+.tl-name-cost {
+  display: inline-flex;
+  align-items: center;
+  background: #FEF3C7;
+  color: #B45309;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 9px;
+  border: 1px solid #FDE68A;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: -0.2px;
+}
+.tl-name-cost-empty {
+  background: #F1F5F9;
+  color: #94A3B8;
+  border-color: #E2E8F0;
+  font-weight: 600;
+}
 
 /* 그룹 헤더 (전체 컬럼 차지) */
 .tl-group-header {
@@ -1297,15 +1325,18 @@ table { border-collapse: collapse; width: 100%; }
   gap: 3px;
   font-size: 10.5px;
   font-weight: 800;
-  padding: 2px 7px 2px 4px;
+  padding: 2px 3px 2px 4px;
   border-radius: 10px;
   white-space: nowrap;
-  cursor: pointer;
-  transition: transform 0.1s;
+  cursor: grab;
+  transition: transform 0.1s, box-shadow 0.1s;
   line-height: 1.15;
   border: 1.5px solid;
+  user-select: none;
 }
-.tl-marker:hover { transform: scale(1.08); }
+.tl-marker:hover { transform: scale(1.06); box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
+.tl-marker:active { cursor: grabbing; }
+.tl-marker.dragging { opacity: 0.35; cursor: grabbing; }
 .tl-marker.dir-out {
   background: #DBEAFE;
   color: #1D4ED8;
@@ -1320,6 +1351,37 @@ table { border-collapse: collapse; width: 100%; }
   font-size: 12px;
   font-weight: 900;
   line-height: 1;
+}
+.tl-marker-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  margin-left: 1px;
+  transition: all 0.12s;
+  opacity: 0.55;
+  line-height: 1;
+}
+.tl-marker.dir-out .tl-marker-del { background: rgba(29,78,216,0.18); color: #1D4ED8; }
+.tl-marker.dir-in .tl-marker-del { background: rgba(4,120,87,0.18); color: #047857; }
+.tl-marker:hover .tl-marker-del { opacity: 1; }
+.tl-marker .tl-marker-del:hover {
+  background: #DC2626 !important;
+  color: #fff !important;
+  transform: scale(1.15);
+}
+
+/* 드래그 가능한 드롭 영역 강조 */
+.tl-cell.drag-over {
+  background: #FEF3C7 !important;
+  outline: 2px dashed #F59E0B;
+  outline-offset: -2px;
+  z-index: 5;
 }
 
 .tl-empty {
@@ -8881,10 +8943,14 @@ function renderTimeline() {
         : `<div class="tl-name-avatar">${escapeHtml(initial)}</div>`;
       const channelLabel = (inf.channels || []).includes('instagram') ? 'Instagram' : 'YouTube';
       const subLabel = (inf.channels || []).includes('instagram') ? '팔로워' : '구독자';
+      const cost = assign.cost || 0;
+      const costBadge = cost > 0
+        ? `<span class="tl-name-cost">💰 ${fmt(cost)}만</span>`
+        : `<span class="tl-name-cost tl-name-cost-empty">단가 미정</span>`;
       groupHtml += `<div class="tl-name-cell" title="${escapeHtml(inf.name)}">
         ${avatar}
         <div class="tl-name-text">
-          ${escapeHtml(inf.name)}
+          <div class="tl-name-top">${escapeHtml(inf.name)} ${costBadge}</div>
           <div class="tl-name-channel">${channelLabel} · ${fmtNumK(inf.followers || 0)} ${subLabel}</div>
         </div>
       </div>`;
@@ -8897,9 +8963,20 @@ function renderTimeline() {
         const cls = dateStr === todayStr ? 'today' : (dow === 0 || dow === 6 ? 'weekend' : '');
         const markers = MILESTONES.filter(m => schedule[m.key] === dateStr);
         const markerHtml = markers.map(m =>
-          `<span class="tl-marker dir-${m.dir}" title="${escapeHtml(m.label)} (${m.dir === 'out' ? '바로이집→인플루언서' : '인플루언서→바로이집'})"><span class="tl-marker-num">${m.step}</span>${escapeHtml(m.short)}</span>`
+          `<span class="tl-marker dir-${m.dir}"
+                 draggable="true"
+                 ondragstart="startMarkerDrag(event, '${infId}', '${m.key}', '${dateStr}')"
+                 ondragend="endMarkerDrag(event)"
+                 onclick="event.stopPropagation();"
+                 title="${escapeHtml(m.label)} (${m.dir === 'out' ? '바로이집→인플루언서' : '인플루언서→바로이집'}) — 드래그로 이동, ×로 삭제">
+            <span class="tl-marker-num">${m.step}</span>${escapeHtml(m.short)}<span class="tl-marker-del" onclick="event.stopPropagation();deleteMarker('${infId}', '${m.key}')" title="삭제">×</span>
+          </span>`
         ).join('');
-        groupHtml += `<div class="tl-cell ${cls}" onclick="openTimelinePopover(event, '${infId}', '${dateStr}')">${markerHtml}</div>`;
+        groupHtml += `<div class="tl-cell ${cls}"
+            ondragover="allowDrop(event)"
+            ondragleave="leaveDrop(event)"
+            ondrop="dropMarker(event, '${infId}', '${dateStr}')"
+            onclick="openTimelinePopover(event, '${infId}', '${dateStr}')">${markerHtml}</div>`;
       }
     }
     return groupHtml;
@@ -8987,6 +9064,91 @@ function toggleMilestoneOnDate(milestoneKey) {
       // 팝오버 내용 갱신
       const cell = document.querySelector(`.tl-cell[onclick*="'${infId}'"][onclick*="'${dateStr}'"]`);
       if (cell) openTimelinePopover({ stopPropagation: () => {}, currentTarget: cell }, infId, dateStr);
+    });
+  } else {
+    if (!allAssignments[projId]) allAssignments[projId] = {};
+    if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
+    allAssignments[projId][infId].schedule = schedule;
+    renderTimeline();
+  }
+}
+
+// ===== 마커 드래그 & 드롭 =====
+function startMarkerDrag(ev, infId, milestoneKey, oldDate) {
+  ev.stopPropagation();
+  const payload = JSON.stringify({ infId, milestoneKey, oldDate });
+  ev.dataTransfer.setData('text/plain', payload);
+  ev.dataTransfer.effectAllowed = 'move';
+  ev.currentTarget.classList.add('dragging');
+}
+
+function endMarkerDrag(ev) {
+  ev.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.tl-cell.drag-over').forEach(c => c.classList.remove('drag-over'));
+}
+
+function allowDrop(ev) {
+  ev.preventDefault();
+  ev.dataTransfer.dropEffect = 'move';
+  ev.currentTarget.classList.add('drag-over');
+}
+
+function leaveDrop(ev) {
+  if (ev.currentTarget === ev.target || !ev.currentTarget.contains(ev.relatedTarget)) {
+    ev.currentTarget.classList.remove('drag-over');
+  }
+}
+
+function dropMarker(ev, newInfId, newDate) {
+  ev.preventDefault();
+  ev.stopPropagation();
+  ev.currentTarget.classList.remove('drag-over');
+
+  let data;
+  try { data = JSON.parse(ev.dataTransfer.getData('text/plain')); }
+  catch (_) { return; }
+  if (!data || !data.infId || !data.milestoneKey) return;
+
+  // 다른 인플루언서로 옮기는 건 차단 (각 인플루언서별 마일스톤이라 충돌)
+  if (data.infId !== newInfId) {
+    showToast('마일스톤은 같은 인플루언서 내에서만 이동할 수 있어요');
+    return;
+  }
+  if (data.oldDate === newDate) return;
+
+  const projId = document.getElementById('tl-project-select').value;
+  const cur = (allAssignments[projId] || {})[newInfId] || {};
+  const schedule = { ...(cur.schedule || {}) };
+  schedule[data.milestoneKey] = newDate;
+
+  if (firebaseReady) {
+    db.ref(`${PATHS.assignments}/${projId}/${newInfId}/schedule`).set(schedule).then(() => {
+      if (!allAssignments[projId]) allAssignments[projId] = {};
+      if (!allAssignments[projId][newInfId]) allAssignments[projId][newInfId] = {};
+      allAssignments[projId][newInfId].schedule = schedule;
+      renderTimeline();
+    });
+  } else {
+    if (!allAssignments[projId]) allAssignments[projId] = {};
+    if (!allAssignments[projId][newInfId]) allAssignments[projId][newInfId] = {};
+    allAssignments[projId][newInfId].schedule = schedule;
+    renderTimeline();
+  }
+}
+
+function deleteMarker(infId, milestoneKey) {
+  const projId = document.getElementById('tl-project-select').value;
+  const cur = (allAssignments[projId] || {})[infId] || {};
+  const schedule = { ...(cur.schedule || {}) };
+  if (!(milestoneKey in schedule)) return;
+  delete schedule[milestoneKey];
+
+  if (firebaseReady) {
+    db.ref(`${PATHS.assignments}/${projId}/${infId}/schedule`).set(schedule).then(() => {
+      if (!allAssignments[projId]) allAssignments[projId] = {};
+      if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
+      allAssignments[projId][infId].schedule = schedule;
+      renderTimeline();
     });
   } else {
     if (!allAssignments[projId]) allAssignments[projId] = {};
