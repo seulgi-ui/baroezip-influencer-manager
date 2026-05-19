@@ -3030,10 +3030,6 @@ table { border-collapse: collapse; width: 100%; }
         <div class="nav-dot"></div>
         <span class="nav-label">미디어믹스</span>
       </div>
-      <div class="nav-item" data-section="creatives" onclick="navigate('creatives')">
-        <div class="nav-dot"></div>
-        <span class="nav-label">소재 관리</span>
-      </div>
       <div class="nav-section-label" style="margin-top:12px;">기획</div>
       <div class="nav-item" data-section="pr" onclick="navigate('pr')">
         <div class="nav-dot"></div>
@@ -4877,7 +4873,7 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 
 // ===== Navigation =====
 // 유효 섹션 화이트리스트
-const VALID_SECTIONS = ['mediamix', 'calendar', 'creatives', 'pr', 'influencer', 'projects'];
+const VALID_SECTIONS = ['mediamix', 'calendar', 'pr', 'influencer', 'projects'];
 
 function navigate(section, opts) {
   if (!VALID_SECTIONS.includes(section)) section = 'mediamix';
