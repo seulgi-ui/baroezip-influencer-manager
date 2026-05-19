@@ -8968,8 +8968,8 @@ function renderTimeline() {
                  ondragstart="startMarkerDrag(event, '${infId}', '${m.key}', '${dateStr}')"
                  ondragend="endMarkerDrag(event)"
                  onclick="event.stopPropagation();"
-                 title="${escapeHtml(m.label)} (${m.dir === 'out' ? '바로이집→인플루언서' : '인플루언서→바로이집'}) — 드래그로 이동, ×로 삭제">
-            <span class="tl-marker-num">${m.step}</span>${escapeHtml(m.short)}<span class="tl-marker-del" onclick="event.stopPropagation();deleteMarker('${infId}', '${m.key}')" title="삭제">×</span>
+                 title="${escapeHtml(m.label)} (${m.dir === 'out' ? '바로이집→인플루언서' : '인플루언서→바로이집'}) — 드래그로 이동">
+            <span class="tl-marker-num">${m.step}</span>${escapeHtml(m.short)}
           </span>`
         ).join('');
         groupHtml += `<div class="tl-cell ${cls}"
