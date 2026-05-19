@@ -6333,6 +6333,14 @@ function renderTrackTable() {
     else groups.youtube.push(e); // default
   });
 
+  // 진행 단계 순서 — 단계가 늦은 것(완료/업로드예정/...)부터 상단으로
+  const STATUS_ORDER = ['done', 'scheduled', 'confirmed', 'producing', 'guide', 'recruited', 'priceTalk', 'recruiting', 'excluded'];
+  const statusRank = s => {
+    const idx = STATUS_ORDER.indexOf(s || 'recruiting');
+    return idx === -1 ? STATUS_ORDER.length : idx;
+  };
+  Object.values(groups).forEach(arr => arr.sort((a, b) => statusRank(a.status) - statusRank(b.status)));
+
   let html = '';
   [['youtube', '유튜브'], ['instagram', '인스타그램']].forEach(([key, label]) => {
     if (!groups[key].length) return;
