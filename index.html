@@ -1109,17 +1109,59 @@ table { border-collapse: collapse; width: 100%; }
 
 /* ============= 캠페인 프로덕션 타임라인 ============= */
 .tl-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
   margin-bottom: 14px;
-  padding: 12px 14px;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  border-radius: 10px;
   font-size: 12px;
 }
-.tl-legend-item { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: #475569; }
+.tl-legend-group {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1.5px solid;
+  background: #fff;
+}
+.tl-legend-out {
+  border-color: #BFDBFE;
+  background: linear-gradient(135deg, #EFF6FF, #F0F9FF);
+}
+.tl-legend-in {
+  border-color: #BBF7D0;
+  background: linear-gradient(135deg, #F0FDF4, #ECFDF5);
+}
+.tl-legend-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #E2E8F0;
+}
+.tl-legend-arrow-big { font-size: 16px; line-height: 1; }
+.tl-legend-group-title {
+  font-weight: 800;
+  font-size: 13px;
+  color: #0F172A;
+  letter-spacing: -0.2px;
+}
+.tl-legend-out .tl-legend-group-title { color: #1D4ED8; }
+.tl-legend-in .tl-legend-group-title { color: #047857; }
+.tl-legend-group-sub {
+  margin-left: auto;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #94A3B8;
+  background: rgba(255,255,255,0.7);
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.3px;
+}
+.tl-legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+.tl-legend-item { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: #475569; white-space: nowrap; }
 .tl-legend-dot {
   display: inline-block;
   width: 12px;
@@ -1127,7 +1169,6 @@ table { border-collapse: collapse; width: 100%; }
   border-radius: 3px;
   flex-shrink: 0;
 }
-.tl-legend-arrow { font-size: 11px; color: #94A3B8; margin-left: 2px; font-weight: 700; }
 
 .tl-container {
   border: 1px solid #E2E8F0;
@@ -1256,10 +1297,10 @@ table { border-collapse: collapse; width: 100%; }
 .tl-marker {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 2px;
   font-size: 10px;
   font-weight: 800;
-  padding: 1px 5px;
+  padding: 2px 6px;
   border-radius: 8px;
   color: #fff;
   white-space: nowrap;
@@ -1268,6 +1309,7 @@ table { border-collapse: collapse; width: 100%; }
   line-height: 1.2;
 }
 .tl-marker:hover { transform: scale(1.08); }
+.tl-marker .tl-marker-dir { font-size: 9px; opacity: 0.95; }
 
 .tl-empty {
   padding: 40px 20px;
@@ -8730,15 +8772,42 @@ function renderTimeline() {
   sel.innerHTML = projOpts || '<option value="">(프로젝트 없음)</option>';
   const tlProjId = sel.value;
 
-  // 범례
+  // 범례 — 방향별 2그룹으로 명확하게 분리
+  const outItems = MILESTONES.filter(m => m.dir === 'out');
+  const inItems = MILESTONES.filter(m => m.dir === 'in');
   const legendEl = document.getElementById('tl-legend');
-  legendEl.innerHTML = MILESTONES.map(m => `
-    <span class="tl-legend-item">
-      <span class="tl-legend-dot" style="background:${m.color};"></span>
-      ${escapeHtml(m.label)}
-      <span class="tl-legend-arrow">${m.dir === 'out' ? '→' : '←'}</span>
-    </span>
-  `).join('');
+  legendEl.innerHTML = `
+    <div class="tl-legend-group tl-legend-out">
+      <div class="tl-legend-group-head">
+        <span class="tl-legend-arrow-big">📤</span>
+        <span class="tl-legend-group-title">바로이집 → 인플루언서</span>
+        <span class="tl-legend-group-sub">우리가 보낼 것</span>
+      </div>
+      <div class="tl-legend-items">
+        ${outItems.map(m => `
+          <span class="tl-legend-item">
+            <span class="tl-legend-dot" style="background:${m.color};"></span>
+            ${escapeHtml(m.label)}
+          </span>
+        `).join('')}
+      </div>
+    </div>
+    <div class="tl-legend-group tl-legend-in">
+      <div class="tl-legend-group-head">
+        <span class="tl-legend-arrow-big">📥</span>
+        <span class="tl-legend-group-title">인플루언서 → 바로이집</span>
+        <span class="tl-legend-group-sub">우리가 받을 것</span>
+      </div>
+      <div class="tl-legend-items">
+        ${inItems.map(m => `
+          <span class="tl-legend-item">
+            <span class="tl-legend-dot" style="background:${m.color};"></span>
+            ${escapeHtml(m.label)}
+          </span>
+        `).join('')}
+      </div>
+    </div>
+  `;
 
   // 데이터: '섭외완료 이상' 상태만 표시 (recruited/guide/producing/confirmed/scheduled/done)
   const TIMELINE_STATUSES = new Set(['recruited', 'guide', 'producing', 'confirmed', 'scheduled', 'done']);
@@ -8821,7 +8890,7 @@ function renderTimeline() {
         const cls = dateStr === todayStr ? 'today' : (dow === 0 || dow === 6 ? 'weekend' : '');
         const markers = MILESTONES.filter(m => schedule[m.key] === dateStr);
         const markerHtml = markers.map(m =>
-          `<span class="tl-marker" style="background:${m.color};" title="${escapeHtml(m.label)} (${m.dir === 'out' ? '바로이집→인플루언서' : '인플루언서→바로이집'})">${escapeHtml(m.short)}</span>`
+          `<span class="tl-marker ${m.dir === 'out' ? 'dir-out' : 'dir-in'}" style="background:${m.color};" title="${escapeHtml(m.label)} (${m.dir === 'out' ? '바로이집→인플루언서' : '인플루언서→바로이집'})"><span class="tl-marker-dir">${m.dir === 'out' ? '📤' : '📥'}</span>${escapeHtml(m.short)}</span>`
         ).join('');
         groupHtml += `<div class="tl-cell ${cls}" onclick="openTimelinePopover(event, '${infId}', '${dateStr}')">${markerHtml}</div>`;
       }
