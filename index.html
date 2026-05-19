@@ -1107,6 +1107,197 @@ table { border-collapse: collapse; width: 100%; }
   box-shadow: 0 4px 12px rgba(37,99,235,0.35) !important;
 }
 
+/* ============= 캠페인 프로덕션 타임라인 ============= */
+.tl-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  font-size: 12px;
+}
+.tl-legend-item { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: #475569; }
+.tl-legend-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.tl-legend-arrow { font-size: 11px; color: #94A3B8; margin-left: 2px; font-weight: 700; }
+
+.tl-container {
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  overflow: auto;
+  max-height: calc(100vh - 230px);
+  background: #fff;
+  position: relative;
+}
+.tl-grid {
+  display: grid;
+  min-width: max-content;
+  position: relative;
+}
+.tl-cell, .tl-name-cell, .tl-date-header, .tl-corner {
+  border-right: 1px solid #F1F5F9;
+  border-bottom: 1px solid #F1F5F9;
+  box-sizing: border-box;
+}
+
+/* 좌상단 고정 */
+.tl-corner {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 30;
+  background: #F8FAFC;
+  padding: 10px 14px;
+  font-weight: 800;
+  font-size: 12px;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  border-right: 2px solid #CBD5E1;
+  border-bottom: 2px solid #CBD5E1;
+}
+
+/* 상단 날짜 헤더 (sticky top) */
+.tl-date-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #F8FAFC;
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  border-bottom: 2px solid #CBD5E1;
+}
+.tl-date-header.weekend { background: #FEF2F2; color: #DC2626; }
+.tl-date-header.today { background: #DBEAFE; color: #1D4ED8; border-bottom: 2px solid #2563EB; }
+.tl-date-header .tl-date-day { font-size: 9px; opacity: 0.75; margin-top: 1px; }
+
+/* 좌측 인플루언서명 (sticky left) */
+.tl-name-cell {
+  position: sticky;
+  left: 0;
+  z-index: 15;
+  background: #fff;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0F172A;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-right: 2px solid #CBD5E1;
+  min-height: 44px;
+}
+.tl-name-cell:hover { background: #F8FAFC; }
+.tl-name-cell .tl-name-avatar {
+  width: 22px; height: 22px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+  background: linear-gradient(135deg, #6366F1, #8B5CF6); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 800;
+}
+.tl-name-cell .tl-name-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tl-name-cell .tl-name-channel { font-size: 9.5px; color: #94A3B8; font-weight: 600; }
+
+/* 일반 일자 셀 */
+.tl-cell {
+  background: #fff;
+  min-height: 44px;
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 4px;
+  align-content: flex-start;
+}
+.tl-cell:hover { background: #F8FAFC; }
+.tl-cell.weekend { background: #FFFBFB; }
+.tl-cell.today { background: #EFF6FF; }
+.tl-cell.weekend:hover, .tl-cell.today:hover { filter: brightness(0.97); }
+
+/* 마일스톤 마커 */
+.tl-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 8px;
+  color: #fff;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.1s;
+  line-height: 1.2;
+}
+.tl-marker:hover { transform: scale(1.08); }
+
+.tl-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: #94A3B8;
+  font-size: 13px;
+}
+
+/* 셀 편집 팝오버 */
+.tl-popover {
+  position: fixed;
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+  padding: 12px 14px;
+  z-index: 1000;
+  min-width: 220px;
+  font-size: 12.5px;
+  display: none;
+}
+.tl-popover.open { display: block; }
+.tl-popover-title {
+  font-weight: 800;
+  color: #0F172A;
+  font-size: 13px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #F1F5F9;
+}
+.tl-popover-target {
+  font-weight: 600;
+  color: #64748B;
+  font-size: 11px;
+  margin-top: 2px;
+}
+.tl-popover-list { display: flex; flex-direction: column; gap: 4px; max-height: 280px; overflow-y: auto; }
+.tl-popover-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.tl-popover-item:hover { background: #F1F5F9; }
+.tl-popover-item .tl-pop-dot {
+  width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0;
+}
+.tl-popover-item .tl-pop-label { flex: 1; font-size: 12px; font-weight: 600; color: #1E293B; }
+.tl-popover-item .tl-pop-check {
+  width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid #CBD5E1;
+  display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff;
+}
+.tl-popover-item.active .tl-pop-check { background: #2563EB; border-color: #2563EB; }
+
 /* 업로드 예정일 셀 */
 .upload-date-cell { position: relative; display: inline-block; }
 .upload-date-display {
@@ -2822,18 +3013,19 @@ table { border-collapse: collapse; width: 100%; }
   <!-- Calendar Section -->
   <section id="section-calendar" class="section">
     <div class="main-header">
-      <h1>캠페인 캘린더</h1>
+      <h1>캠페인 프로덕션 타임라인</h1>
       <div style="display:flex;gap:8px;align-items:center;">
-        <button class="btn btn-secondary btn-sm" onclick="calPrev()">◀</button>
-        <span id="cal-month-label" style="font-weight:700;font-size:16px;min-width:120px;text-align:center;"></span>
-        <button class="btn btn-secondary btn-sm" onclick="calNext()">▶</button>
-        <button class="btn btn-primary btn-sm" onclick="openCalEventModal()">+ 일정 추가</button>
+        <select id="tl-project-select" class="form-input" style="font-size:13px;padding:6px 10px;width:auto;min-width:160px;" onchange="renderTimeline()"></select>
+        <button class="btn btn-secondary btn-sm" onclick="tlPrev()">◀</button>
+        <span id="tl-month-label" style="font-weight:700;font-size:15px;min-width:110px;text-align:center;"></span>
+        <button class="btn btn-secondary btn-sm" onclick="tlNext()">▶</button>
       </div>
     </div>
-    <div class="main-body" style="padding:24px;">
-      <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);">
-      </div>
-      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;" id="cal-legend"></div>
+    <div class="main-body" style="padding:18px;">
+      <!-- 마일스톤 범례 -->
+      <div id="tl-legend" class="tl-legend"></div>
+      <!-- 타임라인 그리드 -->
+      <div id="tl-container" class="tl-container"></div>
     </div>
   </section>
 
@@ -3443,6 +3635,15 @@ table { border-collapse: collapse; width: 100%; }
 </div>
 
 <!-- 회신 메모 사이드 패널 (Drawer) -->
+<!-- 타임라인 셀 편집 팝오버 -->
+<div id="tl-popover" class="tl-popover">
+  <div class="tl-popover-title">
+    <div id="tl-popover-date">—</div>
+    <div class="tl-popover-target" id="tl-popover-target">—</div>
+  </div>
+  <div class="tl-popover-list" id="tl-popover-list"></div>
+</div>
+
 <!-- 전체 정확 재크롤 진행률 박스 -->
 <div id="bulk-recrawl-box" style="display:none; position:fixed; top:16px; right:16px; z-index:9999; background:#fff; border:1.5px solid #F59E0B; border-radius:12px; box-shadow:0 12px 32px rgba(0,0,0,0.18); padding:14px 18px; min-width:340px; max-width:420px; font-size:13px;">
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
@@ -8462,12 +8663,216 @@ function renderMediaMix() {
   });
 }
 
-// ===== Calendar =====
+// ===== Calendar (구버전 호환 — navigate('calendar')에서 renderCalendar 호출 시 새 renderTimeline 사용) =====
 let calYear, calMonth;
 (function() { const d = new Date(); calYear = d.getFullYear(); calMonth = d.getMonth(); })();
 
-function calPrev() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
-function calNext() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendar(); }
+function calPrev() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderTimeline(); }
+function calNext() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderTimeline(); }
+function tlPrev() { calPrev(); }
+function tlNext() { calNext(); }
+
+// ===== 프로덕션 타임라인 =====
+// 9개 마일스톤 정의 (key, label, color, direction: out=우리→인플루언서, in=←인플루언서)
+const MILESTONES = [
+  { key: 'contract_send',  label: '계약서 전달',  color: '#3B82F6', dir: 'out', short: '계약전달' },
+  { key: 'contract_sign',  label: '계약서 날인',  color: '#10B981', dir: 'in',  short: '계약날인' },
+  { key: 'usp_send',       label: 'USP 전달',     color: '#06B6D4', dir: 'out', short: 'USP' },
+  { key: 'plan_received',  label: '기획안 전달',  color: '#14B8A6', dir: 'in',  short: '기획안' },
+  { key: 'plan_feedback',  label: '기획안 피드백',color: '#F59E0B', dir: 'out', short: '기획FB' },
+  { key: 'video_v1',       label: '1차 영상',     color: '#22C55E', dir: 'in',  short: '1차영상' },
+  { key: 'video_feedback', label: '영상 피드백',  color: '#EF4444', dir: 'out', short: '영상FB' },
+  { key: 'video_final',    label: '최종본',       color: '#8B5CF6', dir: 'in',  short: '최종본' },
+  { key: 'upload',         label: '업로드',       color: '#EC4899', dir: 'in',  short: '업로드' },
+];
+const MILESTONE_MAP = Object.fromEntries(MILESTONES.map(m => [m.key, m]));
+
+let _tlPopoverCtx = { infId: null, dateStr: null };
+
+function renderTimeline() {
+  // 헤더 라벨
+  document.getElementById('tl-month-label').textContent = calYear + '년 ' + (calMonth + 1) + '월';
+
+  // 프로젝트 셀렉트 갱신
+  const sel = document.getElementById('tl-project-select');
+  const prevVal = sel.value || currentProjectId || Object.keys(allProjects)[0] || '';
+  const projOpts = Object.entries(allProjects)
+    .sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0))
+    .map(([id, p]) => `<option value="${id}" ${id === prevVal ? 'selected' : ''}>${escapeHtml(p.name || '(이름없음)')}</option>`)
+    .join('');
+  sel.innerHTML = projOpts || '<option value="">(프로젝트 없음)</option>';
+  const tlProjId = sel.value;
+
+  // 범례
+  const legendEl = document.getElementById('tl-legend');
+  legendEl.innerHTML = MILESTONES.map(m => `
+    <span class="tl-legend-item">
+      <span class="tl-legend-dot" style="background:${m.color};"></span>
+      ${escapeHtml(m.label)}
+      <span class="tl-legend-arrow">${m.dir === 'out' ? '→' : '←'}</span>
+    </span>
+  `).join('');
+
+  // 데이터: 해당 프로젝트의 활성 인플루언서 (excluded 제외)
+  const assigns = (allAssignments[tlProjId] || {});
+  const infs = Object.entries(assigns)
+    .filter(([_, a]) => a && a.status !== 'excluded')
+    .map(([infId, a]) => ({ infId, assign: a, inf: allInfluencers[infId] || {} }))
+    .filter(x => x.inf.name)
+    .sort((a, b) => (b.inf.followers || 0) - (a.inf.followers || 0));
+
+  const container = document.getElementById('tl-container');
+  if (!infs.length) {
+    container.innerHTML = `<div class="tl-empty">프로젝트에 배정된 인플루언서가 없습니다.<br><span style="font-size:11.5px;color:#CBD5E1;">제외(✕)된 인원은 표시되지 않습니다.</span></div>`;
+    return;
+  }
+
+  // 그리드 컬럼: [이름 220px] + 일자별 70px
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const NAME_W = 220, DAY_W = 70;
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+  let cols = `${NAME_W}px`;
+  for (let i = 0; i < daysInMonth; i++) cols += ` ${DAY_W}px`;
+
+  let html = `<div class="tl-grid" style="grid-template-columns:${cols};">`;
+  // corner
+  html += `<div class="tl-corner">인플루언서</div>`;
+
+  // 날짜 헤더
+  const dayNames = ['일','월','화','수','목','금','토'];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dt = new Date(calYear, calMonth, d);
+    const dow = dt.getDay();
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cls = dateStr === todayStr ? 'today' : (dow === 0 || dow === 6 ? 'weekend' : '');
+    html += `<div class="tl-date-header ${cls}">${d}<div class="tl-date-day">${dayNames[dow]}</div></div>`;
+  }
+
+  // 인플루언서 행
+  for (const { infId, assign, inf } of infs) {
+    const initial = (inf.name || '?')[0];
+    const avatar = inf.profileImage
+      ? `<img class="tl-name-avatar" src="${inf.profileImage}" alt="">`
+      : `<div class="tl-name-avatar">${escapeHtml(initial)}</div>`;
+    const channelLabel = (inf.channels || []).includes('instagram') ? 'Instagram' : 'YouTube';
+    html += `<div class="tl-name-cell" title="${escapeHtml(inf.name)}">
+      ${avatar}
+      <div class="tl-name-text">
+        ${escapeHtml(inf.name)}
+        <div class="tl-name-channel">${channelLabel} · ${fmtNumK(inf.followers || 0)}</div>
+      </div>
+    </div>`;
+
+    // 일자별 셀
+    const schedule = assign.schedule || {};
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dt = new Date(calYear, calMonth, d);
+      const dow = dt.getDay();
+      const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const cls = dateStr === todayStr ? 'today' : (dow === 0 || dow === 6 ? 'weekend' : '');
+
+      // 해당 날짜에 배치된 마일스톤 모음
+      const markers = MILESTONES.filter(m => schedule[m.key] === dateStr);
+      const markerHtml = markers.map(m =>
+        `<span class="tl-marker" style="background:${m.color};" title="${escapeHtml(m.label)} (${m.dir === 'out' ? '바로이집→인플루언서' : '인플루언서→바로이집'})">${escapeHtml(m.short)}</span>`
+      ).join('');
+
+      html += `<div class="tl-cell ${cls}" onclick="openTimelinePopover(event, '${infId}', '${dateStr}')">${markerHtml}</div>`;
+    }
+  }
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+// 셀 클릭 → 팝오버 열기
+function openTimelinePopover(ev, infId, dateStr) {
+  ev.stopPropagation();
+  const tlProjId = document.getElementById('tl-project-select').value;
+  const assign = (allAssignments[tlProjId] || {})[infId] || {};
+  const schedule = assign.schedule || {};
+  const inf = allInfluencers[infId] || {};
+  _tlPopoverCtx = { infId, dateStr, projId: tlProjId };
+
+  // 팝오버 내용
+  const [yyyy, mm, dd] = dateStr.split('-');
+  const dt = new Date(+yyyy, +mm - 1, +dd);
+  const dowLabel = ['일','월','화','수','목','금','토'][dt.getDay()];
+  document.getElementById('tl-popover-date').textContent = `${+mm}월 ${+dd}일 (${dowLabel})`;
+  document.getElementById('tl-popover-target').textContent = `${inf.name || '(이름없음)'} · 마일스톤 선택`;
+
+  document.getElementById('tl-popover-list').innerHTML = MILESTONES.map(m => {
+    // 해당 마일스톤이 이 날짜에 있으면 active
+    const isActive = schedule[m.key] === dateStr;
+    // 다른 날짜에 있으면 표시
+    const otherDate = schedule[m.key] && schedule[m.key] !== dateStr ? schedule[m.key] : null;
+    return `<div class="tl-popover-item ${isActive ? 'active' : ''}" onclick="toggleMilestoneOnDate('${m.key}')">
+      <span class="tl-pop-dot" style="background:${m.color};"></span>
+      <span class="tl-pop-label">${escapeHtml(m.label)} <span style="color:#94A3B8;font-weight:500;font-size:10.5px;">${m.dir === 'out' ? '→' : '←'}</span>${otherDate ? `<div style="font-size:10px;color:#94A3B8;font-weight:500;">현재: ${otherDate.slice(5).replace('-','/')}</div>` : ''}</span>
+      <span class="tl-pop-check">${isActive ? '✓' : ''}</span>
+    </div>`;
+  }).join('');
+
+  // 위치 계산
+  const pop = document.getElementById('tl-popover');
+  const rect = ev.currentTarget.getBoundingClientRect();
+  let left = rect.left;
+  let top = rect.bottom + 4;
+  const popW = 240;
+  if (left + popW > window.innerWidth - 8) left = window.innerWidth - popW - 8;
+  if (top + 360 > window.innerHeight) top = rect.top - 360;
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+  pop.classList.add('open');
+}
+
+function closeTimelinePopover() {
+  document.getElementById('tl-popover').classList.remove('open');
+  _tlPopoverCtx = { infId: null, dateStr: null };
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#tl-popover') && !e.target.closest('.tl-cell')) {
+    closeTimelinePopover();
+  }
+});
+
+// 마일스톤 토글 (이미 그 날짜에 있으면 제거, 없으면 그 날짜로 설정 — 같은 마일스톤은 1개만 존재 가능)
+function toggleMilestoneOnDate(milestoneKey) {
+  const { infId, dateStr, projId } = _tlPopoverCtx;
+  if (!infId || !dateStr) return;
+  const path = `${PATHS.assignments}/${projId}/${infId}/schedule`;
+  const cur = (allAssignments[projId] || {})[infId] || {};
+  const schedule = { ...(cur.schedule || {}) };
+  if (schedule[milestoneKey] === dateStr) {
+    delete schedule[milestoneKey];
+  } else {
+    schedule[milestoneKey] = dateStr;
+  }
+  if (firebaseReady) {
+    db.ref(path).set(schedule).then(() => {
+      // 로컬 캐시 동기화
+      if (!allAssignments[projId]) allAssignments[projId] = {};
+      if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
+      allAssignments[projId][infId].schedule = schedule;
+      renderTimeline();
+      // 팝오버 내용 갱신
+      const cell = document.querySelector(`.tl-cell[onclick*="'${infId}'"][onclick*="'${dateStr}'"]`);
+      if (cell) openTimelinePopover({ stopPropagation: () => {}, currentTarget: cell }, infId, dateStr);
+    });
+  } else {
+    if (!allAssignments[projId]) allAssignments[projId] = {};
+    if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
+    allAssignments[projId][infId].schedule = schedule;
+    renderTimeline();
+  }
+}
+
+// 기존 renderCalendar는 새 renderTimeline으로 위임
+function renderCalendar() {
+  renderTimeline();
+}
 
 const CAL_COLORS = { 'Meta':'#3B82F6','Google':'#10B981','네이버':'#2DB400','카카오':'#FEE500','토스':'#0064FF','인플루언서':'#EC4899','기타':'#64748B' };
 
@@ -8514,8 +8919,9 @@ function deleteCalEvent(id) {
   db.ref('campaign/calendar/' + id).remove().then(() => { renderCalendar(); toast('삭제 완료'); });
 }
 
-function renderCalendar() {
+function _legacyRenderCalendar() {
   if (!firebaseReady) return;
+  if (!document.getElementById('cal-month-label')) return;
   document.getElementById('cal-month-label').textContent = calYear + '년 ' + (calMonth + 1) + '월';
 
   db.ref('campaign/calendar').once('value', snap => {
