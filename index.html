@@ -1154,6 +1154,13 @@ table { border-collapse: collapse; width: 100%; }
   color: #047857;
   border-color: #A7F3D0;
 }
+/* 업로드 단계만 반전(filled) 강조 */
+.tl-flow-badge.is-upload {
+  background: #047857;
+  color: #ECFDF5;
+  border-color: #065F46;
+}
+.tl-flow-badge.is-upload .tl-flow-num { color: #FDE68A; }
 .tl-flow-num {
   font-size: 14px;
   font-weight: 900;
@@ -1347,6 +1354,13 @@ table { border-collapse: collapse; width: 100%; }
   color: #047857;
   border-color: #6EE7B7;
 }
+/* 업로드 단계 마커도 반전 강조 */
+.tl-marker.is-upload {
+  background: #047857;
+  color: #fff;
+  border-color: #065F46;
+}
+.tl-marker.is-upload .tl-marker-num { color: #FDE68A; }
 .tl-marker-num {
   font-size: 12px;
   font-weight: 900;
@@ -8893,7 +8907,7 @@ function renderTimeline() {
       <div class="tl-legend-flow-steps">
         ${MILESTONES.map((m, i) => `
           <div class="tl-flow-step">
-            <span class="tl-flow-badge dir-${m.dir}">
+            <span class="tl-flow-badge dir-${m.dir} ${m.key === 'upload' ? 'is-upload' : ''}">
               <span class="tl-flow-num">${m.step}</span>
               <span class="tl-flow-label">${escapeHtml(m.label)}</span>
             </span>
@@ -8989,7 +9003,7 @@ function renderTimeline() {
         const cls = dateStr === todayStr ? 'today' : (dow === 0 || dow === 6 ? 'weekend' : '');
         const markers = MILESTONES.filter(m => schedule[m.key] === dateStr);
         const markerHtml = markers.map(m =>
-          `<span class="tl-marker dir-${m.dir}"
+          `<span class="tl-marker dir-${m.dir} ${m.key === 'upload' ? 'is-upload' : ''}"
                  draggable="true"
                  ondragstart="startMarkerDrag(event, '${infId}', '${m.key}', '${dateStr}')"
                  ondragend="endMarkerDrag(event)"
