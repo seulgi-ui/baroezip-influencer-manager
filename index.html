@@ -5684,7 +5684,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (igInput) {
     igInput.addEventListener('input', () => {
       clearTimeout(ytDebounce);
-      ytDebounce = setTimeout(() => fetchInstagramData(igInput.value.trim()), 800);
+      // 입력 중 잦은 fetch 부담 방지 — 입력 멈춘 후 1.8초 뒤 1회만 호출
+      const val = igInput.value.trim();
+      // 너무 짧으면 호출 안 함 (보통 instagram.com/xxx 형태 완성된 후 트리거)
+      if (val.length < 8) return;
+      ytDebounce = setTimeout(() => fetchInstagramData(val), 1800);
     });
   }
 });
@@ -6080,18 +6084,24 @@ async function fetchInstagramData(url) {
         if (descMatch) {
           followers = parseKM(descMatch[1]);
         }
-        const titleMatch = html.match(/<title>([^(]+)/);
-        if (titleMatch) displayName = titleMatch[1].trim();
+        // og:title 우선 (HTML 태그 끼어들 가능성 낮음), 백업으로 <title>...</title>
+        const ogMatch = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i);
+        const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+        const rawName = (ogMatch && ogMatch[1]) || (titleMatch && titleMatch[1]) || '';
+        // HTML/JS 잔여 문자 차단
+        if (rawName && !/[<>]|script|^Instagram$/i.test(rawName)) {
+          displayName = rawName.trim().replace(/\s*\(@.*$/, '').replace(/\s*•\s*Instagram.*$/i, '');
+        }
       } catch (e) {
         console.warn('Instagram proxy fetch failed:', e);
       }
     }
 
-    document.getElementById('inf-followers').value = followers || '';
-    if (!document.getElementById('inf-name').value) document.getElementById('inf-name').value = displayName;
+    // 팔로워는 자동 채움 (수치라 안전), 이름은 더 이상 자동 채우지 않음 (사용자 입력 보호)
+    if (followers > 0) document.getElementById('inf-followers').value = followers;
 
     resultBox.innerHTML = `
-      <div class="yt-result-row"><span class="yt-result-label">유저명</span><span class="yt-result-value">${displayName}</span></div>
+      <div class="yt-result-row"><span class="yt-result-label">유저명</span><span class="yt-result-value">${escapeHtml(displayName)}</span></div>
       <div class="yt-result-row"><span class="yt-result-label">팔로워</span><span class="yt-result-value">${fmt(followers)}</span></div>
       <div class="yt-result-row"><span class="yt-result-label">게시물</span><span class="yt-result-value">${fmt(posts)}</span></div>
       <div class="yt-result-row"><span class="yt-result-label">릴스 조회수</span><span class="yt-result-value">-</span></div>
