@@ -2973,6 +2973,15 @@ table { border-collapse: collapse; width: 100%; }
 }
 .compare-active-only { }
 .action-chip.compare-on { background: #F5F3FF; border-color: rgba(168,85,247,0.3); color: #7C3AED; }
+.action-chip.select-on { background: #DBEAFE; border-color: #2563EB; color: #1D4ED8; font-weight: 800; }
+
+/* 선택 보기 모드 - 행 체크박스 + 선택된 행 강조 */
+.inf-table tr.select-checked td { background: #EFF6FF !important; }
+.inf-select-check {
+  cursor: pointer;
+  width: 16px; height: 16px;
+  accent-color: #2563EB;
+}
 
 /* Compare Modal */
 .compare-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); z-index:300; align-items:center; justify-content:center; }
@@ -3506,6 +3515,8 @@ table { border-collapse: collapse; width: 100%; }
           <button class="action-chip" onclick="refreshAllInfluencers()" title="전체 인플루언서 YouTube 통계 갱신 (빠름·SHORTS 부정확)">🔄 전체 새로고침</button>
           <button class="action-chip" onclick="recrawlAllAccurate()" title="모든 YouTube 채널 SHORTS/LONG 정확 식별 (느림·정확)" style="background:#FEF3C7;border-color:#F59E0B;color:#B45309;">⚡ 전체 정확 재크롤</button>
           <button class="action-chip" onclick="exportCSV()">📥 CSV 내보내기</button>
+          <button class="action-chip" id="btn-select-toggle" onclick="toggleSelectView()" title="원하는 인플루언서만 체크해서 보기">☑️ 선택 보기</button>
+          <button class="action-chip select-active-only" id="btn-select-clear" onclick="clearSelectView()" style="display:none;background:#FEE2E2;border-color:#FECACA;color:#991B1B;">🗑 선택 초기화 (<span id="select-count">0</span>명)</button>
           <button class="action-chip" id="btn-compare-toggle" onclick="toggleCompareMode()">⚖️ 비교 모드</button>
           <button class="action-chip compare-active-only" id="btn-compare-run" onclick="showCompareModal()" style="display:none;">📊 선택 비교 (<span id="compare-count">0</span>명)</button>
           <button class="action-chip compare-active-only" id="btn-compare-cancel" onclick="toggleCompareMode()" style="display:none;">✕ 비교 취소</button>
@@ -5398,6 +5409,11 @@ function renderInfluencers() {
     items = items.filter(i => (i.contactStatus || 'none') === contactFilter);
   }
 
+  // 선택 보기 모드: 선택된 인원이 1명 이상이면 그 사람들만 필터링
+  if (selectViewMode && selectedViewIds.size > 0) {
+    items = items.filter(i => selectedViewIds.has(i.id));
+  }
+
   // Calculate CPV for each item
   const priceField = currentChannel === 'youtube' ? 'priceYoutube' : 'priceInstagram';
   items.forEach(i => {
@@ -5486,9 +5502,14 @@ function renderInfluencers() {
     const csMap = { none:'미연락', contacting:'컨택예정', waiting:'회신대기', negotiating:'협의중', confirmed:'확정', rejected:'거절' };
 
     // Build columns based on channel
-    const starTd = `<td>${compareMode
-      ? `<input type="checkbox" class="compare-check" ${compareSelected.has(inf.id) ? 'checked' : ''} onclick="event.stopPropagation();toggleCompareSelect('${inf.id}', this)">`
-      : `<button class="star-btn ${inf.favorite ? 'active' : ''}" onclick="event.stopPropagation();toggleFavorite('${inf.id}',${!!inf.favorite})">★</button>`
+    // 비교 모드 > 선택 보기 모드 > 별표 순서로 표시
+    const starTd = `<td>${
+      compareMode
+        ? `<input type="checkbox" class="compare-check" ${compareSelected.has(inf.id) ? 'checked' : ''} onclick="event.stopPropagation();toggleCompareSelect('${inf.id}', this)">`
+        : (selectViewMode
+            ? `<input type="checkbox" class="inf-select-check" ${selectedViewIds.has(inf.id) ? 'checked' : ''} onclick="event.stopPropagation();toggleSelectViewItem('${inf.id}', this)">`
+            : `<button class="star-btn ${inf.favorite ? 'active' : ''}" onclick="event.stopPropagation();toggleFavorite('${inf.id}',${!!inf.favorite})">★</button>`
+          )
     }</td>`;
     const nameTd = `<td><div class="name-cell">${avatarHtml}<div><div class="name-text">${inf.name || ''}</div><div class="name-sub">${inf.analysis ? inf.analysis.substring(0, 25) + '...' : ''}</div></div></div></td>`;
     const csOpts = Object.entries(csMap).map(([k, label]) =>
@@ -5504,8 +5525,9 @@ function renderInfluencers() {
         <button class="inf-action-item danger" onclick="event.stopPropagation();closeAllInfActionMenus();deleteInfluencerWithCleanup('${inf.id}')">🗑 삭제</button>
       </div></div></td>`;
 
+    const rowClass = (selectViewMode && selectedViewIds.has(inf.id)) ? ' class="select-checked"' : '';
     if (isYT) {
-      return `<tr onclick="openDetailPanel('${inf.id}')">${starTd}${nameTd}
+      return `<tr${rowClass} onclick="openDetailPanel('${inf.id}')">${starTd}${nameTd}
         <td>${badge}</td>
         <td class="num">${fmtK(inf.followers)}</td>
         <td class="num">${fmtK(inf.avgViewsLong)}</td>
@@ -5513,7 +5535,7 @@ function renderInfluencers() {
         <td class="num">${fmtK(inf.avgLikes)}</td>
         ${commonTds}</tr>`;
     } else {
-      return `<tr onclick="openDetailPanel('${inf.id}')">${starTd}${nameTd}
+      return `<tr${rowClass} onclick="openDetailPanel('${inf.id}')">${starTd}${nameTd}
         <td>${badge}</td>
         <td class="num">${fmtK(inf.followers)}</td>
         <td class="num">${fmtK(inf.avgViewsShort)}</td>
@@ -8258,7 +8280,46 @@ function exportCSV() {
 let compareMode = false;
 let compareSelected = new Set();
 
+// 선택 보기 모드 — 체크한 사람만 표시
+let selectViewMode = false;
+let selectedViewIds = new Set();
+
+function toggleSelectView() {
+  selectViewMode = !selectViewMode;
+  // 비교 모드와 동시 활성 금지
+  if (selectViewMode && compareMode) toggleCompareMode();
+  document.getElementById('btn-select-toggle').classList.toggle('select-on', selectViewMode);
+  document.getElementById('btn-select-toggle').textContent = selectViewMode
+    ? `☑️ 선택 보기 (${selectedViewIds.size}명)`
+    : '☑️ 선택 보기';
+  document.querySelectorAll('.select-active-only').forEach(el => el.style.display = selectViewMode ? 'inline-flex' : 'none');
+  renderInfluencers();
+  if (selectViewMode && selectedViewIds.size === 0) {
+    showToast('체크박스로 표시할 인플루언서를 선택하세요');
+  }
+}
+
+function toggleSelectViewItem(id, checkbox) {
+  if (checkbox.checked) selectedViewIds.add(id);
+  else selectedViewIds.delete(id);
+  // 카운트 갱신
+  document.getElementById('btn-select-toggle').textContent = `☑️ 선택 보기 (${selectedViewIds.size}명)`;
+  const cntEl = document.getElementById('select-count');
+  if (cntEl) cntEl.textContent = selectedViewIds.size;
+  // 필터 즉시 재적용 (0명이면 전체 표시 유지)
+  renderInfluencers();
+}
+
+function clearSelectView() {
+  selectedViewIds.clear();
+  document.getElementById('btn-select-toggle').textContent = '☑️ 선택 보기 (0명)';
+  document.getElementById('select-count').textContent = '0';
+  renderInfluencers();
+}
+
 function toggleCompareMode() {
+  // 선택 보기 모드와 동시 활성 금지
+  if (!compareMode && selectViewMode) toggleSelectView();
   compareMode = !compareMode;
   compareSelected.clear();
   document.getElementById('btn-compare-toggle').classList.toggle('compare-on', compareMode);
