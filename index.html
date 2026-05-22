@@ -2979,9 +2979,17 @@ table { border-collapse: collapse; width: 100%; }
 .inf-table tr.select-checked td { background: #EFF6FF !important; }
 .inf-select-check {
   cursor: pointer;
-  width: 16px; height: 16px;
+  width: 15px; height: 15px;
   accent-color: #2563EB;
+  margin: 0;
+  flex-shrink: 0;
 }
+.inf-select-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.inf-select-row .star-btn { margin: 0; }
 
 /* Compare Modal */
 .compare-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); z-index:300; align-items:center; justify-content:center; }
@@ -5502,13 +5510,14 @@ function renderInfluencers() {
     const csMap = { none:'미연락', contacting:'컨택예정', waiting:'회신대기', negotiating:'협의중', confirmed:'확정', rejected:'거절' };
 
     // Build columns based on channel
-    // 비교 모드 > 선택 보기 모드 > 별표 순서로 표시
+    // 비교 모드: 체크박스만 / 선택 보기 모드: 체크박스 + 별표 / 일반: 별표만
+    const starBtn = `<button class="star-btn ${inf.favorite ? 'active' : ''}" onclick="event.stopPropagation();toggleFavorite('${inf.id}',${!!inf.favorite})">★</button>`;
     const starTd = `<td>${
       compareMode
         ? `<input type="checkbox" class="compare-check" ${compareSelected.has(inf.id) ? 'checked' : ''} onclick="event.stopPropagation();toggleCompareSelect('${inf.id}', this)">`
         : (selectViewMode
-            ? `<input type="checkbox" class="inf-select-check" ${selectedViewIds.has(inf.id) ? 'checked' : ''} onclick="event.stopPropagation();toggleSelectViewItem('${inf.id}', this)">`
-            : `<button class="star-btn ${inf.favorite ? 'active' : ''}" onclick="event.stopPropagation();toggleFavorite('${inf.id}',${!!inf.favorite})">★</button>`
+            ? `<div class="inf-select-row"><input type="checkbox" class="inf-select-check" ${selectedViewIds.has(inf.id) ? 'checked' : ''} onclick="event.stopPropagation();toggleSelectViewItem('${inf.id}', this)">${starBtn}</div>`
+            : starBtn
           )
     }</td>`;
     const nameTd = `<td><div class="name-cell">${avatarHtml}<div><div class="name-text">${inf.name || ''}</div><div class="name-sub">${inf.analysis ? inf.analysis.substring(0, 25) + '...' : ''}</div></div></div></td>`;
