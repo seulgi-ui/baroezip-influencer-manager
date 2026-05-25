@@ -1281,44 +1281,25 @@ table { border-collapse: collapse; width: 100%; }
   font-weight: 600;
 }
 
-/* 좌측 고정 — 콘텐츠 유형 / 매물 유형 컬럼 */
-.tl-type-cell, .tl-prop-cell {
-  position: sticky;
-  z-index: 14;
-  background: #fff;
-  padding: 8px 6px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #475569;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-right: 1px solid #F1F5F9;
-  border-bottom: 1px solid #F1F5F9;
-  min-height: 44px;
-  box-sizing: border-box;
-}
-.tl-type-cell { left: 220px; }
-.tl-prop-cell { left: 290px; border-right: 2px solid #CBD5E1; }
-.tl-corner.col2 { left: 220px; border-right: 1px solid #CBD5E1; }
-.tl-corner.col3 { left: 290px; border-right: 2px solid #CBD5E1; }
-.tl-type-chip, .tl-prop-chip {
+/* 인플루언서 셀 하단 메타라인의 작은 칩들 (유형 / 매물) */
+.tl-meta-chip {
   display: inline-flex;
   align-items: center;
-  font-size: 10.5px;
+  font-size: 9.5px;
   font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 10px;
+  padding: 1px 6px;
+  border-radius: 7px;
   letter-spacing: -0.2px;
   white-space: nowrap;
+  line-height: 1.4;
+  margin-left: 4px;
 }
-.tl-type-chip.long    { background: #DBEAFE; color: #1E40AF; }
-.tl-type-chip.short   { background: #EDE9FE; color: #6D28D9; }
-.tl-type-chip.reels   { background: #FCE7F3; color: #BE185D; }
-.tl-prop-chip.sale    { background: #FFEDD5; color: #C2410C; }
-.tl-prop-chip.jeonse  { background: #D1FAE5; color: #047857; }
-.tl-prop-chip.monthly { background: #CFFAFE; color: #0E7490; }
-.tl-chip-empty { color: #CBD5E1; font-weight: 600; font-size: 12px; }
+.tl-meta-chip.long    { background: #DBEAFE; color: #1E40AF; }
+.tl-meta-chip.short   { background: #EDE9FE; color: #6D28D9; }
+.tl-meta-chip.reels   { background: #FCE7F3; color: #BE185D; }
+.tl-meta-chip.sale    { background: #FFEDD5; color: #C2410C; }
+.tl-meta-chip.jeonse  { background: #D1FAE5; color: #047857; }
+.tl-meta-chip.monthly { background: #CFFAFE; color: #0E7490; }
 
 /* 그룹 헤더 (전체 컬럼 차지) */
 .tl-group-header {
@@ -9242,20 +9223,18 @@ function renderTimeline() {
     return;
   }
 
-  // 그리드 컬럼: [이름 220px] [유형 70px] [매물 80px] + 일자별 70px
+  // 그리드 컬럼: [이름 240px] + 일자별 70px (유형·매물은 인플 셀 메타라인에 칩으로 통합)
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-  const NAME_W = 220, TYPE_W = 70, PROP_W = 80, DAY_W = 70;
+  const NAME_W = 240, DAY_W = 70;
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
 
-  let cols = `${NAME_W}px ${TYPE_W}px ${PROP_W}px`;
+  let cols = `${NAME_W}px`;
   for (let i = 0; i < daysInMonth; i++) cols += ` ${DAY_W}px`;
 
   let html = `<div class="tl-grid" style="grid-template-columns:${cols};">`;
-  // corners (3개: 인플루언서 / 유형 / 매물 유형)
+  // corner (인플루언서만)
   html += `<div class="tl-corner">인플루언서</div>`;
-  html += `<div class="tl-corner col2">유형</div>`;
-  html += `<div class="tl-corner col3">매물 유형</div>`;
 
   // 날짜 헤더
   const dayNames = ['일','월','화','수','목','금','토'];
@@ -9290,27 +9269,26 @@ function renderTimeline() {
       const costBadge = cost > 0
         ? `<span class="tl-name-cost">💰 ${fmt(cost)}만</span>`
         : `<span class="tl-name-cost tl-name-cost-empty">단가 미정</span>`;
+      // 콘텐츠 유형 (유튜브: 롱폼/쇼츠, 인스타: 릴스) — 빈 값이면 칩 자체 생략
+      const isIG = (inf.channels || []).includes('instagram');
+      const ct = assign.contentType;
+      let typeChip = '';
+      if (isIG)                     typeChip = `<span class="tl-meta-chip reels">릴스</span>`;
+      else if (ct === 'long')       typeChip = `<span class="tl-meta-chip long">롱폼</span>`;
+      else if (ct === 'short')      typeChip = `<span class="tl-meta-chip short">쇼츠</span>`;
+
+      // 매물 유형 — 빈 값이면 칩 자체 생략
+      const PROP_MAP = { sale: '매매', jeonse: '전세', monthly: '월세' };
+      const pt = assign.propertyType;
+      const propChip = PROP_MAP[pt] ? `<span class="tl-meta-chip ${pt}">${PROP_MAP[pt]}</span>` : '';
+
       groupHtml += `<div class="tl-name-cell" title="${escapeHtml(inf.name)}">
         ${avatar}
         <div class="tl-name-text">
           <div class="tl-name-top">${escapeHtml(inf.name)} ${costBadge}</div>
-          <div class="tl-name-channel">${channelLabel} · ${fmtNumK(inf.followers || 0)} ${subLabel}</div>
+          <div class="tl-name-channel">${channelLabel} · ${fmtNumK(inf.followers || 0)} ${subLabel}${typeChip}${propChip}</div>
         </div>
       </div>`;
-
-      // 콘텐츠 유형 셀 (유튜브: 롱폼/쇼츠, 인스타: 무조건 릴스)
-      const isIG = (inf.channels || []).includes('instagram');
-      const ct = assign.contentType;
-      let typeLabel = '', typeCls = '';
-      if (isIG) { typeLabel = '릴스'; typeCls = 'reels'; }
-      else if (ct === 'long')  { typeLabel = '롱폼'; typeCls = 'long'; }
-      else if (ct === 'short') { typeLabel = '쇼츠'; typeCls = 'short'; }
-      groupHtml += `<div class="tl-type-cell">${typeLabel ? `<span class="tl-type-chip ${typeCls}">${typeLabel}</span>` : '<span class="tl-chip-empty">-</span>'}</div>`;
-
-      // 매물 유형 셀 (매매/전세/월세)
-      const PROP_MAP = { sale: ['매매','sale'], jeonse: ['전세','jeonse'], monthly: ['월세','monthly'] };
-      const propEntry = PROP_MAP[assign.propertyType];
-      groupHtml += `<div class="tl-prop-cell">${propEntry ? `<span class="tl-prop-chip ${propEntry[1]}">${propEntry[0]}</span>` : '<span class="tl-chip-empty">-</span>'}</div>`;
 
       const schedule = assign.schedule || {};
       for (let d = 1; d <= daysInMonth; d++) {
