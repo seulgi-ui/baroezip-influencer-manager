@@ -1281,25 +1281,102 @@ table { border-collapse: collapse; width: 100%; }
   font-weight: 600;
 }
 
-/* 인플루언서 셀 하단 메타라인의 작은 칩들 (유형 / 매물) */
-.tl-meta-chip {
-  display: inline-flex;
-  align-items: center;
-  font-size: 9.5px;
-  font-weight: 800;
-  padding: 1px 6px;
-  border-radius: 7px;
-  letter-spacing: -0.2px;
-  white-space: nowrap;
-  line-height: 1.4;
-  margin-left: 4px;
+/* 콘텐츠 유형을 암시하는 작은 컬러 도트 (이름 옆) */
+.tl-type-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-left: 2px;
 }
-.tl-meta-chip.long    { background: #DBEAFE; color: #1E40AF; }
-.tl-meta-chip.short   { background: #EDE9FE; color: #6D28D9; }
-.tl-meta-chip.reels   { background: #FCE7F3; color: #BE185D; }
-.tl-meta-chip.sale    { background: #FFEDD5; color: #C2410C; }
-.tl-meta-chip.jeonse  { background: #D1FAE5; color: #047857; }
-.tl-meta-chip.monthly { background: #CFFAFE; color: #0E7490; }
+.tl-type-dot.long  { background: #2563EB; }
+.tl-type-dot.short { background: #7C3AED; }
+.tl-type-dot.reels { background: #DB2777; }
+
+/* 호버 카드 — 인플 셀 우측에 팝오버 */
+.tl-hover-card {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-6px);
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14);
+  padding: 12px 14px;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #334155;
+  white-space: nowrap;
+}
+.tl-name-cell:hover .tl-hover-card {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+.tl-hover-card::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-left: 1px solid #E2E8F0;
+  border-bottom: 1px solid #E2E8F0;
+}
+.tl-hc-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0F172A;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #F1F5F9;
+  letter-spacing: -0.3px;
+}
+.tl-hc-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 3px 0;
+}
+.tl-hc-label { color: #94A3B8; font-weight: 600; font-size: 11px; }
+.tl-hc-value { color: #0F172A; font-weight: 700; font-size: 11.5px; }
+.tl-hc-value.muted { color: #CBD5E1; font-weight: 500; }
+.tl-hc-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 8px;
+  letter-spacing: -0.2px;
+}
+.tl-hc-tag.long    { background: #DBEAFE; color: #1E40AF; }
+.tl-hc-tag.short   { background: #EDE9FE; color: #6D28D9; }
+.tl-hc-tag.reels   { background: #FCE7F3; color: #BE185D; }
+.tl-hc-tag.sale    { background: #FFEDD5; color: #C2410C; }
+.tl-hc-tag.jeonse  { background: #D1FAE5; color: #047857; }
+.tl-hc-tag.monthly { background: #CFFAFE; color: #0E7490; }
+.tl-hc-email {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #F1F5F9;
+  font-size: 11px;
+  color: #475569;
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+  word-break: break-all;
+  white-space: normal;
+}
+
+/* 인플 셀에 호버 카드 위치 기준이 되도록 overflow 허용 */
+.tl-name-cell { overflow: visible; }
 
 /* 그룹 헤더 (전체 컬럼 차지) */
 .tl-group-header {
@@ -9269,25 +9346,39 @@ function renderTimeline() {
       const costBadge = cost > 0
         ? `<span class="tl-name-cost">💰 ${fmt(cost)}만</span>`
         : `<span class="tl-name-cost tl-name-cost-empty">단가 미정</span>`;
-      // 콘텐츠 유형 (유튜브: 롱폼/쇼츠, 인스타: 릴스) — 빈 값이면 칩 자체 생략
+      // 콘텐츠 유형 결정 (유튜브: 롱폼/쇼츠, 인스타: 무조건 릴스)
       const isIG = (inf.channels || []).includes('instagram');
       const ct = assign.contentType;
-      let typeChip = '';
-      if (isIG)                     typeChip = `<span class="tl-meta-chip reels">릴스</span>`;
-      else if (ct === 'long')       typeChip = `<span class="tl-meta-chip long">롱폼</span>`;
-      else if (ct === 'short')      typeChip = `<span class="tl-meta-chip short">쇼츠</span>`;
+      let typeKey = '', typeLabel = '';
+      if (isIG)                { typeKey = 'reels'; typeLabel = '릴스'; }
+      else if (ct === 'long')  { typeKey = 'long';  typeLabel = '롱폼'; }
+      else if (ct === 'short') { typeKey = 'short'; typeLabel = '쇼츠'; }
 
-      // 매물 유형 — 빈 값이면 칩 자체 생략
+      // 매물 유형
       const PROP_MAP = { sale: '매매', jeonse: '전세', monthly: '월세' };
       const pt = assign.propertyType;
-      const propChip = PROP_MAP[pt] ? `<span class="tl-meta-chip ${pt}">${PROP_MAP[pt]}</span>` : '';
+      const propLabel = PROP_MAP[pt] || '';
 
-      groupHtml += `<div class="tl-name-cell" title="${escapeHtml(inf.name)}">
+      // 이름 옆 도트 (유형이 있을 때만)
+      const typeDot = typeKey ? `<span class="tl-type-dot ${typeKey}" title="${typeLabel}"></span>` : '';
+
+      // 호버 카드 — 풀 상세 정보
+      const hoverCard = `<div class="tl-hover-card">
+        <div class="tl-hc-name">${escapeHtml(inf.name)}</div>
+        <div class="tl-hc-row"><span class="tl-hc-label">채널</span><span class="tl-hc-value">${channelLabel}</span></div>
+        <div class="tl-hc-row"><span class="tl-hc-label">${subLabel}</span><span class="tl-hc-value">${fmtNumK(inf.followers || 0)}</span></div>
+        <div class="tl-hc-row"><span class="tl-hc-label">유형</span><span class="tl-hc-value">${typeKey ? `<span class="tl-hc-tag ${typeKey}">${typeLabel}</span>` : '<span class="muted">-</span>'}</span></div>
+        <div class="tl-hc-row"><span class="tl-hc-label">매물</span><span class="tl-hc-value">${propLabel ? `<span class="tl-hc-tag ${pt}">${propLabel}</span>` : '<span class="muted">-</span>'}</span></div>
+        <div class="tl-hc-row"><span class="tl-hc-label">단가</span><span class="tl-hc-value">${cost > 0 ? fmt(cost) + '만원' : '<span class="muted">미정</span>'}</span></div>
+        ${inf.email ? `<div class="tl-hc-email">${escapeHtml(inf.email)}</div>` : ''}
+      </div>`;
+
+      groupHtml += `<div class="tl-name-cell" title="">
         ${avatar}
         <div class="tl-name-text">
-          <div class="tl-name-top">${escapeHtml(inf.name)} ${costBadge}</div>
-          <div class="tl-name-channel">${channelLabel} · ${fmtNumK(inf.followers || 0)} ${subLabel}${typeChip}${propChip}</div>
+          <div class="tl-name-top">${escapeHtml(inf.name)}${typeDot} ${costBadge}</div>
         </div>
+        ${hoverCard}
       </div>`;
 
       const schedule = assign.schedule || {};
