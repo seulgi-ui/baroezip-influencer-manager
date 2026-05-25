@@ -8218,10 +8218,16 @@ function renderReportBar() {
   </svg>`;
 
   // Legend
+  const STATUS_META = {
+    noResponse: '2회 리마인드 무응답'
+  };
   const legend = Object.entries(STATUS_MAP).map(([key, { label, color }]) => {
     const count = statusCounts[key];
     if (!count) return '';
-    return `<div class="legend-item"><div class="legend-dot" style="background:${color};"></div>${label}: ${count}</div>`;
+    const meta = STATUS_META[key]
+      ? `<span style="margin-left:6px;font-size:10px;color:var(--text-muted);font-weight:400;">(${STATUS_META[key]})</span>`
+      : '';
+    return `<div class="legend-item"><div class="legend-dot" style="background:${color};"></div>${label}: ${count}${meta}</div>`;
   }).join('');
 
   // Metrics
