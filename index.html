@@ -9324,6 +9324,17 @@ function renderTimeline() {
   html += renderGroup('인스타그램', igList, '#E1306C', igIcon);
   html += `</div>`;
   container.innerHTML = html;
+
+  // 보고 있는 달이 '이번 달'이면 오늘 컬럼이 보이도록 자동 스크롤 (이름 컬럼은 sticky라 0번째 day 기준 offset 적용)
+  const now = new Date();
+  if (now.getFullYear() === calYear && now.getMonth() === calMonth) {
+    const todayDay = now.getDate();
+    // 오늘 컬럼 앞에 2일치 여백을 두고 보이게
+    const targetScroll = Math.max(0, (todayDay - 3) * DAY_W);
+    container.scrollLeft = targetScroll;
+  } else {
+    container.scrollLeft = 0;
+  }
 }
 
 // 셀 클릭 → 팝오버 열기
