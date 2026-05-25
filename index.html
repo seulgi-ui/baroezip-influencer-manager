@@ -3799,6 +3799,7 @@ table { border-collapse: collapse; width: 100%; }
                 <th style="width:100px;">현황<div class="th-resizer"></div></th>
                 <th style="width:80px;">유형<div class="th-resizer"></div></th>
                 <th style="width:130px;">업로드 예정일<div class="th-resizer"></div></th>
+                <th style="width:90px;">매물 유형<div class="th-resizer"></div></th>
                 <th style="width:160px;">업로드 링크<div class="th-resizer"></div></th>
                 <th style="width:100px;">원링크<div class="th-resizer"></div></th>
                 <th style="width:80px;">조회수<div class="th-resizer"></div></th>
@@ -4816,6 +4817,15 @@ table { border-collapse: collapse; width: 100%; }
       <div class="form-group">
         <label class="form-label">업로드 예정일</label>
         <input type="date" id="prog-upload-date" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">매물 유형</label>
+        <select id="prog-property-type" class="form-input">
+          <option value="">-</option>
+          <option value="sale">매매</option>
+          <option value="jeonse">전세</option>
+          <option value="monthly">월세</option>
+        </select>
       </div>
       <div class="form-group">
         <label class="form-label">업로드 URL</label>
@@ -6433,7 +6443,7 @@ function renderTrackTable() {
   }));
 
   if (!entries.length) {
-    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--text-muted);padding:20px;">배정된 인플루언서가 없습니다</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;color:var(--text-muted);padding:20px;">배정된 인플루언서가 없습니다</td></tr>';
     document.getElementById('btn-crawl-all').style.display = 'none';
     return;
   }
@@ -6461,7 +6471,7 @@ function renderTrackTable() {
   let html = '';
   [['youtube', '유튜브'], ['instagram', '인스타그램']].forEach(([key, label]) => {
     if (!groups[key].length) return;
-    html += `<tr class="track-group-header"><td colspan="12">${label} (${groups[key].length})</td></tr>`;
+    html += `<tr class="track-group-header"><td colspan="13">${label} (${groups[key].length})</td></tr>`;
     groups[key].forEach(e => {
       const st = STATUS_MAP[e.status] || STATUS_MAP.recruiting;
       const chBadge = key === 'youtube' ? '<span class="badge badge-youtube"><svg width="14" height="10" viewBox="0 0 24 17" fill="#FF0000"><path d="M23.5 2.5c-.3-1-1-1.8-2-2.1C19.6 0 12 0 12 0S4.4 0 2.5.4c-1 .3-1.7 1.1-2 2.1C0 4.4 0 8.3 0 8.3s0 3.9.5 5.8c.3 1 1 1.8 2 2.1 1.9.5 9.5.5 9.5.5s7.6 0 9.5-.5c1-.3 1.7-1.1 2-2.1.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 12V4.7l6.4 3.6L9.5 12z"/></svg></span>' : '<span class="badge badge-instagram"><svg width="14" height="14" viewBox="0 0 24 24" fill="#E1306C"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.2 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1.1.4 2.2.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.9c-.1 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1.1.4-2.2.4-1.3.1-1.6.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1.1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.2-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1.1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zM12 0C8.7 0 8.3 0 7 .1 5.7.1 4.8.3 4 .6 3.2.9 2.5 1.3 1.8 2 1.1 2.7.7 3.4.4 4.2.2 5 0 5.9 0 7.2 0 8.5 0 8.9 0 12s0 3.7.1 5c0 1.3.2 2.2.5 3 .3.8.7 1.5 1.4 2.2.7.7 1.4 1.1 2.2 1.4.8.3 1.7.5 3 .5 1.3.1 1.7.1 5 .1s3.7 0 5-.1c1.3 0 2.2-.2 3-.5.8-.3 1.5-.7 2.2-1.4.7-.7 1.1-1.4 1.4-2.2.3-.8.5-1.7.5-3 .1-1.3.1-1.7.1-5s0-3.7-.1-5c0-1.3-.2-2.2-.5-3-.3-.8-.7-1.5-1.4-2.2C21.3 1.3 20.6.9 19.8.6 19 .3 18.1.1 16.8.1 15.5 0 15.1 0 12 0zm0 5.8a6.2 6.2 0 100 12.4 6.2 6.2 0 000-12.4zM12 16a4 4 0 110-8 4 4 0 010 8zm6.4-10.8a1.44 1.44 0 100 2.88 1.44 1.44 0 000-2.88z"/></svg></span>';
@@ -6507,6 +6517,12 @@ function renderTrackTable() {
           <option value="image" ${e.contentType === 'image' ? 'selected' : ''}>이미지</option>
         </select></td>
         <td><div class="upload-date-cell"><button type="button" class="upload-date-display ${e.uploadDate ? '' : 'empty'}" onclick="this.nextElementSibling.showPicker && this.nextElementSibling.showPicker(); this.nextElementSibling.focus(); this.nextElementSibling.click();">${formatUploadDate(e.uploadDate)}<span class="upload-date-caret">▾</span></button><input type="date" class="upload-date-hidden" value="${e.uploadDate || ''}" onchange="saveTrackField('${currentProjectId}','${e.infId}','uploadDate',this.value)"></div></td>
+        <td><select onchange="saveTrackField('${currentProjectId}','${e.infId}','propertyType',this.value)">
+          <option value="">-</option>
+          <option value="sale" ${e.propertyType === 'sale' ? 'selected' : ''}>매매</option>
+          <option value="jeonse" ${e.propertyType === 'jeonse' ? 'selected' : ''}>전세</option>
+          <option value="monthly" ${e.propertyType === 'monthly' ? 'selected' : ''}>월세</option>
+        </select></td>
         <td><input type="text" value="${e.uploadUrl || ''}" placeholder="URL 입력" onchange="saveTrackField('${currentProjectId}','${e.infId}','uploadUrl',this.value)" style="width:140px;"></td>
         <td>${renderTrackingUrlCell(e)}</td>
         <td style="font-weight:600;">${fmt(e.views)}</td>
@@ -7142,7 +7158,7 @@ function addAssignment(infId) {
   if (!currentProjectId) return;
   const inf = allInfluencers[infId];
   const cost = inf ? (assignChannel === 'youtube' ? inf.priceYoutube : inf.priceInstagram) || 0 : 0;
-  const data = { status: 'recruiting', cost, contentType: '', uploadUrl: '', trackingUrl: '', views: 0, likes: 0, comments: 0, memo: '', createdAt: Date.now(), updatedAt: Date.now() };
+  const data = { status: 'recruiting', cost, contentType: '', propertyType: '', uploadUrl: '', trackingUrl: '', views: 0, likes: 0, comments: 0, memo: '', createdAt: Date.now(), updatedAt: Date.now() };
 
   if (firebaseReady) {
     db.ref(PATHS.assignments + '/' + currentProjectId + '/' + infId).set(data);
@@ -8274,6 +8290,7 @@ function openProgressDetail(projId, infId) {
   document.getElementById('prog-upload-date').value = a.uploadDate || '';
   document.getElementById('prog-upload-url').value = a.uploadUrl || '';
   document.getElementById('prog-tracking-url').value = a.trackingUrl || '';
+  document.getElementById('prog-property-type').value = a.propertyType || '';
   document.getElementById('prog-views').value = a.views || '';
   document.getElementById('prog-likes').value = a.likes || '';
   document.getElementById('prog-comments').value = a.comments || '';
@@ -8288,6 +8305,7 @@ function saveProgressDetail() {
     uploadDate: document.getElementById('prog-upload-date').value,
     uploadUrl: document.getElementById('prog-upload-url').value,
     trackingUrl: document.getElementById('prog-tracking-url').value,
+    propertyType: document.getElementById('prog-property-type').value,
     views: Number(document.getElementById('prog-views').value) || 0,
     likes: Number(document.getElementById('prog-likes').value) || 0,
     comments: Number(document.getElementById('prog-comments').value) || 0,
