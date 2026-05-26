@@ -4017,6 +4017,7 @@ table { border-collapse: collapse; width: 100%; }
       <div style="display:flex;gap:6px;margin-bottom:14px;">
         <button type="button" id="proposal-tab-url" class="proposal-tab active" onclick="switchProposalTab('url')">🔗 URL</button>
         <button type="button" id="proposal-tab-file" class="proposal-tab" onclick="switchProposalTab('file')">📎 파일</button>
+        <button type="button" id="proposal-tab-text" class="proposal-tab" onclick="switchProposalTab('text')">📝 텍스트</button>
       </div>
 
       <div id="proposal-pane-url">
@@ -4036,6 +4037,12 @@ table { border-collapse: collapse; width: 100%; }
         <input type="file" id="proposal-file-input" accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.zip,.png,.jpg,.jpeg" style="width:100%;font-size:12px;">
         <div id="proposal-upload-status" style="margin-top:8px;font-size:11.5px;color:var(--text-muted);"></div>
         <div style="margin-top:6px;font-size:11px;color:var(--text-muted);">최대 25MB. PDF/PPT/DOC/HWP/이미지 등 업로드 가능합니다.</div>
+      </div>
+
+      <div id="proposal-pane-text" style="display:none;">
+        <label class="form-label" for="proposal-text-input">기획안 텍스트</label>
+        <textarea id="proposal-text-input" class="form-input" rows="10" placeholder="인플루언서가 메일/DM/카톡으로 보내준 기획안 내용을 그대로 붙여넣으세요." style="width:100%;font-size:13px;line-height:1.6;resize:vertical;min-height:180px;"></textarea>
+        <div style="margin-top:6px;font-size:11px;color:var(--text-muted);">최대 1만 자. 줄바꿈도 그대로 저장됩니다.</div>
       </div>
     </div>
     <div class="modal-footer" style="display:flex;gap:8px;padding:14px 24px;border-top:1px solid #eee;align-items:center;">
@@ -6632,7 +6639,7 @@ function renderTrackTable() {
   initColumnResize('track-table');
 }
 
-// ===== Proposal (기획안 - URL or 파일 업로드) =====
+// ===== Proposal (기획안 - URL / 파일 / 텍스트) =====
 function renderProposalCell(e) {
   if (e.proposalFileName) {
     const short = e.proposalFileName.length > 12 ? e.proposalFileName.slice(0, 11) + '…' : e.proposalFileName;
@@ -6640,6 +6647,9 @@ function renderProposalCell(e) {
   }
   if (e.proposalUrl) {
     return `<button class="proposal-chip filled" onclick="openProposalModal('${currentProjectId}','${e.infId}')" title="URL 등록됨">🔗 URL</button>`;
+  }
+  if (e.proposalText) {
+    return `<button class="proposal-chip filled" onclick="openProposalModal('${currentProjectId}','${e.infId}')" title="텍스트 등록됨">📝 텍스트</button>`;
   }
   return `<button class="proposal-chip empty" onclick="openProposalModal('${currentProjectId}','${e.infId}')" title="기획안 추가">+ 기획안</button>`;
 }
@@ -6651,7 +6661,7 @@ function openProposalModal(projId, infId) {
   const inf = allInfluencers[infId] || {};
   document.getElementById('proposal-modal-title').textContent = inf.name ? `${inf.name} 기획안` : '기획안';
 
-  // URL 탭 값
+  // URL 탭 값 (파일이 없을 때만 URL을 표시)
   document.getElementById('proposal-url-input').value = a.proposalUrl && !a.proposalFileName ? a.proposalUrl : '';
 
   // 파일 탭 현재값
@@ -6669,22 +6679,27 @@ function openProposalModal(projId, infId) {
   document.getElementById('proposal-file-input').value = '';
   document.getElementById('proposal-upload-status').textContent = '';
 
-  // 어떤 탭으로 시작할지: 파일이 있으면 파일 탭, 아니면 URL 탭
-  switchProposalTab(a.proposalFileName ? 'file' : 'url');
+  // 텍스트 탭 값
+  document.getElementById('proposal-text-input').value = a.proposalText || '';
 
-  const hasAny = !!(a.proposalUrl || a.proposalFileName);
+  // 초기 탭 — 채워진 형식으로 자동 이동
+  const initialTab = a.proposalFileName ? 'file' : (a.proposalText ? 'text' : 'url');
+  switchProposalTab(initialTab);
+
+  const hasAny = !!(a.proposalUrl || a.proposalFileName || a.proposalText);
   document.getElementById('proposal-delete-btn').style.display = hasAny ? 'inline-flex' : 'none';
-  document.getElementById('proposal-copy-btn').style.display = hasAny ? 'inline-flex' : 'none';
+  // URL 복사 버튼은 URL/파일이 있을 때만 (텍스트일 땐 의미 없음)
+  document.getElementById('proposal-copy-btn').style.display = (a.proposalUrl || a.proposalFileName) ? 'inline-flex' : 'none';
 
   document.getElementById('modal-proposal').classList.add('open');
 }
 
 function switchProposalTab(tab) {
   _proposalCtx.currentTab = tab;
-  document.getElementById('proposal-tab-url').classList.toggle('active', tab === 'url');
-  document.getElementById('proposal-tab-file').classList.toggle('active', tab === 'file');
-  document.getElementById('proposal-pane-url').style.display = tab === 'url' ? 'block' : 'none';
-  document.getElementById('proposal-pane-file').style.display = tab === 'file' ? 'block' : 'none';
+  ['url','file','text'].forEach(t => {
+    document.getElementById('proposal-tab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('proposal-pane-' + t).style.display = t === tab ? 'block' : 'none';
+  });
 }
 
 function closeProposalModal() {
@@ -6698,8 +6713,23 @@ async function saveProposal() {
 
   if (currentTab === 'url') {
     const url = (document.getElementById('proposal-url-input').value || '').trim();
-    saveTrackFields(projId, infId, { proposalUrl: url, proposalFileName: '' });
+    // URL 탭에서 저장 — URL만 채우고 나머지 비움
+    saveTrackFields(projId, infId, { proposalUrl: url, proposalFileName: '', proposalText: '' });
     showToast(url ? '기획안 URL 저장됨' : '기획안 삭제됨');
+    closeProposalModal();
+    return;
+  }
+
+  if (currentTab === 'text') {
+    const text = document.getElementById('proposal-text-input').value || '';
+    const MAX_CHARS = 10000;
+    if (text.length > MAX_CHARS) {
+      alert(`텍스트가 너무 깁니다 (최대 ${MAX_CHARS}자, 현재 ${text.length}자).`);
+      return;
+    }
+    // 텍스트 탭에서 저장 — 텍스트만 채우고 나머지 비움
+    saveTrackFields(projId, infId, { proposalText: text, proposalUrl: '', proposalFileName: '' });
+    showToast(text.trim() ? '기획안 텍스트 저장됨' : '기획안 삭제됨');
     closeProposalModal();
     return;
   }
@@ -6742,7 +6772,8 @@ async function saveProposal() {
       );
     });
     const url = await ref.getDownloadURL();
-    saveTrackFields(projId, infId, { proposalUrl: url, proposalFileName: file.name });
+    // 파일 탭에서 저장 — 파일만 채우고 나머지 비움
+    saveTrackFields(projId, infId, { proposalUrl: url, proposalFileName: file.name, proposalText: '' });
     showToast('기획안 파일 업로드 완료');
     closeProposalModal();
   } catch (e) {
@@ -6758,7 +6789,7 @@ function deleteProposal() {
   if (!confirm('등록된 기획안을 삭제할까요?')) return;
   const { projId, infId } = _proposalCtx;
   if (!projId || !infId) return;
-  saveTrackFields(projId, infId, { proposalUrl: '', proposalFileName: '' });
+  saveTrackFields(projId, infId, { proposalUrl: '', proposalFileName: '', proposalText: '' });
   showToast('기획안 삭제됨');
   closeProposalModal();
 }
@@ -7391,7 +7422,7 @@ function addAssignment(infId) {
   if (!currentProjectId) return;
   const inf = allInfluencers[infId];
   const cost = inf ? (assignChannel === 'youtube' ? inf.priceYoutube : inf.priceInstagram) || 0 : 0;
-  const data = { status: 'recruiting', cost, contentType: '', propertyType: '', uploadUrl: '', trackingUrl: '', proposalUrl: '', proposalFileName: '', views: 0, likes: 0, comments: 0, memo: '', createdAt: Date.now(), updatedAt: Date.now() };
+  const data = { status: 'recruiting', cost, contentType: '', propertyType: '', uploadUrl: '', trackingUrl: '', proposalUrl: '', proposalFileName: '', proposalText: '', views: 0, likes: 0, comments: 0, memo: '', createdAt: Date.now(), updatedAt: Date.now() };
 
   if (firebaseReady) {
     db.ref(PATHS.assignments + '/' + currentProjectId + '/' + infId).set(data);
