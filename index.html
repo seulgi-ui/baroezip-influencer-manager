@@ -9393,12 +9393,13 @@ function tlNext() { calNext(); }
 
 // ===== 프로덕션 타임라인 =====
 // 9개 마일스톤 — 색은 방향별 2색만 (out=파랑/in=초록), 단계는 ①~⑨ 번호로 구분
-const STEP_NUMS = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨'];
+const STEP_NUMS = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
 const DIR_COLOR = { out: '#2563EB', in: '#059669' }; // 보낼것 파랑 / 받을것 초록
 const MILESTONES = [
   { key: 'contract_send',  label: '계약서 전달',  dir: 'out', short: '계약전달' },
   { key: 'contract_sign',  label: '계약서 날인',  dir: 'in',  short: '계약날인' },
   { key: 'usp_send',       label: 'USP 전달',     dir: 'out', short: 'USP 전달' },
+  { key: 'listing_reg',    label: '매물등록',     dir: 'out', short: '매물등록' },
   { key: 'plan_received',  label: '대본 전달',     dir: 'in',  short: '대본' },
   { key: 'plan_feedback',  label: '대본 피드백',   dir: 'out', short: '대본 FB' },
   { key: 'video_v1',       label: '1차 영상',     dir: 'in',  short: '1차영상' },
