@@ -559,6 +559,7 @@ table { border-collapse: collapse; width: 100%; }
 }
 .badge-youtube { background: #FEF2F2; border: 1px solid #FECACA; padding: 4px 8px; }
 .badge-instagram { background: #FDF2F8; border: 1px solid #FBCFE8; padding: 4px 8px; }
+.badge-threads { background: #F1F5F9; border: 1px solid #CBD5E1; color: #1A2027; padding: 4px 8px; font-weight: 700; }
 .badge-youtube svg, .badge-instagram svg { display: block; }
 .badge-status {
   padding: 3px 10px;
@@ -2880,6 +2881,7 @@ table { border-collapse: collapse; width: 100%; }
 .inf-card-star.off { color: var(--border); }
 .inf-card-badge-yt { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; background: #FEF2F2; color: #EF4444; border: 1px solid #FECACA; }
 .inf-card-badge-ig { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; background: #FDF2F8; color: #EC4899; border: 1px solid #FBCFE8; }
+.inf-card-badge-th { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; background: #F1F5F9; color: #1A2027; border: 1px solid #CBD5E1; }
 .inf-card-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .inf-card-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .inf-card-price { font-size: 14px; font-weight: 800; color: #7C3AED; }
@@ -3566,6 +3568,7 @@ table { border-collapse: collapse; width: 100%; }
         <div class="ch-tabs">
           <button class="ch-tab active" data-ch="youtube" onclick="switchChannel('youtube')">YouTube</button>
           <button class="ch-tab" data-ch="instagram" onclick="switchChannel('instagram')">인스타그램</button>
+          <button class="ch-tab" data-ch="threads" onclick="switchChannel('threads')">스레드</button>
         </div>
         <button class="btn btn-primary btn-sm" onclick="openInfluencerModal()">+ 추가</button>
       </div>
@@ -3590,15 +3593,6 @@ table { border-collapse: collapse; width: 100%; }
           </select>
           <select id="inf-topic" class="filter-chip-new" onchange="renderInfluencers()">
             <option value="">주제 전체</option>
-          </select>
-          <select id="inf-contact" class="filter-chip-new" onchange="renderInfluencers()">
-            <option value="">컨택 전체</option>
-            <option value="none">미연락</option>
-            <option value="contacting">컨택예정</option>
-            <option value="waiting">회신대기</option>
-            <option value="negotiating">협의중</option>
-            <option value="confirmed">확정</option>
-            <option value="rejected">거절</option>
           </select>
         </div>
         <div class="search-bar-wrap" style="margin-top:8px;">
@@ -3636,9 +3630,7 @@ table { border-collapse: collapse; width: 100%; }
                 <th style="width:70px;" class="sortable" id="th-views-short" data-sort="avgViewsShort" onclick="toggleSort('avgViewsShort')">조회(S) <span class="sort-arrow"></span></th>
                 <th style="width:60px;" class="sortable" data-sort="avgLikes" onclick="toggleSort('avgLikes')">좋아요 <span class="sort-arrow"></span></th>
                 <th style="width:55px;" class="sortable" data-sort="engagement" onclick="toggleSort('engagement')">ER <span class="sort-arrow"></span></th>
-                <th style="width:70px;" class="sortable" data-sort="price" onclick="toggleSort('price')">단가 <span class="sort-arrow"></span></th>
-                <th style="width:90px;">컨택</th>
-                <th style="width:80px;">주제</th>
+                <th style="width:70px;" class="sortable" data-sort="price" onclick="toggleSort('price')">단가 <span class="sort-arrow"></span></th>                <th style="width:80px;">주제</th>
                 <th style="width:36px;"></th>
               </tr>
             </thead>
@@ -4515,6 +4507,7 @@ table { border-collapse: collapse; width: 100%; }
           <div class="platform-tabs">
             <button type="button" class="platform-tab" data-plat="youtube" onclick="selectPlatformTab('youtube')">유튜브</button>
             <button type="button" class="platform-tab" data-plat="instagram" onclick="selectPlatformTab('instagram')">인스타그램</button>
+            <button type="button" class="platform-tab" data-plat="threads" onclick="selectPlatformTab('threads')">스레드</button>
           </div>
         </div>
         <div id="plat-youtube-url" style="display:none;">
@@ -4539,6 +4532,12 @@ table { border-collapse: collapse; width: 100%; }
             <div class="yt-result-box" id="ig-result"></div>
           </div>
         </div>
+        <div id="plat-threads-url" style="display:none;">
+          <div class="form-group">
+            <input type="text" id="inf-url-threads" class="form-input" placeholder="https://www.threads.net/@username">
+            <div class="form-hint">URL 또는 @username 입력 (팔로워·통계는 직접 입력)</div>
+          </div>
+        </div>
       </div>
 
       <!-- 기본 정보 -->
@@ -4554,6 +4553,7 @@ table { border-collapse: collapse; width: 100%; }
             <div class="channel-type-btns">
               <button type="button" class="ch-type-btn" id="ch-youtube" data-ch="youtube" onclick="toggleChType('youtube')">📺 유튜브</button>
               <button type="button" class="ch-type-btn" id="ch-instagram" data-ch="instagram" onclick="toggleChType('instagram')">📷 인스타</button>
+              <button type="button" class="ch-type-btn" id="ch-threads" data-ch="threads" onclick="toggleChType('threads')">🧵 스레드</button>
             </div>
           </div>
         </div>
@@ -4652,6 +4652,10 @@ table { border-collapse: collapse; width: 100%; }
           <div class="form-group">
             <label class="form-label">인스타 피드 (만원)</label>
             <input type="number" id="inf-price-instagram" class="form-input" placeholder="예: 100">
+          </div>
+          <div class="form-group">
+            <label class="form-label">스레드 (만원)</label>
+            <input type="number" id="inf-price-threads" class="form-input" placeholder="예: 50">
           </div>
         </div>
       </div>
@@ -5155,11 +5159,9 @@ function switchChannel(ch) {
       <th style="width:70px;" class="sortable" data-sort="avgViewsShort" onclick="toggleSort('avgViewsShort')">조회(S) <span class="sort-arrow"></span></th>
       <th style="width:60px;" class="sortable" data-sort="avgLikes" onclick="toggleSort('avgLikes')">좋아요 <span class="sort-arrow"></span></th>
       <th style="width:55px;" class="sortable" data-sort="engagement" onclick="toggleSort('engagement')">ER <span class="sort-arrow"></span></th>
-      <th style="width:70px;" class="sortable" data-sort="price" onclick="toggleSort('price')">단가 <span class="sort-arrow"></span></th>
-      <th style="width:90px;">컨택</th>
-      <th style="width:80px;">주제</th>
+      <th style="width:70px;" class="sortable" data-sort="price" onclick="toggleSort('price')">단가 <span class="sort-arrow"></span></th>      <th style="width:80px;">주제</th>
       <th style="width:36px;"></th>`;
-  } else {
+  } else if (ch === 'instagram') {
     sort.innerHTML = '<option value="name">이름순</option><option value="followers">팔로워순</option><option value="avgViewsShort">릴스 조회수순</option><option value="avgLikes">좋아요순</option>';
     thead.innerHTML = `
       <th style="width:32px;"></th>
@@ -5170,7 +5172,19 @@ function switchChannel(ch) {
       <th style="width:70px;" class="sortable" data-sort="avgLikes" onclick="toggleSort('avgLikes')">좋아요 <span class="sort-arrow"></span></th>
       <th style="width:55px;" class="sortable" data-sort="engagement" onclick="toggleSort('engagement')">ER <span class="sort-arrow"></span></th>
       <th style="width:70px;" class="sortable" data-sort="price" onclick="toggleSort('price')">단가 <span class="sort-arrow"></span></th>
-      <th style="width:90px;">컨택</th>
+      <th style="width:80px;">주제</th>
+      <th style="width:36px;"></th>`;
+  } else {
+    // threads
+    sort.innerHTML = '<option value="name">이름순</option><option value="followers">팔로워순</option><option value="avgLikes">좋아요순</option><option value="engagement">ER순</option>';
+    thead.innerHTML = `
+      <th style="width:32px;"></th>
+      <th style="width:200px;" class="sortable" data-sort="name" onclick="toggleSort('name')">인플루언서 <span class="sort-arrow"></span></th>
+      <th style="width:36px;">CH</th>
+      <th style="width:90px;" class="sortable" data-sort="followers" onclick="toggleSort('followers')">팔로워 <span class="sort-arrow"></span></th>
+      <th style="width:80px;" class="sortable" data-sort="avgLikes" onclick="toggleSort('avgLikes')">좋아요 <span class="sort-arrow"></span></th>
+      <th style="width:55px;" class="sortable" data-sort="engagement" onclick="toggleSort('engagement')">ER <span class="sort-arrow"></span></th>
+      <th style="width:70px;" class="sortable" data-sort="price" onclick="toggleSort('price')">단가 <span class="sort-arrow"></span></th>
       <th style="width:80px;">주제</th>
       <th style="width:36px;"></th>`;
   }
@@ -5185,6 +5199,8 @@ function selectPlatformTab(plat) {
   document.querySelectorAll('.platform-tab').forEach(t => t.classList.toggle('active', t.dataset.plat === plat));
   document.getElementById('plat-youtube-url').style.display = plat === 'youtube' ? 'block' : 'none';
   document.getElementById('plat-instagram-url').style.display = plat === 'instagram' ? 'block' : 'none';
+  const thBox = document.getElementById('plat-threads-url');
+  if (thBox) thBox.style.display = plat === 'threads' ? 'block' : 'none';
   // Auto-check channel type
   const btn = document.querySelector(`.ch-type-btn[data-ch="${plat}"]`);
   if (btn && !btn.classList.contains('active')) btn.classList.add('active');
@@ -5248,15 +5264,16 @@ function openInfluencerModal(id) {
   document.getElementById('modal-inf-title').textContent = id ? '인플루언서 수정' : '인플루언서 추가';
 
   // Reset all fields
-  ['inf-name','inf-email','inf-url-youtube','inf-url-instagram','inf-price-youtube','inf-price-instagram',
+  ['inf-name','inf-email','inf-url-youtube','inf-url-instagram','inf-url-threads','inf-price-youtube','inf-price-instagram','inf-price-threads',
    'inf-followers','inf-engagement','inf-views-long','inf-views-short','inf-likes','inf-comments',
-   'inf-topic','inf-analysis','inf-tags','inf-memo','inf-profile-image'].forEach(f => document.getElementById(f).value = '');
+   'inf-topic','inf-analysis','inf-tags','inf-memo','inf-profile-image'].forEach(f => { const el = document.getElementById(f); if (el) el.value = ''; });
   document.getElementById('inf-contact-status').value = 'none';
   document.querySelectorAll('.ch-type-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.topic-tag').forEach(t => t.classList.remove('active'));
   document.getElementById('plat-youtube-url').style.display = 'none';
   document.getElementById('plat-instagram-url').style.display = 'none';
+  if (document.getElementById('plat-threads-url')) document.getElementById('plat-threads-url').style.display = 'none';
   document.getElementById('yt-result').classList.remove('show');
   document.getElementById('ig-result').classList.remove('show');
 
@@ -5273,8 +5290,10 @@ function openInfluencerModal(id) {
     document.getElementById('inf-profile-image').value = inf.profileImage || '';
     document.getElementById('inf-url-youtube').value = inf.urlYoutube || '';
     document.getElementById('inf-url-instagram').value = inf.urlInstagram || '';
+    if (document.getElementById('inf-url-threads')) document.getElementById('inf-url-threads').value = inf.urlThreads || '';
     document.getElementById('inf-price-youtube').value = inf.priceYoutube != null ? inf.priceYoutube : '';
     document.getElementById('inf-price-instagram').value = inf.priceInstagram != null ? inf.priceInstagram : '';
+    if (document.getElementById('inf-price-threads')) document.getElementById('inf-price-threads').value = inf.priceThreads != null ? inf.priceThreads : '';
     document.getElementById('inf-followers').value = inf.followers != null ? inf.followers : '';
     document.getElementById('inf-engagement').value = inf.engagement != null ? inf.engagement : '';
     document.getElementById('inf-views-long').value = inf.avgViewsLong != null ? inf.avgViewsLong : '';
@@ -5293,6 +5312,10 @@ function openInfluencerModal(id) {
     if (chs.includes('instagram')) {
       document.getElementById('plat-instagram-url').style.display = 'block';
       document.querySelector('.platform-tab[data-plat="instagram"]').classList.add('active');
+    }
+    if (chs.includes('threads') && document.getElementById('plat-threads-url')) {
+      document.getElementById('plat-threads-url').style.display = 'block';
+      const tt = document.querySelector('.platform-tab[data-plat="threads"]'); if (tt) tt.classList.add('active');
     }
     // Restore topic tags
     (inf.topic || '').split(',').forEach(t => {
@@ -5319,8 +5342,10 @@ function saveInfluencer() {
     profileImage: document.getElementById('inf-profile-image').value.trim(),
     urlYoutube: document.getElementById('inf-url-youtube').value.trim(),
     urlInstagram: document.getElementById('inf-url-instagram').value.trim(),
+    urlThreads: (document.getElementById('inf-url-threads') ? document.getElementById('inf-url-threads').value.trim() : ''),
     priceYoutube: Number(document.getElementById('inf-price-youtube').value) || 0,
     priceInstagram: Number(document.getElementById('inf-price-instagram').value) || 0,
+    priceThreads: Number(document.getElementById('inf-price-threads') ? document.getElementById('inf-price-threads').value : 0) || 0,
     followers: Number(document.getElementById('inf-followers').value) || 0,
     avgViewsLong: Number(document.getElementById('inf-views-long').value) || 0,
     avgViewsShort: Number(document.getElementById('inf-views-short').value) || 0,
@@ -5572,7 +5597,7 @@ function renderInfluencers() {
 
   // Price filter
   if (priceRange) {
-    const priceKey = currentChannel === 'youtube' ? 'priceYoutube' : 'priceInstagram';
+    const priceKey = currentChannel === 'youtube' ? 'priceYoutube' : currentChannel === 'threads' ? 'priceThreads' : 'priceInstagram';
     const [min, max] = priceRange.split('-').map(Number);
     items = items.filter(i => {
       const p = i[priceKey] || 0;
@@ -5597,7 +5622,7 @@ function renderInfluencers() {
   }
 
   // Calculate CPV for each item
-  const priceField = currentChannel === 'youtube' ? 'priceYoutube' : 'priceInstagram';
+  const priceField = currentChannel === 'youtube' ? 'priceYoutube' : currentChannel === 'threads' ? 'priceThreads' : 'priceInstagram';
   items.forEach(i => {
     const price = i[priceField] || 0;
     const views = Math.max(i.avgViewsLong || 0, i.avgViewsShort || 0);
@@ -5628,13 +5653,16 @@ function renderInfluencers() {
 
   document.getElementById('inf-empty').style.display = items.length ? 'none' : 'flex';
 
-  const priceKey = currentChannel === 'youtube' ? 'priceYoutube' : 'priceInstagram';
+  const priceKey = currentChannel === 'youtube' ? 'priceYoutube' : currentChannel === 'threads' ? 'priceThreads' : 'priceInstagram';
   const isYT = currentChannel === 'youtube';
+  const isThreads = currentChannel === 'threads';
 
   // ===== Card View =====
   document.getElementById('inf-card-view').innerHTML = items.map(inf => {
     const badge = (inf.channels || []).map(c =>
-      c === 'youtube' ? '<span class="inf-card-badge-yt">YT</span>' : '<span class="inf-card-badge-ig">IG</span>'
+      c === 'youtube' ? '<span class="inf-card-badge-yt">YT</span>' :
+      c === 'threads' ? '<span class="inf-card-badge-th">TH</span>' :
+      '<span class="inf-card-badge-ig">IG</span>'
     ).join(' ');
     const topics = (inf.topic || '').split(',').map(t => t.trim()).filter(Boolean);
     const desc = inf.analysis || '';
@@ -5666,8 +5694,12 @@ function renderInfluencers() {
   // ===== Table View =====
   const tbody = document.getElementById('inf-tbody');
   tbody.innerHTML = items.map(inf => {
-    const badge = (inf.channels || []).includes('youtube') ?
-      '<span class="badge badge-youtube"><svg width="14" height="10" viewBox="0 0 24 17" fill="#FF0000"><path d="M23.5 2.5c-.3-1-1-1.8-2-2.1C19.6 0 12 0 12 0S4.4 0 2.5.4c-1 .3-1.7 1.1-2 2.1C0 4.4 0 8.3 0 8.3s0 3.9.5 5.8c.3 1 1 1.8 2 2.1 1.9.5 9.5.5 9.5.5s7.6 0 9.5-.5c1-.3 1.7-1.1 2-2.1.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 12V4.7l6.4 3.6L9.5 12z"/></svg></span>' : '<span class="badge badge-instagram"><svg width="14" height="14" viewBox="0 0 24 24" fill="#E1306C"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.2 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1.1.4 2.2.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.9c-.1 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1.1.4-2.2.4-1.3.1-1.6.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1.1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.2-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1.1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zM12 0C8.7 0 8.3 0 7 .1 5.7.1 4.8.3 4 .6 3.2.9 2.5 1.3 1.8 2 1.1 2.7.7 3.4.4 4.2.2 5 0 5.9 0 7.2 0 8.5 0 8.9 0 12s0 3.7.1 5c0 1.3.2 2.2.5 3 .3.8.7 1.5 1.4 2.2.7.7 1.4 1.1 2.2 1.4.8.3 1.7.5 3 .5 1.3.1 1.7.1 5 .1s3.7 0 5-.1c1.3 0 2.2-.2 3-.5.8-.3 1.5-.7 2.2-1.4.7-.7 1.1-1.4 1.4-2.2.3-.8.5-1.7.5-3 .1-1.3.1-1.7.1-5s0-3.7-.1-5c0-1.3-.2-2.2-.5-3-.3-.8-.7-1.5-1.4-2.2C21.3 1.3 20.6.9 19.8.6 19 .3 18.1.1 16.8.1 15.5 0 15.1 0 12 0zm0 5.8a6.2 6.2 0 100 12.4 6.2 6.2 0 000-12.4zM12 16a4 4 0 110-8 4 4 0 010 8zm6.4-10.8a1.44 1.44 0 100 2.88 1.44 1.44 0 000-2.88z"/></svg></span>';
+    const chans2 = inf.channels || [];
+    const badge = chans2.includes('youtube') ?
+      '<span class="badge badge-youtube"><svg width="14" height="10" viewBox="0 0 24 17" fill="#FF0000"><path d="M23.5 2.5c-.3-1-1-1.8-2-2.1C19.6 0 12 0 12 0S4.4 0 2.5.4c-1 .3-1.7 1.1-2 2.1C0 4.4 0 8.3 0 8.3s0 3.9.5 5.8c.3 1 1 1.8 2 2.1 1.9.5 9.5.5 9.5.5s7.6 0 9.5-.5c1-.3 1.7-1.1 2-2.1.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 12V4.7l6.4 3.6L9.5 12z"/></svg></span>'
+      : chans2.includes('threads') ?
+      '<span class="badge badge-threads">🧵</span>'
+      : '<span class="badge badge-instagram"><svg width="14" height="14" viewBox="0 0 24 24" fill="#E1306C"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.2 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1.1.4 2.2.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.9c-.1 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1.1.4-2.2.4-1.3.1-1.6.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1.1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.2-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1.1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zM12 0C8.7 0 8.3 0 7 .1 5.7.1 4.8.3 4 .6 3.2.9 2.5 1.3 1.8 2 1.1 2.7.7 3.4.4 4.2.2 5 0 5.9 0 7.2 0 8.5 0 8.9 0 12s0 3.7.1 5c0 1.3.2 2.2.5 3 .3.8.7 1.5 1.4 2.2.7.7 1.4 1.1 2.2 1.4.8.3 1.7.5 3 .5 1.3.1 1.7.1 5 .1s3.7 0 5-.1c1.3 0 2.2-.2 3-.5.8-.3 1.5-.7 2.2-1.4.7-.7 1.1-1.4 1.4-2.2.3-.8.5-1.7.5-3 .1-1.3.1-1.7.1-5s0-3.7-.1-5c0-1.3-.2-2.2-.5-3-.3-.8-.7-1.5-1.4-2.2C21.3 1.3 20.6.9 19.8.6 19 .3 18.1.1 16.8.1 15.5 0 15.1 0 12 0zm0 5.8a6.2 6.2 0 100 12.4 6.2 6.2 0 000-12.4zM12 16a4 4 0 110-8 4 4 0 010 8zm6.4-10.8a1.44 1.44 0 100 2.88 1.44 1.44 0 000-2.88z"/></svg></span>';
     const topics = (inf.topic || '').split(',').map(t => t.trim()).filter(Boolean);
     const initial = (inf.name || '?')[0];
     const avatarHtml = inf.profileImage
@@ -5701,7 +5733,6 @@ function renderInfluencers() {
     const commonTds = `
       <td class="num">${inf.engagement ? inf.engagement.toFixed(1) + '%' : '-'}</td>
       <td class="price-cell"><div class="price-input-wrap"><input type="number" class="price-inline-input" value="${inf[priceKey] != null && inf[priceKey] !== 0 ? inf[priceKey] : ''}" placeholder="-" min="0" step="10" onclick="event.stopPropagation();" onchange="event.stopPropagation();updateInfPrice('${inf.id}','${priceKey}',this.value)"><span class="price-inline-unit">만</span></div></td>
-      <td><select class="contact-select contact-${cs}" onclick="event.stopPropagation();" onchange="event.stopPropagation();updateContactStatus('${inf.id}', this)">${csOpts}</select></td>
       <td><div class="tp-row">${topics.map(t => `<span class="tp">${t}</span>`).join('')}</div></td>
       <td><div class="inf-actions-wrap"><span class="action-dots" onclick="event.stopPropagation();toggleInfActionMenu('${inf.id}', this)">⋮</span><div class="inf-action-menu" id="inf-menu-${inf.id}">
         <button class="inf-action-item" onclick="event.stopPropagation();closeAllInfActionMenus();openInfluencerModal('${inf.id}')">✎ 수정</button>
@@ -5715,6 +5746,12 @@ function renderInfluencers() {
         <td class="num">${fmtK(inf.followers)}</td>
         <td class="num">${fmtK(inf.avgViewsLong)}</td>
         <td class="num">${fmtK(inf.avgViewsShort)}</td>
+        <td class="num">${fmtK(inf.avgLikes)}</td>
+        ${commonTds}</tr>`;
+    } else if (isThreads) {
+      return `<tr${rowClass} onclick="openDetailPanel('${inf.id}')">${starTd}${nameTd}
+        <td>${badge}</td>
+        <td class="num">${fmtK(inf.followers)}</td>
         <td class="num">${fmtK(inf.avgLikes)}</td>
         ${commonTds}</tr>`;
     } else {
@@ -5763,6 +5800,7 @@ function openDetailPanel(id) {
   const chDiv = document.getElementById('detail-channels');
   chDiv.innerHTML = (inf.channels || []).map(c =>
     c === 'youtube' ? '<span class="badge badge-youtube">YouTube</span>' :
+    c === 'threads' ? '<span class="badge badge-threads">🧵 Threads</span>' :
     '<span class="badge badge-instagram">Instagram</span>'
   ).join(' ');
 
@@ -5771,9 +5809,11 @@ function openDetailPanel(id) {
   let urlHtml = '';
   const ytSafe = normalizeExternalUrl(inf.urlYoutube);
   const igSafe = normalizeExternalUrl(inf.urlInstagram);
+  const thSafe = normalizeExternalUrl(inf.urlThreads);
   if (inf.email) urlHtml += `<a href="mailto:${inf.email}" class="detail-url-link detail-url-email"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4L12 13 2 4"/></svg> ${inf.email}</a>`;
   if (ytSafe) urlHtml += `<a href="${ytSafe}" target="_blank" rel="noopener noreferrer" class="detail-url-link detail-url-yt"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2c-.3-1-1-1.8-2-2.1C19.6 3.6 12 3.6 12 3.6s-7.6 0-9.5.5c-1 .3-1.8 1-2.1 2C0 8.1 0 12 0 12s0 3.9.4 5.8c.3 1 1 1.8 2 2.1 1.9.5 9.5.5 9.5.5s7.6 0 9.5-.5c1-.3 1.8-1 2.1-2 .4-1.9.4-5.8.4-5.8s0-3.9-.4-5.8zM9.5 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg> YouTube 채널</a>`;
   if (igSafe) urlHtml += `<a href="${igSafe}" target="_blank" rel="noopener noreferrer" class="detail-url-link detail-url-ig"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.2 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1.1.4 2.2.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.9c-.1 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1.1.4-2.2.4-1.3.1-1.6.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1.1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.2-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1.1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zM12 0C8.7 0 8.3 0 7 .1 5.7.1 4.8.3 4 .6c-.8.3-1.5.7-2.2 1.4C1.1 2.7.7 3.4.4 4.2.2 5 0 5.9 0 7.2 0 8.5 0 8.9 0 12.2s0 3.7.1 5c.1 1.3.3 2.2.6 3 .3.8.7 1.5 1.4 2.2.7.7 1.4 1.1 2.2 1.4.8.3 1.7.5 3 .6 1.3.1 1.7.1 5 .1s3.7 0 5-.1c1.3-.1 2.2-.3 3-.6.8-.3 1.5-.7 2.2-1.4.7-.7 1.1-1.4 1.4-2.2.3-.8.5-1.7.6-3 .1-1.3.1-1.7.1-5s0-3.7-.1-5c-.1-1.3-.3-2.2-.6-3-.3-.8-.7-1.5-1.4-2.2C21.3 1.1 20.6.7 19.8.4 19 .2 18.1 0 16.8 0 15.5 0 15.1 0 12 0zM12 5.8c-3.4 0-6.2 2.8-6.2 6.2s2.8 6.2 6.2 6.2 6.2-2.8 6.2-6.2-2.8-6.2-6.2-6.2zM12 16c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4zm6.4-10.8c-.8 0-1.4.6-1.4 1.4s.6 1.4 1.4 1.4 1.4-.6 1.4-1.4-.6-1.4-1.4-1.4z"/></svg> Instagram 프로필</a>`;
+  if (thSafe) urlHtml += `<a href="${thSafe}" target="_blank" rel="noopener noreferrer" class="detail-url-link detail-url-th">🧵 Threads 프로필</a>`;
   urlDiv.innerHTML = urlHtml || '<span style="color:var(--text-muted);font-size:13px;">등록된 URL 없음</span>';
 
   // Topic tags
@@ -8814,7 +8854,7 @@ function showCompareModal() {
   if (compareSelected.size < 2) { showToast('2명 이상 선택해주세요'); return; }
 
   const compareList = [...compareSelected].map(id => ({ id, ...allInfluencers[id] }));
-  const priceKey = currentChannel === 'youtube' ? 'priceYoutube' : 'priceInstagram';
+  const priceKey = currentChannel === 'youtube' ? 'priceYoutube' : currentChannel === 'threads' ? 'priceThreads' : 'priceInstagram';
   const isYT = currentChannel === 'youtube';
 
   const metrics = [
