@@ -3597,7 +3597,8 @@ table { border-collapse: collapse; width: 100%; }
         </div>
         <div class="search-bar-wrap" style="margin-top:8px;">
           <button class="action-chip" onclick="refreshAllInfluencers()" title="전체 인플루언서 YouTube 통계 갱신 (빠름·SHORTS 부정확)">🔄 전체 새로고침</button>
-          <button class="action-chip" onclick="recrawlAllAccurate()" title="모든 YouTube 채널 SHORTS/LONG 정확 식별 (느림·정확)" style="background:#FEF3C7;border-color:#F59E0B;color:#B45309;">⚡ 전체 정확 재크롤</button>
+          <button class="action-chip" onclick="recrawlAllAccurate(false)" title="모든 YouTube 채널 SHORTS/LONG 정확 식별 (느림·정확)" style="background:#FEF3C7;border-color:#F59E0B;color:#B45309;">⚡ 전체 정확 재크롤</button>
+          <button class="action-chip" onclick="recrawlAllAccurate(true)" title="별표(중요표시) 안 된 YouTube 채널만 정확 재크롤" style="background:#EEF2FF;border-color:#6366F1;color:#4338CA;">☆ 별표 외 정확 재크롤</button>
           <button class="action-chip" onclick="exportCSV()">📥 CSV 내보내기</button>
           <button class="action-chip" id="btn-select-toggle" onclick="toggleSelectView()" title="체크박스를 켜고 원하는 인플루언서를 선택">☑️ 선택 모드</button>
           <button class="action-chip select-active-only" id="btn-select-filter" onclick="toggleSelectFilter()" style="display:none;background:#DBEAFE;border-color:#2563EB;color:#1D4ED8;font-weight:800;" title="체크한 사람만 표시">👁 선택만 표시 (<span id="select-count">0</span>명)</button>
@@ -6173,16 +6174,17 @@ async function recrawlAccurateForInfluencer(infId, onProgress) {
 }
 
 // 전체 YouTube 인플루언서 일괄 정확 재크롤
-async function recrawlAllAccurate() {
+async function recrawlAllAccurate(onlyNonFavorite) {
   if (YOUTUBE_API_KEY === 'YOUR_YOUTUBE_API_KEY') { showToast('YouTube API 키를 설정해주세요'); return; }
   const yts = Object.entries(allInfluencers).filter(([id, i]) =>
-    (i.channels || []).includes('youtube') && i.urlYoutube
+    (i.channels || []).includes('youtube') && i.urlYoutube && (!onlyNonFavorite || !i.favorite)
   );
-  if (!yts.length) { showToast('YouTube 채널이 없습니다'); return; }
+  if (!yts.length) { showToast(onlyNonFavorite ? '별표 외 YouTube 채널이 없습니다' : 'YouTube 채널이 없습니다'); return; }
 
+  const scopeLabel = onlyNonFavorite ? '별표(중요표시) 안 된 ' : '';
   const estMin = Math.max(2, Math.round(yts.length * 1.5));
   if (!confirm(
-    `${yts.length}개 YouTube 채널을 순차적으로 정확 재크롤합니다.\n` +
+    `${scopeLabel}${yts.length}개 YouTube 채널을 순차적으로 정확 재크롤합니다.\n` +
     `채널당 약 1~2분 소요 — 총 ${estMin}분 정도 예상됩니다.\n\n` +
     `진행 중에는 브라우저 탭을 닫거나 새로고침하지 마세요.\n\n` +
     `진행하시겠습니까?`
