@@ -2482,6 +2482,43 @@ table { border-collapse: collapse; width: 100%; }
   box-shadow: var(--shadow);
 }
 .report-donut { flex-shrink: 0; }
+.report-recruit {
+  flex-shrink: 0;
+  padding: 0 22px;
+  border-right: 1px solid #E5E7EB;
+  display: flex; flex-direction: column; justify-content: center; gap: 4px;
+}
+.report-recruit .rr-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #94A3B8;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+.report-recruit .rr-main {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  line-height: 1;
+}
+.report-recruit .rr-num {
+  font-size: 36px;
+  font-weight: 900;
+  color: #2563EB;
+  letter-spacing: -1.2px;
+}
+.report-recruit .rr-slash { color: #CBD5E1; font-size: 22px; font-weight: 700; }
+.report-recruit .rr-total { font-size: 16px; color: #475569; font-weight: 700; }
+.report-recruit .rr-pct {
+  font-size: 12px;
+  font-weight: 800;
+  color: #2563EB;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 10px;
+  padding: 2px 8px;
+  align-self: flex-start;
+}
 .report-legend { display: flex; flex-direction: column; gap: 5px; }
 .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; }
 .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
@@ -8553,9 +8590,7 @@ function renderReportBar() {
   const donutSvg = `<svg width="100" height="100" viewBox="0 0 100 100">
     <circle cx="50" cy="50" r="40" fill="none" stroke="${'var(--surface-2)'}" stroke-width="12"/>
     ${donutSegments}
-    <text x="50" y="44" text-anchor="middle" font-size="8.5" font-weight="700" fill="#94A3B8" letter-spacing="0.4">섭외</text>
-    <text x="50" y="60" text-anchor="middle" font-size="22" font-weight="800" fill="#2563EB">${recruitedCount}</text>
-    <text x="50" y="74" text-anchor="middle" font-size="9" font-weight="600" fill="#94A3B8">/ ${total}명</text>
+    <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="20" font-weight="800" fill="var(--text-primary)">${total}</text>
   </svg>`;
 
   // Legend
@@ -8583,6 +8618,11 @@ function renderReportBar() {
 
   document.getElementById('proj-report-bar').innerHTML = `
     <div class="report-donut">${donutSvg}</div>
+    <div class="report-recruit">
+      <div class="rr-label">섭외 진행</div>
+      <div class="rr-main"><span class="rr-num">${recruitedCount}</span><span class="rr-slash">/</span><span class="rr-total">${total}명</span></div>
+      <div class="rr-pct">${recruitedPct}%</div>
+    </div>
     <div class="report-legend">${legend}</div>
     <div class="report-metrics">
       <div class="metric-card"><div class="metric-label">총 단가 <span style="font-size:9.5px;color:var(--text-muted);font-weight:500;">(섭외완료↑ ${costCount}명)</span></div><div class="metric-value">${fmt(totalCost)}<span style="font-size:12px;font-weight:400;">만</span></div><div class="metric-sub">평균 ${costCount ? fmt(Math.round(totalCost / costCount)) : 0}만</div></div>
