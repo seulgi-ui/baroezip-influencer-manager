@@ -4608,6 +4608,10 @@ table { border-collapse: collapse; width: 100%; }
             <label class="form-label">평균 조회수 (Short) <span style="font-weight:400;color:var(--text-muted);">60초 이하 Shorts</span></label>
             <input type="number" id="inf-views-short" class="form-input" placeholder="0">
           </div>
+          <div class="form-group">
+            <label class="form-label">게시물 수 <span style="font-weight:400;color:var(--text-muted);">스레드 등</span></label>
+            <input type="number" id="inf-posts" class="form-input" placeholder="0">
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">인게이지먼트율 (%)</label>
@@ -5177,13 +5181,14 @@ function switchChannel(ch) {
       <th style="width:36px;"></th>`;
   } else {
     // threads
-    sort.innerHTML = '<option value="name">이름순</option><option value="followers">팔로워순</option><option value="avgLikes">좋아요순</option><option value="engagement">ER순</option>';
+    sort.innerHTML = '<option value="name">이름순</option><option value="followers">팔로워순</option><option value="avgViewsShort">최근 조회수순</option><option value="postsCount">게시물 수순</option><option value="engagement">ER순</option>';
     thead.innerHTML = `
       <th style="width:32px;"></th>
       <th style="width:200px;" class="sortable" data-sort="name" onclick="toggleSort('name')">인플루언서 <span class="sort-arrow"></span></th>
       <th style="width:36px;">CH</th>
-      <th style="width:90px;" class="sortable" data-sort="followers" onclick="toggleSort('followers')">팔로워 <span class="sort-arrow"></span></th>
-      <th style="width:80px;" class="sortable" data-sort="avgLikes" onclick="toggleSort('avgLikes')">좋아요 <span class="sort-arrow"></span></th>
+      <th style="width:80px;" class="sortable" data-sort="followers" onclick="toggleSort('followers')">팔로워 <span class="sort-arrow"></span></th>
+      <th style="width:90px;" class="sortable" data-sort="avgViewsShort" onclick="toggleSort('avgViewsShort')">최근 조회수 <span class="sort-arrow"></span></th>
+      <th style="width:80px;" class="sortable" data-sort="postsCount" onclick="toggleSort('postsCount')">게시물 수 <span class="sort-arrow"></span></th>
       <th style="width:55px;" class="sortable" data-sort="engagement" onclick="toggleSort('engagement')">ER <span class="sort-arrow"></span></th>
       <th style="width:70px;" class="sortable" data-sort="price" onclick="toggleSort('price')">단가 <span class="sort-arrow"></span></th>
       <th style="width:80px;">주제</th>
@@ -5266,7 +5271,7 @@ function openInfluencerModal(id) {
 
   // Reset all fields
   ['inf-name','inf-email','inf-url-youtube','inf-url-instagram','inf-url-threads','inf-price-youtube','inf-price-instagram','inf-price-threads',
-   'inf-followers','inf-engagement','inf-views-long','inf-views-short','inf-likes','inf-comments',
+   'inf-followers','inf-engagement','inf-views-long','inf-views-short','inf-likes','inf-comments','inf-posts',
    'inf-topic','inf-analysis','inf-tags','inf-memo','inf-profile-image'].forEach(f => { const el = document.getElementById(f); if (el) el.value = ''; });
   document.getElementById('inf-contact-status').value = 'none';
   document.querySelectorAll('.ch-type-btn').forEach(b => b.classList.remove('active'));
@@ -5301,6 +5306,7 @@ function openInfluencerModal(id) {
     document.getElementById('inf-views-short').value = inf.avgViewsShort != null ? inf.avgViewsShort : '';
     document.getElementById('inf-likes').value = inf.avgLikes != null ? inf.avgLikes : '';
     document.getElementById('inf-comments').value = inf.avgComments != null ? inf.avgComments : '';
+    if (document.getElementById('inf-posts')) document.getElementById('inf-posts').value = inf.postsCount != null ? inf.postsCount : '';
     document.getElementById('inf-topic').value = inf.topic || '';
     document.getElementById('inf-analysis').value = inf.analysis || '';
     document.getElementById('inf-tags').value = (inf.tags || []).join(', ');
@@ -5352,6 +5358,7 @@ function saveInfluencer() {
     avgViewsShort: Number(document.getElementById('inf-views-short').value) || 0,
     avgLikes: Number(document.getElementById('inf-likes').value) || 0,
     avgComments: Number(document.getElementById('inf-comments').value) || 0,
+    postsCount: Number(document.getElementById('inf-posts') ? document.getElementById('inf-posts').value : 0) || 0,
     topic: [...document.querySelectorAll('.topic-tag.active')].map(t => t.dataset.topic).join(', ') || document.getElementById('inf-topic').value.trim(),
     analysis: document.getElementById('inf-analysis').value.trim(),
     tags: document.getElementById('inf-tags').value.split(',').map(t => t.trim()).filter(Boolean),
@@ -5753,7 +5760,8 @@ function renderInfluencers() {
       return `<tr${rowClass} onclick="openDetailPanel('${inf.id}')">${starTd}${nameTd}
         <td>${badge}</td>
         <td class="num">${fmtK(inf.followers)}</td>
-        <td class="num">${fmtK(inf.avgLikes)}</td>
+        <td class="num">${fmtK(inf.avgViewsShort)}</td>
+        <td class="num">${fmtK(inf.postsCount)}</td>
         ${commonTds}</tr>`;
     } else {
       return `<tr${rowClass} onclick="openDetailPanel('${inf.id}')">${starTd}${nameTd}
