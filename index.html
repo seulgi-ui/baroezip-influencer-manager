@@ -9559,9 +9559,19 @@ function renderTimeline() {
     })
     .filter(x => x.inf.name);
 
-  // 채널별 그룹 + 각 그룹 내 구독자 많은 순
-  const ytList = infsAll.filter(x => x.channel === 'youtube').sort((a, b) => (b.inf.followers || 0) - (a.inf.followers || 0));
-  const igList = infsAll.filter(x => x.channel === 'instagram').sort((a, b) => (b.inf.followers || 0) - (a.inf.followers || 0));
+  // 채널별 그룹 + 각 그룹 내 '최종 업로드 일정' 빠른 순 (없으면 구독자 많은 순으로 폴백)
+  function uploadKey(x) {
+    return (x.assign && (x.assign.uploadDate || (x.assign.schedule && x.assign.schedule.upload))) || '';
+  }
+  function sortByUploadThenFollowers(a, b) {
+    const ua = uploadKey(a), ub = uploadKey(b);
+    if (ua && ub) return ua < ub ? -1 : ua > ub ? 1 : 0;
+    if (ua) return -1;            // 일정 있는 쪽이 위
+    if (ub) return 1;
+    return (b.inf.followers || 0) - (a.inf.followers || 0); // 둘 다 없으면 구독자순
+  }
+  const ytList = infsAll.filter(x => x.channel === 'youtube').sort(sortByUploadThenFollowers);
+  const igList = infsAll.filter(x => x.channel === 'instagram').sort(sortByUploadThenFollowers);
 
   const container = document.getElementById('tl-container');
   if (!infsAll.length) {
