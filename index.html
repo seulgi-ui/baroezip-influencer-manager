@@ -6747,6 +6747,10 @@ function renderProposalCell(e) {
 
 let _proposalCtx = { projId: null, infId: null, currentTab: 'url' };
 function openProposalModal(projId, infId) {
+  if (!projId || projId === 'undefined' || projId === 'null' || !infId || infId === 'undefined' || infId === 'null') {
+    alert('프로젝트 또는 인플루언서 ID가 없습니다. 페이지를 새로고침하고 다시 시도해주세요.');
+    return;
+  }
   _proposalCtx = { projId, infId, currentTab: 'url' };
   const a = (allAssignments[projId] || {})[infId] || {};
   const inf = allInfluencers[infId] || {};
@@ -6800,7 +6804,10 @@ function closeProposalModal() {
 
 async function saveProposal() {
   const { projId, infId, currentTab } = _proposalCtx;
-  if (!projId || !infId) return;
+  if (!projId || !infId) {
+    alert('저장 컨텍스트가 사라졌습니다. 모달을 닫고 다시 시도해주세요.');
+    return;
+  }
 
   if (currentTab === 'url') {
     const url = (document.getElementById('proposal-url-input').value || '').trim();
@@ -6956,8 +6963,12 @@ function saveTrackField(projId, infId, field, value) {
 // 여러 필드 동시 저장
 function saveTrackFields(projId, infId, fields) {
   const payload = { ...fields, updatedAt: Date.now() };
-  if (firebaseReady) {
-    db.ref(PATHS.assignments + '/' + projId + '/' + infId).update(payload);
+  if (firebaseReady && db) {
+    db.ref(PATHS.assignments + '/' + projId + '/' + infId).update(payload)
+      .catch(e => {
+        console.error('saveTrackFields failed', e, { projId, infId, fields });
+        alert('저장 실패: ' + (e.message || e) + '\n\n프로젝트/인플루언서 ID를 확인해주세요.');
+      });
   } else {
     if (!allAssignments[projId]) allAssignments[projId] = {};
     if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
