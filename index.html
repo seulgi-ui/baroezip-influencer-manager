@@ -1517,6 +1517,19 @@ table { border-collapse: collapse; width: 100%; }
   font-weight: 700;
 }
 .track-filter-reset-btn:hover { color: #DC2626; }
+.track-filter-header {
+  display: flex; gap: 4px; padding: 2px 4px 8px; margin-bottom: 4px;
+  border-bottom: 1px solid #F1F5F9;
+}
+.track-filter-bulk {
+  flex: 1; padding: 5px 8px; font-size: 11px; font-weight: 700;
+  background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 5px;
+  color: #475569; cursor: pointer; transition: all 0.15s;
+}
+.track-filter-bulk:hover:not(:disabled) {
+  background: #EFF6FF; color: #2563EB; border-color: #93C5FD;
+}
+.track-filter-bulk:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* 업로드 예정일 셀 */
 .upload-date-cell { position: relative; display: inline-block; }
@@ -4166,40 +4179,17 @@ table { border-collapse: collapse; width: 100%; }
   </div>
 </div>
 
-<!-- 최종본 Modal (YouTube URL or 영상 파일) -->
+<!-- 최종본 Modal (URL 전용) -->
 <div class="modal-overlay" id="modal-final">
-  <div class="modal" style="max-width:560px;">
+  <div class="modal" style="max-width:520px;">
     <div class="modal-head" style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #eee;">
       <h3 id="final-modal-title" style="margin:0;font-size:15px;font-weight:700;">최종본</h3>
       <button class="memo-modal-close" onclick="closeFinalModal()" aria-label="닫기">×</button>
     </div>
-    <div class="modal-body" style="padding:18px 24px;">
-      <div style="display:flex;gap:6px;margin-bottom:14px;">
-        <button type="button" id="final-tab-url" class="proposal-tab active" onclick="switchFinalTab('url')">🔗 URL</button>
-        <button type="button" id="final-tab-file" class="proposal-tab" onclick="switchFinalTab('file')">🎬 파일</button>
-      </div>
-
-      <div id="final-pane-url">
-        <label class="form-label" for="final-url-input">최종본 URL</label>
-        <input type="text" id="final-url-input" class="form-input" placeholder="https://www.youtube.com/watch?v=... 또는 https://youtu.be/..." style="width:100%;font-size:13px;">
-        <div style="margin-top:6px;font-size:11px;color:var(--text-muted);">유튜브 영상 URL 또는 영상 공유 링크를 붙여넣으세요.</div>
-      </div>
-
-      <div id="final-pane-file" style="display:none;">
-        <label class="form-label">최종본 파일 (MOV / MP4 등)</label>
-        <div id="final-file-current" style="display:none;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12.5px;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:18px;">🎬</span>
-            <a id="final-file-link" href="#" target="_blank" rel="noopener noreferrer" style="color:var(--primary);font-weight:700;flex:1;word-break:break-all;"></a>
-          </div>
-        </div>
-        <div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:9px 11px;margin-bottom:10px;font-size:11.5px;color:#92400E;line-height:1.5;">
-          ⚠️ 현재 파일 직접 업로드는 비활성 상태일 수 있어요. 업로드 실패 시 영상을 <b>구글 드라이브·유튜브에 올린 뒤 'URL' 탭</b>에 링크를 붙여넣어 주세요.
-        </div>
-        <input type="file" id="final-file-input" accept=".mov,.mp4,.m4v,.avi,.mkv,.webm" style="width:100%;font-size:12px;">
-        <div id="final-upload-status" style="margin-top:8px;font-size:11.5px;color:var(--text-muted);"></div>
-        <div style="margin-top:6px;font-size:11px;color:var(--text-muted);">최대 2GB · MOV/MP4/M4V/AVI/MKV/WEBM (대용량 시 업로드 시간이 오래 걸릴 수 있어요)</div>
-      </div>
+    <div class="modal-body" style="padding:22px 24px;">
+      <label class="form-label" for="final-url-input">최종본 URL</label>
+      <input type="text" id="final-url-input" class="form-input" placeholder="https://www.youtube.com/watch?v=... 또는 https://youtu.be/..." style="width:100%;font-size:13px;">
+      <div style="margin-top:8px;font-size:11px;color:var(--text-muted);">유튜브 영상 URL 또는 드라이브 영상 공유 링크를 붙여넣으세요. 클릭 시 이 화면에서 URL을 확인·복사할 수 있습니다.</div>
     </div>
     <div class="modal-footer" style="display:flex;gap:8px;padding:14px 24px;border-top:1px solid #eee;align-items:center;">
       <button class="btn btn-ghost" id="final-delete-btn" onclick="deleteFinal()" style="margin-right:auto;color:#dc2626;">삭제</button>
@@ -6887,10 +6877,23 @@ function renderTrackTable() {
 }
 
 // ===== 진행 현황 테이블 필터/정렬 핸들러 =====
+// 섭외 진행 순서 (드롭다운·정렬에서 명시적으로 사용)
+const TRACK_STATUS_ORDER = ['recruiting','noResponse','priceTalk','recruited','guide','producing','confirmed','scheduled','done','excluded'];
+
 function renderTrackStatusChips() {
   const wrap = document.getElementById('track-status-dropdown');
   if (!wrap) return;
-  const items = Object.entries(STATUS_MAP).map(([key, v]) => {
+  const keys = TRACK_STATUS_ORDER.filter(k => STATUS_MAP[k]);
+
+  const allChecked = keys.every(k => trackStatusFilter.has(k));
+  const anyChecked = trackStatusFilter.size > 0;
+  const header = `<div class="track-filter-header">
+    <button type="button" class="track-filter-bulk" onclick="selectAllTrackStatus()" ${allChecked ? 'disabled' : ''}>✓ 전체 선택</button>
+    <button type="button" class="track-filter-bulk" onclick="resetTrackFilters()" ${!anyChecked ? 'disabled' : ''}>✕ 전체 해제</button>
+  </div>`;
+
+  const items = keys.map(key => {
+    const v = STATUS_MAP[key];
     const checked = trackStatusFilter.has(key) ? 'checked' : '';
     return `<label class="track-filter-item">
       <input type="checkbox" ${checked} onchange="toggleTrackStatusFilter('${key}')">
@@ -6898,10 +6901,8 @@ function renderTrackStatusChips() {
       ${v.label}
     </label>`;
   }).join('');
-  const resetBtn = trackStatusFilter.size > 0
-    ? `<button type="button" class="track-filter-reset-btn" onclick="resetTrackFilters()">전체 초기화</button>`
-    : '';
-  wrap.innerHTML = items + resetBtn;
+
+  wrap.innerHTML = header + items;
 
   // 헤더 버튼 활성 상태 + 선택 개수 배지
   const btn = document.getElementById('track-filter-btn');
@@ -6916,6 +6917,11 @@ function renderTrackStatusChips() {
       badge.style.display = 'none';
     }
   }
+}
+
+function selectAllTrackStatus() {
+  TRACK_STATUS_ORDER.forEach(k => { if (STATUS_MAP[k]) trackStatusFilter.add(k); });
+  renderTrackTable();
 }
 
 function toggleTrackStatusDropdown() {
@@ -7121,117 +7127,44 @@ function copyProposalUrl() {
   navigator.clipboard.writeText(url).then(() => showToast('복사되었습니다'));
 }
 
-// ===== Final Video (최종본 - YouTube URL or 영상 파일) =====
+// ===== Final Video (최종본 - URL 전용) =====
 function renderFinalCell(e) {
-  if (e.finalFileName) {
-    const short = e.finalFileName.length > 12 ? e.finalFileName.slice(0, 11) + '…' : e.finalFileName;
-    return `<button class="final-chip filled" onclick="openFinalModal('${currentProjectId}','${e.infId}')" title="${e.finalFileName}">🎬 ${short}</button>`;
-  }
   if (e.finalUrl) {
     return `<button class="final-chip filled" onclick="openFinalModal('${currentProjectId}','${e.infId}')" title="URL 등록됨">▶ URL</button>`;
   }
   return `<button class="final-chip empty" onclick="openFinalModal('${currentProjectId}','${e.infId}')" title="최종본 추가">+ 최종본</button>`;
 }
 
-let _finalCtx = { projId: null, infId: null, currentTab: 'url' };
+let _finalCtx = { projId: null, infId: null };
 function openFinalModal(projId, infId) {
   if (!projId || projId === 'undefined' || projId === 'null' || !infId || infId === 'undefined' || infId === 'null') {
     alert('프로젝트 또는 인플루언서 ID가 없습니다. 페이지를 새로고침하고 다시 시도해주세요.');
     return;
   }
-  _finalCtx = { projId, infId, currentTab: 'url' };
+  _finalCtx = { projId, infId };
   const a = (allAssignments[projId] || {})[infId] || {};
   const inf = allInfluencers[infId] || {};
   document.getElementById('final-modal-title').textContent = inf.name ? `${inf.name} 최종본` : '최종본';
-
-  document.getElementById('final-url-input').value = a.finalUrl && !a.finalFileName ? a.finalUrl : '';
-
-  const fileBox = document.getElementById('final-file-current');
-  const fileLink = document.getElementById('final-file-link');
-  if (a.finalFileName && a.finalUrl) {
-    fileBox.style.display = 'block';
-    fileLink.href = a.finalUrl;
-    fileLink.textContent = a.finalFileName + ' (다운로드)';
-  } else {
-    fileBox.style.display = 'none';
-    fileLink.href = '#';
-    fileLink.textContent = '';
-  }
-  document.getElementById('final-file-input').value = '';
-  document.getElementById('final-upload-status').textContent = '';
-
-  switchFinalTab(a.finalFileName ? 'file' : 'url');
-  const hasAny = !!(a.finalUrl || a.finalFileName);
-  document.getElementById('final-delete-btn').style.display = hasAny ? 'inline-flex' : 'none';
-  document.getElementById('final-copy-btn').style.display = hasAny ? 'inline-flex' : 'none';
-
+  document.getElementById('final-url-input').value = a.finalUrl || '';
+  const hasUrl = !!a.finalUrl;
+  document.getElementById('final-delete-btn').style.display = hasUrl ? 'inline-flex' : 'none';
+  document.getElementById('final-copy-btn').style.display = hasUrl ? 'inline-flex' : 'none';
   document.getElementById('modal-final').classList.add('open');
-}
-
-function switchFinalTab(tab) {
-  _finalCtx.currentTab = tab;
-  ['url','file'].forEach(t => {
-    document.getElementById('final-tab-' + t).classList.toggle('active', t === tab);
-    document.getElementById('final-pane-' + t).style.display = t === tab ? 'block' : 'none';
-  });
+  setTimeout(() => { const i = document.getElementById('final-url-input'); if (i) { i.focus(); i.select(); } }, 50);
 }
 
 function closeFinalModal() {
   document.getElementById('modal-final').classList.remove('open');
-  _finalCtx = { projId: null, infId: null, currentTab: 'url' };
+  _finalCtx = { projId: null, infId: null };
 }
 
-async function saveFinal() {
-  const { projId, infId, currentTab } = _finalCtx;
+function saveFinal() {
+  const { projId, infId } = _finalCtx;
   if (!projId || !infId) { alert('저장 컨텍스트가 사라졌습니다. 모달을 닫고 다시 시도해주세요.'); return; }
-
-  if (currentTab === 'url') {
-    const url = (document.getElementById('final-url-input').value || '').trim();
-    saveTrackFields(projId, infId, { finalUrl: url, finalFileName: '' });
-    showToast(url ? '최종본 URL 저장됨' : '최종본 삭제됨');
-    closeFinalModal();
-    return;
-  }
-
-  // file tab
-  const fileInput = document.getElementById('final-file-input');
-  if (!fileInput.files || !fileInput.files.length) { closeFinalModal(); return; }
-  const file = fileInput.files[0];
-  const MAX_BYTES = 2 * 1024 * 1024 * 1024; // 2GB
-  if (file.size > MAX_BYTES) { alert('파일이 너무 큽니다 (최대 2GB).'); return; }
-  if (!storage) { alert('Firebase Storage 미초기화 — URL 옵션을 이용해주세요.'); return; }
-
-  const statusEl = document.getElementById('final-upload-status');
-  const saveBtn = document.getElementById('final-save-btn');
-  saveBtn.disabled = true;
-  statusEl.textContent = '업로드 중... 0%';
-  try {
-    const path = `finals/${projId}/${infId}/${Date.now()}_${file.name}`;
-    const ref = storage.ref(path);
-    const task = ref.put(file);
-    await new Promise((resolve, reject) => {
-      task.on('state_changed',
-        snap => {
-          const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
-          const mbDone = (snap.bytesTransferred/1024/1024).toFixed(1);
-          const mbTotal = (snap.totalBytes/1024/1024).toFixed(1);
-          statusEl.textContent = `업로드 중... ${pct}% (${mbDone}/${mbTotal}MB)`;
-        },
-        err => reject(err),
-        () => resolve()
-      );
-    });
-    const url = await ref.getDownloadURL();
-    saveTrackFields(projId, infId, { finalUrl: url, finalFileName: file.name });
-    showToast('최종본 파일 업로드 완료');
-    closeFinalModal();
-  } catch (e) {
-    console.error('Final upload failed', e);
-    alert('업로드 실패: ' + (e.message || e) + '\n\n파일이 크다면 유튜브에 업로드 후 URL 탭을 이용하세요.');
-    statusEl.textContent = '업로드 실패';
-  } finally {
-    saveBtn.disabled = false;
-  }
+  const url = (document.getElementById('final-url-input').value || '').trim();
+  saveTrackFields(projId, infId, { finalUrl: url, finalFileName: '' });
+  showToast(url ? '최종본 URL 저장됨' : '최종본 삭제됨');
+  closeFinalModal();
 }
 
 function deleteFinal() {
