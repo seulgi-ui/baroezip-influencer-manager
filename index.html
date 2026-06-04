@@ -1164,6 +1164,12 @@ table { border-collapse: collapse; width: 100%; }
   border-color: #065F46;
 }
 .tl-flow-badge.is-upload .tl-flow-num { color: #FDE68A; }
+.tl-flow-badge.is-payment {
+  background: #1E3A8A;
+  color: #fff;
+  border-color: #1E40AF;
+}
+.tl-flow-badge.is-payment .tl-flow-num { color: #BFDBFE; }
 .tl-flow-num {
   font-size: 14px;
   font-weight: 900;
@@ -1378,6 +1384,12 @@ table { border-collapse: collapse; width: 100%; }
   border-color: #065F46;
 }
 .tl-marker.is-upload .tl-marker-num { color: #FDE68A; }
+.tl-marker.is-payment {
+  background: #1E3A8A;
+  color: #fff;
+  border-color: #1E40AF;
+}
+.tl-marker.is-payment .tl-marker-num { color: #BFDBFE; }
 .tl-marker-num {
   font-size: 12px;
   font-weight: 900;
@@ -9793,7 +9805,7 @@ function tlNext() { calNext(); }
 
 // ===== 프로덕션 타임라인 =====
 // 9개 마일스톤 — 색은 방향별 2색만 (out=파랑/in=초록), 단계는 ①~⑨ 번호로 구분
-const STEP_NUMS = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
+const STEP_NUMS = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩','⑪','⑫'];
 const DIR_COLOR = { out: '#2563EB', in: '#059669' }; // 보낼것 파랑 / 받을것 초록
 const MILESTONES = [
   { key: 'contract_send',  label: '계약서 전달',  dir: 'out', short: '계약전달' },
@@ -9806,6 +9818,8 @@ const MILESTONES = [
   { key: 'video_feedback', label: '영상 피드백',  dir: 'out', short: '영상 FB' },
   { key: 'video_final',    label: '최종본',       dir: 'in',  short: '최종본' },
   { key: 'upload',         label: '업로드',       dir: 'in',  short: '업로드' },
+  { key: 'invoice',        label: '계산서',       dir: 'in',  short: '계산서' },
+  { key: 'payment',        label: '입금',         dir: 'out', short: '입금' },
 ].map((m, i) => ({ ...m, step: STEP_NUMS[i], color: DIR_COLOR[m.dir] }));
 const MILESTONE_MAP = Object.fromEntries(MILESTONES.map(m => [m.key, m]));
 
@@ -9837,7 +9851,7 @@ function renderTimeline() {
       <div class="tl-legend-flow-steps">
         ${MILESTONES.map((m, i) => `
           <div class="tl-flow-step">
-            <span class="tl-flow-badge dir-${m.dir} ${m.key === 'upload' ? 'is-upload' : ''}">
+            <span class="tl-flow-badge dir-${m.dir} ${m.key === 'upload' ? 'is-upload' : ''} ${m.key === 'payment' ? 'is-payment' : ''}">
               <span class="tl-flow-num">${m.step}</span>
               <span class="tl-flow-label">${escapeHtml(m.label)}</span>
             </span>
@@ -9962,7 +9976,7 @@ function renderTimeline() {
         const cls = dateStr === todayStr ? 'today' : (dow === 0 || dow === 6 ? 'weekend' : '');
         const markers = MILESTONES.filter(m => schedule[m.key] === dateStr);
         const markerHtml = markers.map(m =>
-          `<span class="tl-marker dir-${m.dir} ${m.key === 'upload' ? 'is-upload' : ''}"
+          `<span class="tl-marker dir-${m.dir} ${m.key === 'upload' ? 'is-upload' : ''} ${m.key === 'payment' ? 'is-payment' : ''}"
                  draggable="true"
                  ondragstart="startMarkerDrag(event, '${infId}', '${m.key}', '${dateStr}')"
                  ondragend="endMarkerDrag(event)"
