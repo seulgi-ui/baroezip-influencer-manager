@@ -10636,16 +10636,13 @@ function renderPrPlan() {
     const tbody = document.getElementById('pr-plan-tbody');
     const tfoot = document.getElementById('pr-plan-tfoot');
     const empty = document.getElementById('pr-plan-empty');
-    const summary = document.getElementById('pr-plan-summary');
 
     if (!items.length) {
       tbody.innerHTML = ''; tfoot.innerHTML = '';
       empty.style.display = '';
-      summary.style.display = 'none';
       return;
     }
     empty.style.display = 'none';
-    summary.style.display = '';
 
     // Group by grade
     const grouped = {};
@@ -10785,26 +10782,7 @@ function renderPrPlan() {
     infoBar.innerHTML = `: ${gradeSummary} 총 <strong style="color:#1E1E2D;font-weight:800;">${totalCount}건</strong> 배포`;
     infoBar.style.display = '';
 
-    // Summary cards by grade
-    const gradeStats = {};
-    items.forEach(([,p]) => {
-      const g = p.grade || '일반';
-      if (!gradeStats[g]) gradeStats[g] = {count:0, amount:0};
-      gradeStats[g].count += (p.count||1);
-      gradeStats[g].amount += (p.count||1) * (p.price||0);
-    });
-    document.getElementById('pr-plan-summary-cards').innerHTML = PR_GRADE_ORDER.map(g => {
-      const s = gradeStats[g] || {count:0, amount:0};
-      const gc = PR_GRADE_COLORS[g];
-      const gb = PR_GRADE_BG[g];
-      const pct = totalAmount ? Math.round(s.amount / totalAmount * 100) : 0;
-      return `<div style="background:${gb};border-radius:14px;padding:20px;text-align:center;">
-        <div style="font-size:12px;font-weight:700;color:${gc};margin-bottom:8px;">${g}</div>
-        <div style="font-size:24px;font-weight:800;color:#1E1E2D;">${s.count}건</div>
-        <div style="font-size:14px;font-weight:700;color:${gc};margin-top:4px;">${s.amount.toLocaleString()}만원</div>
-        <div style="font-size:11px;color:#8B8BA7;margin-top:4px;">전체의 ${pct}%</div>
-      </div>`;
-    }).join('');
+    // (등급별 요약 카드는 KPI와 중복으로 제거됨)
   });
 }
 
