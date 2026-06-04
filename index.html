@@ -4503,6 +4503,10 @@ table { border-collapse: collapse; width: 100%; }
             <input type="text" id="pr-plan-media-3" class="form-input" placeholder="예: 한국경제">
             <div style="font-size:11px;color:#6B7280;font-weight:700;">4순위</div>
             <input type="text" id="pr-plan-media-4" class="form-input" placeholder="(선택)">
+            <div style="font-size:11px;color:#6B7280;font-weight:700;">5순위</div>
+            <input type="text" id="pr-plan-media-5" class="form-input" placeholder="(선택)">
+            <div style="font-size:11px;color:#6B7280;font-weight:700;">6순위</div>
+            <input type="text" id="pr-plan-media-6" class="form-input" placeholder="(선택)">
           </div>
         </div>
         <div class="form-grid">
@@ -10513,8 +10517,8 @@ function renderPrPlan() {
         totalAmount += sub;
         gradeCounts[grade].totalQty += cnt;
         const gradeCell = idx === 0 ? `<td rowspan="${count}" style="background:${gb};font-weight:800;font-size:12px;color:${gc};text-align:center;vertical-align:middle;white-space:nowrap;"><span style="padding:4px 14px;border-radius:8px;background:${gc}18;display:inline-block;">${grade}</span></td>` : '';
-        // 언론사 4순위 — 가로 배치 (wrap 허용)
-        const ranks = [p.media1, p.media2, p.media3, p.media4].filter(Boolean);
+        // 언론사 6순위 — 가로 배치 (wrap 허용)
+        const ranks = [p.media1, p.media2, p.media3, p.media4, p.media5, p.media6].filter(Boolean);
         const mediaCell = ranks.length
           ? `<div style="display:flex;flex-wrap:wrap;gap:6px 10px;font-size:12px;line-height:1.4;">${
               ranks.map((m, mi) => `<span style="white-space:nowrap;"><span style="color:#9CA3AF;font-weight:800;font-size:10.5px;margin-right:3px;">${mi+1}.</span>${m}</span>`).join('')
@@ -10651,6 +10655,8 @@ function openPrPlanModal(id) {
         document.getElementById('pr-plan-media-2').value = d.media2 || '';
         document.getElementById('pr-plan-media-3').value = d.media3 || '';
         document.getElementById('pr-plan-media-4').value = d.media4 || '';
+        document.getElementById('pr-plan-media-5').value = d.media5 || '';
+        document.getElementById('pr-plan-media-6').value = d.media6 || '';
         document.getElementById('pr-plan-count').value = d.count || 1;
         document.getElementById('pr-plan-price').value = d.price || '';
         document.querySelectorAll('input[name="pr-plan-grade"]').forEach(r => r.checked = r.value === (d.grade||'일반'));
@@ -10662,6 +10668,8 @@ function openPrPlanModal(id) {
     document.getElementById('pr-plan-media-2').value = '';
     document.getElementById('pr-plan-media-3').value = '';
     document.getElementById('pr-plan-media-4').value = '';
+    document.getElementById('pr-plan-media-5').value = '';
+    document.getElementById('pr-plan-media-6').value = '';
     document.getElementById('pr-plan-count').value = 1;
     document.getElementById('pr-plan-price').value = '';
     document.querySelectorAll('input[name="pr-plan-grade"]').forEach(r => r.checked = r.value === '메이저');
@@ -10673,10 +10681,12 @@ function savePrPlan() {
   const m2 = document.getElementById('pr-plan-media-2').value.trim();
   const m3 = document.getElementById('pr-plan-media-3').value.trim();
   const m4 = document.getElementById('pr-plan-media-4').value.trim();
+  const m5 = document.getElementById('pr-plan-media-5').value.trim();
+  const m6 = document.getElementById('pr-plan-media-6').value.trim();
   if (!m1) return toast('1순위 언론사를 입력하세요');
   const data = {
-    media1: m1, media2: m2, media3: m3, media4: m4,
-    media: [m1, m2, m3, m4].filter(Boolean).join(', '),  // 레거시 호환·요약 표시용
+    media1: m1, media2: m2, media3: m3, media4: m4, media5: m5, media6: m6,
+    media: [m1, m2, m3, m4, m5, m6].filter(Boolean).join(', '),  // 레거시 호환·요약 표시용
     grade: document.querySelector('input[name="pr-plan-grade"]:checked')?.value || '일반',
     count: parseInt(document.getElementById('pr-plan-count').value) || 1,
     price: parseInt(document.getElementById('pr-plan-price').value) || 0
