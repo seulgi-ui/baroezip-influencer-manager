@@ -10513,8 +10513,11 @@ function renderPrPlan() {
         const cnt = p.count || 1;
         const price = p.price || 0;
         const sub = cnt * price;
-        totalCount += cnt;
-        totalAmount += sub;
+        // 초안 작성비는 송출 합계(건수·금액)에서 제외
+        if (grade !== '초안') {
+          totalCount += cnt;
+          totalAmount += sub;
+        }
         gradeCounts[grade].totalQty += cnt;
         const gradeCell = idx === 0 ? `<td rowspan="${count}" style="background:${gb};font-weight:800;font-size:12px;color:${gc};text-align:center;vertical-align:middle;white-space:nowrap;"><span style="padding:4px 14px;border-radius:8px;background:${gc}18;display:inline-block;">${grade}</span></td>` : '';
         // 언론사 6순위 — 가로 배치 (wrap 허용)
