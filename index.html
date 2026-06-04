@@ -3648,6 +3648,37 @@ table { border-collapse: collapse; width: 100%; }
             </div>
           </div>
 
+        <!-- 미디어믹스 상세 (배포 계획) -->
+        <div style="background:#fff;border-radius:14px;border:1px solid #EEEEF2;overflow:hidden;margin-bottom:20px;box-shadow:0 1px 3px rgba(15,23,42,0.04);">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid #EEEEF2;">
+            <h3 style="font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px;">
+              <span style="color:#7C3AED;font-size:16px;">📋</span>
+              미디어믹스 · 진행 현황
+            </h3>
+            <button class="btn btn-primary btn-sm" onclick="openPrPlanModal()">+ 배포 추가</button>
+          </div>
+          <div id="pr-plan-info" style="padding:10px 22px;background:#FAFAFC;font-size:12px;color:#475569;border-bottom:1px solid #EEEEF2;display:none;"></div>
+          <div style="overflow-x:auto;">
+            <table class="mm-table" style="margin:0;">
+              <thead><tr>
+                <th style="width:40px;text-align:center;">NO</th>
+                <th style="width:80px;white-space:nowrap;">구분</th>
+                <th style="width:230px;min-width:230px;max-width:280px;">언론사명 (순위별)</th>
+                <th class="mm-num" style="width:60px;white-space:nowrap;">수량</th>
+                <th class="mm-num" style="width:100px;white-space:nowrap;">단가</th>
+                <th class="mm-num" style="width:110px;white-space:nowrap;">송출 금액</th>
+                <th style="width:140px;white-space:nowrap;">송출 일정</th>
+                <th style="width:100px;white-space:nowrap;">상태</th>
+                <th style="width:160px;white-space:nowrap;">기사 URL</th>
+                <th style="width:50px;"></th>
+              </tr></thead>
+              <tbody id="pr-plan-tbody"></tbody>
+              <tfoot id="pr-plan-tfoot"></tfoot>
+            </table>
+          </div>
+          <div id="pr-plan-empty" style="display:none;text-align:center;padding:30px;color:var(--text-muted);font-size:13px;">배포 계획을 추가하세요.</div>
+        </div>
+
         <!-- 선정 기준 + 안내사항 + 게재 현황 (3카드) -->
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
           <div style="background:#fff;border-radius:14px;border:1px solid #EEEEF2;padding:24px;">
@@ -3696,36 +3727,8 @@ table { border-collapse: collapse; width: 100%; }
           </div>
         </div>
 
-        <!-- 미디어믹스 상세 (배포 계획) -->
-        <div style="background:#fff;border-radius:14px;border:1px solid #EEEEF2;overflow:hidden;margin-bottom:20px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;border-bottom:1px solid #EEEEF2;">
-            <h3 style="font-size:15px;font-weight:700;">미디어믹스 상세</h3>
-            <button class="btn btn-primary btn-sm" onclick="openPrPlanModal()">+ 배포 추가</button>
-          </div>
-          <div id="pr-plan-info" style="padding:12px 24px;background:#FAFAFC;font-size:12px;color:var(--text-secondary);border-bottom:1px solid #EEEEF2;display:none;"></div>
-          <div style="overflow-x:auto;">
-            <table class="mm-table" style="margin:0;">
-              <thead><tr>
-                <th style="width:40px;text-align:center;">NO</th>
-                <th style="width:80px;white-space:nowrap;">구분</th>
-                <th style="width:230px;min-width:230px;max-width:280px;">언론사명 (순위별)</th>
-                <th class="mm-num" style="width:60px;white-space:nowrap;">수량</th>
-                <th class="mm-num" style="width:100px;white-space:nowrap;">단가</th>
-                <th class="mm-num" style="width:110px;white-space:nowrap;">송출 금액</th>
-                <th style="width:140px;white-space:nowrap;">송출 일정</th>
-                <th style="width:100px;white-space:nowrap;">상태</th>
-                <th style="width:160px;white-space:nowrap;">기사 URL</th>
-                <th style="width:50px;"></th>
-              </tr></thead>
-              <tbody id="pr-plan-tbody"></tbody>
-              <tfoot id="pr-plan-tfoot"></tfoot>
-            </table>
-          </div>
-          <div id="pr-plan-empty" style="display:none;text-align:center;padding:30px;color:var(--text-muted);font-size:13px;">배포 계획을 추가하세요.</div>
-        </div>
-
-        <!-- 등급별 요약 -->
-        <div id="pr-plan-summary" style="display:none;">
+        <!-- 등급별 요약 — KPI 카드와 정보 중복이라 숨김 (코드 보존) -->
+        <div id="pr-plan-summary" style="display:none !important;">
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;" id="pr-plan-summary-cards"></div>
         </div>
       </div>
@@ -10779,8 +10782,10 @@ function renderPrPlan() {
 
     // Info bar
     const infoBar = document.getElementById('pr-plan-info');
-    const gradeSummary = PR_GRADE_ORDER.filter(g => gradeCounts[g]).map(g => `${g}급 ${gradeCounts[g].items}개`).join(' / ');
-    infoBar.innerHTML = `: ${gradeSummary} 총 <b>${totalCount}건</b> 배포`;
+    const gradeSummary = PR_GRADE_ORDER.filter(g => gradeCounts[g])
+      .map(g => `${g}급 <strong style="color:#1E1E2D;font-weight:800;">${gradeCounts[g].items}개</strong>`)
+      .join(' · ');
+    infoBar.innerHTML = `: ${gradeSummary} 총 <strong style="color:#1E1E2D;font-weight:800;">${totalCount}건</strong> 배포`;
     infoBar.style.display = '';
 
     // Summary cards by grade
