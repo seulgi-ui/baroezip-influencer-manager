@@ -222,6 +222,21 @@
 .mm-bar-fill2 { height:100%;border-radius:8px;display:flex;align-items:center;padding-left:10px;font-size:11px;font-weight:700;color:#fff;transition:width .5s; }
 .mm-bar-amt2 { width:80px;text-align:right;font-size:12px;font-weight:700;color:#3A3A52;flex-shrink:0; }
 
+/* 미디어믹스 상태 칩 + 셀렉트 */
+.pr-status-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 11px;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  border: 1px solid transparent; background: #fff;
+  font-family: inherit; appearance: none; -webkit-appearance: none;
+  background-position: right 6px center; background-repeat: no-repeat; padding-right: 22px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+}
+.pr-status-chip.draft   { background-color: #FEF3C7; color: #B45309; border-color: #FDE68A; }
+.pr-status-chip.wait    { background-color: #DBEAFE; color: #1D4ED8; border-color: #BFDBFE; }
+.pr-status-chip.done    { background-color: #EDE9FE; color: #6D28D9; border-color: #DDD6FE; }
+.pr-status-chip.confirm { background-color: #D1FAE5; color: #047857; border-color: #A7F3D0; }
+
 /* ===== 언론홍보 새 디자인 — KPI / Process / 게재 현황 ===== */
 .pr-kpi-card {
   background: #fff; border-radius: 14px; padding: 20px 22px;
@@ -3698,7 +3713,8 @@ table { border-collapse: collapse; width: 100%; }
                 <th class="mm-num" style="width:100px;white-space:nowrap;">단가</th>
                 <th class="mm-num" style="width:110px;white-space:nowrap;">송출 금액</th>
                 <th style="width:140px;white-space:nowrap;">송출 일정</th>
-                <th style="width:180px;white-space:nowrap;">기사 URL</th>
+                <th style="width:100px;white-space:nowrap;">상태</th>
+                <th style="width:160px;white-space:nowrap;">기사 URL</th>
                 <th style="width:50px;"></th>
               </tr></thead>
               <tbody id="pr-plan-tbody"></tbody>
@@ -10694,6 +10710,17 @@ function renderPrPlan() {
             style="flex:1;min-width:0;font-size:11px;padding:4px 6px;border:1px solid #E2E8F0;border-radius:5px;background:#fff;">
           ${p.articleUrl ? `<a href="${p.articleUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="font-size:13px;text-decoration:none;color:#2563EB;flex-shrink:0;" title="새 탭에서 열기">↗</a>` : ''}
         </div>`;
+        // 상태 셀렉트
+        const st = p.articleStatus || 'wait';
+        const statusOptions = [
+          {v:'draft',   l:'작성중'},
+          {v:'wait',    l:'배포대기'},
+          {v:'done',    l:'배포완료'},
+          {v:'confirm', l:'게재완료'},
+        ];
+        const statusHtml = `<select class="pr-status-chip ${st}" onclick="event.stopPropagation();" onchange="event.stopPropagation();updatePrPlanField('${id}','articleStatus',this.value)">
+          ${statusOptions.map(o => `<option value="${o.v}" ${st===o.v?'selected':''}>${o.l}</option>`).join('')}
+        </select>`;
         tbodyHtml += `<tr onclick="openPrPlanModal('${id}')" style="cursor:pointer;">
           <td style="text-align:center;font-size:12px;color:#8B8BA7;font-weight:600;">${rowNo}</td>
           ${gradeCell}
@@ -10702,6 +10729,7 @@ function renderPrPlan() {
           <td class="mm-num" style="white-space:nowrap;">${(price*10000).toLocaleString()}원</td>
           <td class="mm-num" style="font-weight:700;color:var(--primary);white-space:nowrap;">${(sub*10000).toLocaleString()}원</td>
           <td style="text-align:center;">${releaseDateHtml}</td>
+          <td style="text-align:center;">${statusHtml}</td>
           <td style="text-align:center;">${urlHtml}</td>
           <td onclick="event.stopPropagation();"><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deletePrPlan('${id}')" style="font-size:11px;color:var(--danger);">삭제</button></td>
         </tr>`;
@@ -10725,28 +10753,28 @@ function renderPrPlan() {
         <td class="mm-num" style="${AMT}">${totalCount}건</td>
         <td class="mm-num" style="${AMT}">-</td>
         <td class="mm-num" style="${AMT}color:var(--primary);">${totalAmountWon.toLocaleString()}원</td>
-        <td></td><td></td><td></td>
+        <td></td><td></td><td></td><td></td>
       </tr>
       <tr>
         <td></td>
         <td colspan="2" style="${LBL}color:#475569;">VAT 포함<span style="${SUB}">(+10%)</span></td>
         <td></td><td></td>
         <td class="mm-num" style="${AMT}color:#475569;">${vatIncludedWon.toLocaleString()}원</td>
-        <td></td><td></td><td></td>
+        <td></td><td></td><td></td><td></td>
       </tr>
       <tr>
         <td></td>
         <td colspan="2" style="${LBL}color:#DC2626;">할인<span style="${SUB}">(${DISCOUNT_PCT}%)</span></td>
         <td></td><td></td>
         <td class="mm-num" style="${AMT}color:#DC2626;">-${DISCOUNT_AMOUNT.toLocaleString()}원</td>
-        <td></td><td></td><td></td>
+        <td></td><td></td><td></td><td></td>
       </tr>
       <tr style="background:#F5F3FF;border-top:2px solid #DDD6FE;">
         <td></td>
         <td colspan="2" style="${LBL}">최종 견적가<span style="${SUB}">(VAT 포함)</span></td>
         <td></td><td></td>
         <td class="mm-num" style="${AMT}color:var(--primary);">${finalWon.toLocaleString()}원</td>
-        <td></td><td></td><td></td>
+        <td></td><td></td><td></td><td></td>
       </tr>`;
 
     // Info bar
@@ -10864,40 +10892,47 @@ function deletePrPlan(id) {
 function renderPrKpi(items) {
   const kpiEl = document.getElementById('pr-kpi-row');
   if (!kpiEl) return;
-  let totalCnt = 0, sendCnt = 0, postedCnt = 0;
-  let sendAmount = 0;  // 송출 금액 합계(만원)
+  let totalCnt = 0;
+  const gradeCnt = {'메이저':0,'준메이저':0,'일반':0,'초안':0};
+  const statusCnt = {draft:0, wait:0, done:0, confirm:0};
+  let sendCnt = 0, sendAmount = 0;
   items.forEach(([, p]) => {
     const cnt = p.count || 1;
     const grade = p.grade || '일반';
+    const st = p.articleStatus || 'wait';
     totalCnt += cnt;
+    if (gradeCnt[grade] != null) gradeCnt[grade] += cnt;
+    if (statusCnt[st] != null) statusCnt[st] += cnt;
     if (grade !== '초안') {
       sendCnt += cnt;
       sendAmount += cnt * (p.price || 0);
     }
-    if (p.articleUrl) postedCnt += cnt;
   });
   const vatIncluded = Math.round(sendAmount * 10000 * 1.1);
   const DISCOUNT = 132000;
   const finalWon = vatIncluded - DISCOUNT;
   const finalMan = Math.round(finalWon / 10000);
-  const postedPct = sendCnt ? Math.round(postedCnt / sendCnt * 100) : 0;
+  const inProgress = statusCnt.draft + statusCnt.wait;
+  const inProgressPct = sendCnt ? Math.round(inProgress / sendCnt * 100) : 0;
+  const postedPct = sendCnt ? Math.round(statusCnt.confirm / sendCnt * 100) : 0;
+  const gradeSub = `메이저 ${gradeCnt['메이저']} · 준메이저 ${gradeCnt['준메이저']} · 일반 ${gradeCnt['일반']} · 초안 ${gradeCnt['초안']}`;
   kpiEl.innerHTML = `
     <div class="pr-kpi-card k1">
       <div class="pr-kpi-label">총 배포</div>
       <div class="pr-kpi-value">${totalCnt}<span class="unit">건</span></div>
-      <div class="pr-kpi-sub">송출 ${sendCnt}건 + 초안 ${totalCnt - sendCnt}건</div>
+      <div class="pr-kpi-sub">${gradeSub}</div>
       <div class="pr-kpi-bar"><div class="pr-kpi-bar-fill" style="width:100%;"></div></div>
     </div>
     <div class="pr-kpi-card k2">
       <div class="pr-kpi-label">진행중</div>
-      <div class="pr-kpi-value">${Math.max(sendCnt - postedCnt, 0)}<span class="unit">건</span></div>
-      <div class="pr-kpi-sub">배포 대기 / 작성중</div>
-      <div class="pr-kpi-bar"><div class="pr-kpi-bar-fill" style="width:${100 - postedPct}%;"></div></div>
+      <div class="pr-kpi-value">${inProgress}<span class="unit">건</span></div>
+      <div class="pr-kpi-sub">작성중 ${statusCnt.draft} · 배포대기 ${statusCnt.wait}</div>
+      <div class="pr-kpi-bar"><div class="pr-kpi-bar-fill" style="width:${inProgressPct}%;"></div></div>
     </div>
     <div class="pr-kpi-card k3">
       <div class="pr-kpi-label">게재 완료</div>
-      <div class="pr-kpi-value">${postedCnt}<span class="unit">건</span></div>
-      <div class="pr-kpi-sub">URL 등록 기준 · ${postedPct}%</div>
+      <div class="pr-kpi-value">${statusCnt.confirm}<span class="unit">건</span></div>
+      <div class="pr-kpi-sub">${postedPct}% · 배포완료 ${statusCnt.done}건</div>
       <div class="pr-kpi-bar"><div class="pr-kpi-bar-fill" style="width:${postedPct}%;"></div></div>
     </div>
     <div class="pr-kpi-card k4">
@@ -10919,8 +10954,8 @@ function renderPrCoverageSummary(items) {
     const grade = p.grade || '일반';
     if (grade === '초안') return;
     sendCnt += cnt;
-    if (p.articleUrl) postedCnt += cnt;
-    if (p.releaseDate) dates.push({ d: p.releaseDate, media: p.media1 || p.media || '', posted: !!p.articleUrl });
+    if ((p.articleStatus || '') === 'confirm') postedCnt += cnt;
+    if (p.releaseDate) dates.push({ d: p.releaseDate, media: p.media1 || p.media || '', posted: (p.articleStatus||'') === 'confirm' });
   });
   dates.sort((a, b) => a.d < b.d ? -1 : 1);
   const now = new Date();
