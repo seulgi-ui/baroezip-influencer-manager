@@ -3586,12 +3586,12 @@ table { border-collapse: collapse; width: 100%; }
               <thead><tr>
                 <th style="width:40px;text-align:center;">NO</th>
                 <th style="width:90px;">구분</th>
-                <th style="width:170px;max-width:170px;">언론사명 (순위별)</th>
+                <th style="min-width:260px;">언론사명 (순위별)</th>
                 <th class="mm-num" style="width:60px;white-space:nowrap;">수량</th>
                 <th class="mm-num" style="width:110px;white-space:nowrap;">단가</th>
                 <th class="mm-num" style="width:120px;white-space:nowrap;">송출 금액</th>
-                <th style="width:100px;white-space:nowrap;">송출 일정</th>
-                <th style="width:90px;white-space:nowrap;">기사 URL</th>
+                <th style="width:135px;white-space:nowrap;">송출 일정</th>
+                <th style="min-width:200px;white-space:nowrap;">기사 URL</th>
                 <th style="width:60px;"></th>
               </tr></thead>
               <tbody id="pr-plan-tbody"></tbody>
@@ -4509,8 +4509,6 @@ table { border-collapse: collapse; width: 100%; }
           <div class="form-group" style="margin:0;"><label style="font-size:12px;">건수</label><input type="number" id="pr-plan-count" class="form-input" placeholder="1" value="1"></div>
           <div class="form-group" style="margin:0;"><label style="font-size:12px;">건당 단가 (만원)</label><input type="number" id="pr-plan-price" class="form-input" placeholder="예: 100"></div>
         </div>
-        <div class="form-group" style="margin:14px 0 0;"><label style="font-size:12px;">송출 일정</label><input type="date" id="pr-plan-release-date" class="form-input"></div>
-        <div class="form-group" style="margin:10px 0 0;"><label style="font-size:12px;">기사 URL</label><input type="text" id="pr-plan-article-url" class="form-input" placeholder="https://..."></div>
       </div>
     </div>
     <div class="modal-footer" style="border-top:1px solid var(--border);padding:16px 24px;">
@@ -10515,24 +10513,26 @@ function renderPrPlan() {
         totalAmount += sub;
         gradeCounts[grade].totalQty += cnt;
         const gradeCell = idx === 0 ? `<td rowspan="${count}" style="background:${gb};font-weight:800;font-size:12px;color:${gc};text-align:center;vertical-align:middle;white-space:nowrap;"><span style="padding:4px 14px;border-radius:8px;background:${gc}18;display:inline-block;">${grade}</span></td>` : '';
-        // 언론사 4순위 stacked
+        // 언론사 4순위 — 가로 배치 (wrap 허용)
         const ranks = [p.media1, p.media2, p.media3, p.media4].filter(Boolean);
         const mediaCell = ranks.length
-          ? ranks.map((m, mi) => `<div style="font-size:12px;line-height:1.5;"><span style="display:inline-block;min-width:32px;color:#9CA3AF;font-weight:800;font-size:10.5px;">${mi+1}순위</span> ${m}</div>`).join('')
+          ? `<div style="display:flex;flex-wrap:wrap;gap:6px 10px;font-size:12px;line-height:1.4;">${
+              ranks.map((m, mi) => `<span style="white-space:nowrap;"><span style="color:#9CA3AF;font-weight:800;font-size:10.5px;margin-right:3px;">${mi+1}.</span>${m}</span>`).join('')
+            }</div>`
           : (p.media ? `<div style="font-size:12px;">${p.media}</div>` : '<span style="color:#CBD5E1;">-</span>');
-        // 송출 일정 표시
-        const releaseDateHtml = p.releaseDate
-          ? (() => {
-              const dt = new Date(p.releaseDate + 'T00:00:00');
-              if (isNaN(dt.getTime())) return p.releaseDate;
-              const days=['일','월','화','수','목','금','토'];
-              return `<span style="font-weight:700;color:#1F2937;font-size:12px;">${dt.getMonth()+1}/${dt.getDate()}(${days[dt.getDay()]})</span>`;
-            })()
-          : '<span style="color:#CBD5E1;">-</span>';
-        // 기사 URL 칩
-        const urlHtml = p.articleUrl
-          ? `<a href="${p.articleUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="display:inline-block;padding:3px 10px;border-radius:10px;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;font-size:11px;font-weight:700;text-decoration:none;">🔗 보기</a>`
-          : '<span style="color:#CBD5E1;">-</span>';
+        // 송출 일정 — 인라인 편집 (date input)
+        const releaseDateHtml = `<input type="date" value="${p.releaseDate || ''}"
+            onclick="event.stopPropagation();"
+            onchange="event.stopPropagation();updatePrPlanField('${id}','releaseDate',this.value)"
+            style="width:100%;font-size:11px;padding:4px 6px;border:1px solid #E2E8F0;border-radius:5px;background:#fff;">`;
+        // 기사 URL — 인라인 편집 (text input + 열기 버튼)
+        const urlHtml = `<div style="display:flex;align-items:center;gap:4px;">
+          <input type="text" value="${(p.articleUrl||'').replace(/"/g,'&quot;')}" placeholder="URL"
+            onclick="event.stopPropagation();"
+            onchange="event.stopPropagation();updatePrPlanField('${id}','articleUrl',this.value.trim())"
+            style="flex:1;min-width:0;font-size:11px;padding:4px 6px;border:1px solid #E2E8F0;border-radius:5px;background:#fff;">
+          ${p.articleUrl ? `<a href="${p.articleUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="font-size:13px;text-decoration:none;color:#2563EB;flex-shrink:0;" title="새 탭에서 열기">↗</a>` : ''}
+        </div>`;
         tbodyHtml += `<tr onclick="openPrPlanModal('${id}')" style="cursor:pointer;">
           <td style="text-align:center;font-size:12px;color:#8B8BA7;font-weight:600;">${rowNo}</td>
           ${gradeCell}
@@ -10608,8 +10608,6 @@ function openPrPlanModal(id) {
         document.getElementById('pr-plan-media-4').value = d.media4 || '';
         document.getElementById('pr-plan-count').value = d.count || 1;
         document.getElementById('pr-plan-price').value = d.price || '';
-        document.getElementById('pr-plan-release-date').value = d.releaseDate || '';
-        document.getElementById('pr-plan-article-url').value = d.articleUrl || '';
         document.querySelectorAll('input[name="pr-plan-grade"]').forEach(r => r.checked = r.value === (d.grade||'일반'));
       }
       openModal('modal-pr-plan');
@@ -10621,8 +10619,6 @@ function openPrPlanModal(id) {
     document.getElementById('pr-plan-media-4').value = '';
     document.getElementById('pr-plan-count').value = 1;
     document.getElementById('pr-plan-price').value = '';
-    document.getElementById('pr-plan-release-date').value = '';
-    document.getElementById('pr-plan-article-url').value = '';
     document.querySelectorAll('input[name="pr-plan-grade"]').forEach(r => r.checked = r.value === '메이저');
     openModal('modal-pr-plan');
   }
@@ -10638,9 +10634,7 @@ function savePrPlan() {
     media: [m1, m2, m3, m4].filter(Boolean).join(', '),  // 레거시 호환·요약 표시용
     grade: document.querySelector('input[name="pr-plan-grade"]:checked')?.value || '일반',
     count: parseInt(document.getElementById('pr-plan-count').value) || 1,
-    price: parseInt(document.getElementById('pr-plan-price').value) || 0,
-    releaseDate: document.getElementById('pr-plan-release-date').value || '',
-    articleUrl: document.getElementById('pr-plan-article-url').value.trim() || ''
+    price: parseInt(document.getElementById('pr-plan-price').value) || 0
   };
   const editId = document.getElementById('pr-plan-edit-id').value;
   const ref = editId ? db.ref('campaign/pr-plan/' + editId) : db.ref('campaign/pr-plan').push();
@@ -10649,6 +10643,17 @@ function savePrPlan() {
 function deletePrPlan(id) {
   if (!confirm('삭제하시겠습니까?')) return;
   db.ref('campaign/pr-plan/' + id).remove().then(() => { renderPrPlan(); toast('삭제 완료'); });
+}
+
+// 표 내 인라인 편집 (송출 일정 / 기사 URL)
+function updatePrPlanField(id, field, value) {
+  if (!firebaseReady || !id) return;
+  const data = {};
+  data[field] = value;
+  db.ref('campaign/pr-plan/' + id).update(data).then(() => {
+    toast('저장됨');
+    renderPrPlan();
+  });
 }
 
 const PR_STATUS_COLORS = {'작성중':'#F59E0B','검토중':'#3B82F6','배포완료':'#8B5CF6','게재확인':'#10B981'};
