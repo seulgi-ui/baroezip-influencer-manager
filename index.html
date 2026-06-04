@@ -7886,9 +7886,10 @@ function formatUploadDate(val) {
   if (isNaN(d.getTime())) return '날짜 선택';
   const days = ['일', '월', '화', '수', '목', '금', '토'];
   const datePart = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
-  if (!hasTime) return datePart;
   const hh = String(d.getHours()).padStart(2, '0');
   const mm = String(d.getMinutes()).padStart(2, '0');
+  // 시간 정보 없거나 00:00이면 '미정' 표시
+  if (!hasTime || (hh === '00' && mm === '00')) return `${datePart} 미정`;
   return `${datePart} ${hh}:${mm}`;
 }
 
