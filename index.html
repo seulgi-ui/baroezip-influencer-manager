@@ -3586,10 +3586,12 @@ table { border-collapse: collapse; width: 100%; }
               <thead><tr>
                 <th style="width:40px;text-align:center;">NO</th>
                 <th style="width:90px;">구분</th>
-                <th>언론사명</th>
-                <th class="mm-num">수량</th>
-                <th class="mm-num">단가</th>
-                <th class="mm-num">송출 금액</th>
+                <th style="min-width:180px;">언론사명 (순위별)</th>
+                <th class="mm-num" style="width:60px;">수량</th>
+                <th class="mm-num" style="width:90px;">단가</th>
+                <th class="mm-num" style="width:110px;">송출 금액</th>
+                <th style="width:110px;">송출 일정</th>
+                <th style="width:90px;">기사 URL</th>
                 <th style="width:60px;"></th>
               </tr></thead>
               <tbody id="pr-plan-tbody"></tbody>
@@ -4489,11 +4491,25 @@ table { border-collapse: collapse; width: 100%; }
             <label class="chip-toggle"><input type="radio" name="pr-plan-grade" value="일반"><span>일반</span></label>
           </div>
         </div>
-        <div class="form-group" style="margin:0 0 12px;"><label style="font-size:12px;">언론사 *</label><input type="text" id="pr-plan-media" class="form-input" placeholder="예: 조선일보, 한경, 매경"></div>
+        <div class="form-group" style="margin:0 0 12px;">
+          <label style="font-size:12px;">언론사 (순위별) <span style="color:#9CA3AF;font-weight:500;font-size:11px;">— 1순위는 필수</span></label>
+          <div style="display:grid;grid-template-columns:54px 1fr;gap:6px;align-items:center;margin-top:6px;">
+            <div style="font-size:11px;color:#6B7280;font-weight:800;">1순위 *</div>
+            <input type="text" id="pr-plan-media-1" class="form-input" placeholder="예: 조선일보">
+            <div style="font-size:11px;color:#6B7280;font-weight:700;">2순위</div>
+            <input type="text" id="pr-plan-media-2" class="form-input" placeholder="예: 매일경제">
+            <div style="font-size:11px;color:#6B7280;font-weight:700;">3순위</div>
+            <input type="text" id="pr-plan-media-3" class="form-input" placeholder="예: 한국경제">
+            <div style="font-size:11px;color:#6B7280;font-weight:700;">4순위</div>
+            <input type="text" id="pr-plan-media-4" class="form-input" placeholder="(선택)">
+          </div>
+        </div>
         <div class="form-grid">
           <div class="form-group" style="margin:0;"><label style="font-size:12px;">건수</label><input type="number" id="pr-plan-count" class="form-input" placeholder="1" value="1"></div>
           <div class="form-group" style="margin:0;"><label style="font-size:12px;">건당 단가 (만원)</label><input type="number" id="pr-plan-price" class="form-input" placeholder="예: 100"></div>
         </div>
+        <div class="form-group" style="margin:14px 0 0;"><label style="font-size:12px;">송출 일정</label><input type="date" id="pr-plan-release-date" class="form-input"></div>
+        <div class="form-group" style="margin:10px 0 0;"><label style="font-size:12px;">기사 URL</label><input type="text" id="pr-plan-article-url" class="form-input" placeholder="https://..."></div>
       </div>
     </div>
     <div class="modal-footer" style="border-top:1px solid var(--border);padding:16px 24px;">
@@ -10498,19 +10514,39 @@ function renderPrPlan() {
         totalAmount += sub;
         gradeCounts[grade].totalQty += cnt;
         const gradeCell = idx === 0 ? `<td rowspan="${count}" style="background:${gb};font-weight:800;font-size:12px;color:${gc};text-align:center;vertical-align:middle;white-space:nowrap;"><span style="padding:4px 14px;border-radius:8px;background:${gc}18;display:inline-block;">${grade}</span></td>` : '';
+        // 언론사 4순위 stacked
+        const ranks = [p.media1, p.media2, p.media3, p.media4].filter(Boolean);
+        const mediaCell = ranks.length
+          ? ranks.map((m, mi) => `<div style="font-size:12px;line-height:1.5;"><span style="display:inline-block;min-width:32px;color:#9CA3AF;font-weight:800;font-size:10.5px;">${mi+1}순위</span> ${m}</div>`).join('')
+          : (p.media ? `<div style="font-size:12px;">${p.media}</div>` : '<span style="color:#CBD5E1;">-</span>');
+        // 송출 일정 표시
+        const releaseDateHtml = p.releaseDate
+          ? (() => {
+              const dt = new Date(p.releaseDate + 'T00:00:00');
+              if (isNaN(dt.getTime())) return p.releaseDate;
+              const days=['일','월','화','수','목','금','토'];
+              return `<span style="font-weight:700;color:#1F2937;font-size:12px;">${dt.getMonth()+1}/${dt.getDate()}(${days[dt.getDay()]})</span>`;
+            })()
+          : '<span style="color:#CBD5E1;">-</span>';
+        // 기사 URL 칩
+        const urlHtml = p.articleUrl
+          ? `<a href="${p.articleUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="display:inline-block;padding:3px 10px;border-radius:10px;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;font-size:11px;font-weight:700;text-decoration:none;">🔗 보기</a>`
+          : '<span style="color:#CBD5E1;">-</span>';
         tbodyHtml += `<tr onclick="openPrPlanModal('${id}')" style="cursor:pointer;">
           <td style="text-align:center;font-size:12px;color:#8B8BA7;font-weight:600;">${rowNo}</td>
           ${gradeCell}
-          <td style="font-weight:600;">${p.media || '-'}</td>
+          <td style="font-weight:600;">${mediaCell}</td>
           <td class="mm-num">${cnt}건</td>
           <td class="mm-num">${(price*10000).toLocaleString()}원</td>
           <td class="mm-num" style="font-weight:700;color:var(--primary);">${(sub*10000).toLocaleString()}원</td>
+          <td style="text-align:center;">${releaseDateHtml}</td>
+          <td style="text-align:center;">${urlHtml}</td>
           <td onclick="event.stopPropagation();"><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deletePrPlan('${id}')" style="font-size:11px;color:var(--danger);">삭제</button></td>
         </tr>`;
       });
     });
     tbody.innerHTML = tbodyHtml;
-    tfoot.innerHTML = `<tr><td style="text-align:center;"></td><td colspan="2">합계</td><td class="mm-num" style="font-weight:700;">${totalCount}건</td><td class="mm-num">-</td><td class="mm-num" style="font-weight:700;color:var(--primary);">${(totalAmount*10000).toLocaleString()}원</td><td></td></tr>`;
+    tfoot.innerHTML = `<tr><td style="text-align:center;"></td><td colspan="2">합계</td><td class="mm-num" style="font-weight:700;">${totalCount}건</td><td class="mm-num">-</td><td class="mm-num" style="font-weight:700;color:var(--primary);">${(totalAmount*10000).toLocaleString()}원</td><td></td><td></td><td></td></tr>`;
 
     // Info bar
     const infoBar = document.getElementById('pr-plan-info');
@@ -10565,29 +10601,45 @@ function openPrPlanModal(id) {
     db.ref('campaign/pr-plan/' + id).once('value', s => {
       const d = s.val();
       if (d) {
-        document.getElementById('pr-plan-media').value = d.media || '';
+        document.getElementById('pr-plan-media-1').value = d.media1 || d.media || '';
+        document.getElementById('pr-plan-media-2').value = d.media2 || '';
+        document.getElementById('pr-plan-media-3').value = d.media3 || '';
+        document.getElementById('pr-plan-media-4').value = d.media4 || '';
         document.getElementById('pr-plan-count').value = d.count || 1;
         document.getElementById('pr-plan-price').value = d.price || '';
+        document.getElementById('pr-plan-release-date').value = d.releaseDate || '';
+        document.getElementById('pr-plan-article-url').value = d.articleUrl || '';
         document.querySelectorAll('input[name="pr-plan-grade"]').forEach(r => r.checked = r.value === (d.grade||'일반'));
       }
       openModal('modal-pr-plan');
     });
   } else {
-    document.getElementById('pr-plan-media').value = '';
+    document.getElementById('pr-plan-media-1').value = '';
+    document.getElementById('pr-plan-media-2').value = '';
+    document.getElementById('pr-plan-media-3').value = '';
+    document.getElementById('pr-plan-media-4').value = '';
     document.getElementById('pr-plan-count').value = 1;
     document.getElementById('pr-plan-price').value = '';
+    document.getElementById('pr-plan-release-date').value = '';
+    document.getElementById('pr-plan-article-url').value = '';
     document.querySelectorAll('input[name="pr-plan-grade"]').forEach(r => r.checked = r.value === '메이저');
     openModal('modal-pr-plan');
   }
 }
 function savePrPlan() {
-  const media = document.getElementById('pr-plan-media').value.trim();
-  if (!media) return toast('언론사를 입력하세요');
+  const m1 = document.getElementById('pr-plan-media-1').value.trim();
+  const m2 = document.getElementById('pr-plan-media-2').value.trim();
+  const m3 = document.getElementById('pr-plan-media-3').value.trim();
+  const m4 = document.getElementById('pr-plan-media-4').value.trim();
+  if (!m1) return toast('1순위 언론사를 입력하세요');
   const data = {
-    media,
+    media1: m1, media2: m2, media3: m3, media4: m4,
+    media: [m1, m2, m3, m4].filter(Boolean).join(', '),  // 레거시 호환·요약 표시용
     grade: document.querySelector('input[name="pr-plan-grade"]:checked')?.value || '일반',
     count: parseInt(document.getElementById('pr-plan-count').value) || 1,
-    price: parseInt(document.getElementById('pr-plan-price').value) || 0
+    price: parseInt(document.getElementById('pr-plan-price').value) || 0,
+    releaseDate: document.getElementById('pr-plan-release-date').value || '',
+    articleUrl: document.getElementById('pr-plan-article-url').value.trim() || ''
   };
   const editId = document.getElementById('pr-plan-edit-id').value;
   const ref = editId ? db.ref('campaign/pr-plan/' + editId) : db.ref('campaign/pr-plan').push();
