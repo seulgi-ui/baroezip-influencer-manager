@@ -3981,7 +3981,7 @@ table { border-collapse: collapse; width: 100%; }
                   <div class="th-resizer"></div>
                 </th>
                 <th style="width:100px;">유형<div class="th-resizer"></div></th>
-                <th style="width:155px;">업로드 예정일<div class="th-resizer"></div></th>
+                <th style="width:155px;cursor:pointer;user-select:none;" onclick="toggleTrackUploadSort()" title="클릭하여 정렬"><span id="track-upload-sort-label">업로드 예정일</span><div class="th-resizer"></div></th>
                 <th style="width:90px;">매물 유형<div class="th-resizer"></div></th>
                 <th style="width:100px;">기획안<div class="th-resizer"></div></th>
                 <th style="width:100px;">원링크<div class="th-resizer"></div></th>
@@ -5219,6 +5219,7 @@ let msgTab = 'creator';
 // ===== 진행 현황 테이블 필터/정렬 상태 =====
 let trackStatusFilter = new Set();  // 비어있으면 전체 표시
 let trackCostSortDir = null;        // null | 'asc' | 'desc'
+let trackUploadSortDir = null;      // null | 'asc' | 'desc'
 
 const STATUS_MAP = {
   recruiting: { label: '섭외중', color: '#F59E0B' },
@@ -6799,22 +6800,39 @@ function renderTrackTable() {
     const idx = STATUS_ORDER.indexOf(s || 'recruiting');
     return idx === -1 ? STATUS_ORDER.length : idx;
   };
-  // 단가 정렬이 활성화되면 cost 기준, 아니면 진행 단계 기준
+  // 정렬 우선순위: 단가 → 업로드 예정일 → 진행 단계 (mutex로 동작하지만 둘 다 켜지면 단가 우선)
   const sortFn = trackCostSortDir
     ? (a, b) => {
         const av = Number(a.cost) || 0;
         const bv = Number(b.cost) || 0;
         return trackCostSortDir === 'asc' ? av - bv : bv - av;
       }
+    : trackUploadSortDir
+    ? (a, b) => {
+        const av = a.uploadDate || '';
+        const bv = b.uploadDate || '';
+        if (!av && !bv) return 0;
+        if (!av) return 1;   // 일정 없으면 뒤
+        if (!bv) return -1;
+        if (av === bv) return 0;
+        return (trackUploadSortDir === 'asc' ? 1 : -1) * (av < bv ? -1 : 1);
+      }
     : (a, b) => statusRank(a.status) - statusRank(b.status);
   Object.values(groups).forEach(arr => arr.sort(sortFn));
 
-  // 헤더 정렬 표시 업데이트
-  const sortLbl = document.getElementById('track-cost-sort-label');
-  if (sortLbl) {
-    sortLbl.textContent = trackCostSortDir === 'asc' ? '단가(만원) ▲'
+  // 헤더 정렬 표시 업데이트 — 단가
+  const costLbl = document.getElementById('track-cost-sort-label');
+  if (costLbl) {
+    costLbl.textContent = trackCostSortDir === 'asc' ? '단가(만원) ▲'
       : trackCostSortDir === 'desc' ? '단가(만원) ▼'
       : '단가(만원) ⇅';
+  }
+  // 헤더 정렬 표시 업데이트 — 업로드 예정일
+  const upLbl = document.getElementById('track-upload-sort-label');
+  if (upLbl) {
+    upLbl.textContent = trackUploadSortDir === 'asc' ? '업로드 예정일 ▲'
+      : trackUploadSortDir === 'desc' ? '업로드 예정일 ▼'
+      : '업로드 예정일 ⇅';
   }
 
   let html = '';
@@ -6961,12 +6979,22 @@ function toggleTrackCostSort() {
   trackCostSortDir = trackCostSortDir === null ? 'asc'
     : trackCostSortDir === 'asc' ? 'desc'
     : null;
+  trackUploadSortDir = null;  // 단가 정렬 켜면 업로드 정렬 해제
+  renderTrackTable();
+}
+
+function toggleTrackUploadSort() {
+  trackUploadSortDir = trackUploadSortDir === null ? 'asc'
+    : trackUploadSortDir === 'asc' ? 'desc'
+    : null;
+  trackCostSortDir = null;    // 업로드 정렬 켜면 단가 정렬 해제
   renderTrackTable();
 }
 
 function resetTrackFilters() {
   trackStatusFilter.clear();
   trackCostSortDir = null;
+  trackUploadSortDir = null;
   renderTrackTable();
 }
 
