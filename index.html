@@ -5422,6 +5422,8 @@ function showToast(msg) {
   c.appendChild(t);
   setTimeout(() => t.remove(), 2100);
 }
+// 별칭 — 다수 함수가 toast()로 호출함 (정의 안 되면 silent 실패)
+const toast = showToast;
 
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -10980,12 +10982,18 @@ function setMediaType(rank, type) {
 
 // 표 내 인라인 편집 (송출 일정 / 기사 URL)
 function updatePrPlanField(id, field, value) {
-  if (!firebaseReady || !id) return;
+  if (!firebaseReady || !id) {
+    alert('Firebase 미준비 — 저장 실패');
+    return;
+  }
   const data = {};
   data[field] = value;
   db.ref('campaign/pr-plan/' + id).update(data).then(() => {
-    toast('저장됨');
+    showToast('저장됨');
     renderPrPlan();
+  }).catch(e => {
+    console.error('updatePrPlanField failed', e, { id, field, value });
+    alert('저장 실패: ' + (e.message || e));
   });
 }
 
