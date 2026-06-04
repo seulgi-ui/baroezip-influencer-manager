@@ -1479,6 +1479,45 @@ table { border-collapse: collapse; width: 100%; }
 }
 .tl-popover-item.active .tl-pop-check { background: #2563EB; border-color: #2563EB; }
 
+/* 진행 현황 헤더 필터 드롭다운 */
+.track-filter-trigger {
+  background: transparent; border: none; padding: 0;
+  font: inherit; cursor: pointer; color: inherit;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.track-filter-trigger:hover { color: #2563EB; }
+.track-filter-trigger.active { color: #2563EB; font-weight: 800; }
+.track-filter-badge {
+  background: #2563EB; color: #fff; font-size: 9.5px; font-weight: 800;
+  padding: 1px 6px; border-radius: 8px; min-width: 14px; text-align: center;
+  line-height: 1.4;
+}
+.track-filter-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; z-index: 60;
+  min-width: 180px; background: #fff; border: 1px solid #E2E8F0;
+  border-radius: 8px; box-shadow: 0 8px 22px rgba(15,23,42,0.13);
+  padding: 6px; display: none;
+}
+.track-filter-dropdown.open { display: block; }
+.track-filter-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;
+  font-weight: 500; color: #1F2937;
+  user-select: none;
+}
+.track-filter-item:hover { background: #F1F5F9; }
+.track-filter-item input { margin: 0; cursor: pointer; }
+.track-filter-item .tf-dot {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+}
+.track-filter-reset-btn {
+  margin-top: 4px; padding: 6px 10px;
+  width: 100%; text-align: center; background: transparent; border: none;
+  border-top: 1px solid #F1F5F9; font-size: 11px; color: #64748B; cursor: pointer;
+  font-weight: 700;
+}
+.track-filter-reset-btn:hover { color: #DC2626; }
+
 /* 업로드 예정일 셀 */
 .upload-date-cell { position: relative; display: inline-block; }
 .upload-date-display {
@@ -3902,20 +3941,21 @@ table { border-collapse: collapse; width: 100%; }
             <h3 style="font-size:14px;font-weight:600;">진행 현황</h3>
             <button class="btn btn-secondary btn-xs" id="btn-crawl-all" onclick="crawlAllUploads()" style="display:none;">전체 수집</button>
           </div>
-          <!-- 필터 칩 행 (현황 다중 선택) -->
-          <div id="track-filter-bar" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:10px;padding:8px 10px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;">
-            <span style="font-size:11.5px;font-weight:700;color:#64748B;margin-right:4px;">현황 필터:</span>
-            <div id="track-status-chips" style="display:flex;flex-wrap:wrap;gap:5px;flex:1;"></div>
-            <button type="button" id="track-filter-reset" onclick="resetTrackFilters()" style="display:none;font-size:11px;background:transparent;border:none;color:#94A3B8;cursor:pointer;padding:2px 6px;">× 초기화</button>
-          </div>
           <table class="track-table" id="track-table">
             <thead>
               <tr>
                 <th style="width:120px;">인플루언서<div class="th-resizer"></div></th>
                 <th style="width:70px;">채널<div class="th-resizer"></div></th>
                 <th style="width:80px;cursor:pointer;user-select:none;" onclick="toggleTrackCostSort()" title="클릭하여 정렬"><span id="track-cost-sort-label">단가(만원)</span><div class="th-resizer"></div></th>
-                <th style="width:100px;">현황<div class="th-resizer"></div></th>
-                <th style="width:80px;">유형<div class="th-resizer"></div></th>
+                <th style="width:140px;position:relative;">
+                  <button type="button" class="track-filter-trigger" id="track-filter-btn" onclick="event.stopPropagation();toggleTrackStatusDropdown()">
+                    현황 <span class="track-filter-badge" id="track-filter-badge" style="display:none;"></span>
+                    <span style="font-size:9px;opacity:0.6;margin-left:2px;">▾</span>
+                  </button>
+                  <div class="track-filter-dropdown" id="track-status-dropdown"></div>
+                  <div class="th-resizer"></div>
+                </th>
+                <th style="width:100px;">유형<div class="th-resizer"></div></th>
                 <th style="width:155px;">업로드 예정일<div class="th-resizer"></div></th>
                 <th style="width:90px;">매물 유형<div class="th-resizer"></div></th>
                 <th style="width:100px;">기획안<div class="th-resizer"></div></th>
@@ -6848,17 +6888,39 @@ function renderTrackTable() {
 
 // ===== 진행 현황 테이블 필터/정렬 핸들러 =====
 function renderTrackStatusChips() {
-  const wrap = document.getElementById('track-status-chips');
-  const resetBtn = document.getElementById('track-filter-reset');
+  const wrap = document.getElementById('track-status-dropdown');
   if (!wrap) return;
-  wrap.innerHTML = Object.entries(STATUS_MAP).map(([key, v]) => {
-    const active = trackStatusFilter.has(key);
-    const bg = active ? v.color : '#fff';
-    const color = active ? '#fff' : v.color;
-    const border = v.color;
-    return `<button type="button" onclick="toggleTrackStatusFilter('${key}')" style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:11px;background:${bg};color:${color};border:1.2px solid ${border};cursor:pointer;transition:all 0.15s;">${v.label}</button>`;
+  const items = Object.entries(STATUS_MAP).map(([key, v]) => {
+    const checked = trackStatusFilter.has(key) ? 'checked' : '';
+    return `<label class="track-filter-item">
+      <input type="checkbox" ${checked} onchange="toggleTrackStatusFilter('${key}')">
+      <span class="tf-dot" style="background:${v.color};"></span>
+      ${v.label}
+    </label>`;
   }).join('');
-  if (resetBtn) resetBtn.style.display = (trackStatusFilter.size > 0 || trackCostSortDir) ? 'inline-block' : 'none';
+  const resetBtn = trackStatusFilter.size > 0
+    ? `<button type="button" class="track-filter-reset-btn" onclick="resetTrackFilters()">전체 초기화</button>`
+    : '';
+  wrap.innerHTML = items + resetBtn;
+
+  // 헤더 버튼 활성 상태 + 선택 개수 배지
+  const btn = document.getElementById('track-filter-btn');
+  const badge = document.getElementById('track-filter-badge');
+  if (btn && badge) {
+    if (trackStatusFilter.size > 0) {
+      btn.classList.add('active');
+      badge.style.display = 'inline-block';
+      badge.textContent = trackStatusFilter.size;
+    } else {
+      btn.classList.remove('active');
+      badge.style.display = 'none';
+    }
+  }
+}
+
+function toggleTrackStatusDropdown() {
+  const dd = document.getElementById('track-status-dropdown');
+  if (dd) dd.classList.toggle('open');
 }
 
 function toggleTrackStatusFilter(key) {
@@ -6866,6 +6928,15 @@ function toggleTrackStatusFilter(key) {
   else trackStatusFilter.add(key);
   renderTrackTable();
 }
+
+// 외부 클릭 시 현황 드롭다운 닫기
+document.addEventListener('click', (e) => {
+  const dd = document.getElementById('track-status-dropdown');
+  const btn = document.getElementById('track-filter-btn');
+  if (!dd || !dd.classList.contains('open')) return;
+  if (dd.contains(e.target) || (btn && btn.contains(e.target))) return;
+  dd.classList.remove('open');
+});
 
 function toggleTrackCostSort() {
   // null → asc → desc → null (정렬 해제)
