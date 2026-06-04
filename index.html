@@ -3727,10 +3727,6 @@ table { border-collapse: collapse; width: 100%; }
           </div>
         </div>
 
-        <!-- 등급별 요약 — KPI 카드와 정보 중복이라 숨김 (코드 보존) -->
-        <div id="pr-plan-summary" style="display:none !important;">
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;" id="pr-plan-summary-cards"></div>
-        </div>
       </div>
 
       <!-- 보도자료 탭 -->
@@ -10673,13 +10669,14 @@ function renderPrPlan() {
         const cnt = p.count || 1;
         const price = p.price || 0;
         const sub = cnt * price;
-        // 초안 작성비는 송출 합계(건수·금액)에서 제외
-        if (grade !== '초안') {
-          totalCount += cnt;
-          totalAmount += sub;
-        }
+        // 수량 합계는 초안 제외 / 송출 금액 합계는 초안 포함
+        if (grade !== '초안') totalCount += cnt;
+        totalAmount += sub;
         gradeCounts[grade].totalQty += cnt;
-        const gradeCell = idx === 0 ? `<td rowspan="${count}" style="background:${gb};font-weight:800;font-size:12px;color:${gc};text-align:center;vertical-align:middle;white-space:nowrap;"><span style="padding:4px 14px;border-radius:8px;background:${gc}18;display:inline-block;">${grade}</span></td>` : '';
+        // 목업 일치 — rowspan 제거, 각 행마다 등급 칩 표시
+        const GRADE_TEXT = {'메이저':'#B91C1C','준메이저':'#B45309','일반':'#1D4ED8','초안':'#64748B'};
+        const gtc = GRADE_TEXT[grade] || gc;
+        const gradeCell = `<td style="text-align:center;white-space:nowrap;"><span style="display:inline-block;padding:3px 11px;border-radius:10px;font-size:11px;font-weight:800;letter-spacing:-0.2px;background:${gb};color:${gtc};">${grade}</span></td>`;
         // 언론사 6순위 — 가로 배치 + 요청/예비 배지
         const ranksData = [
           {m: p.media1, t: p.media1Type || 'confirmed'},
@@ -10905,13 +10902,14 @@ function renderPrKpi(items) {
     const cnt = p.count || 1;
     const grade = p.grade || '일반';
     const st = p.articleStatus || 'wait';
-    totalCnt += cnt;
     if (gradeCnt[grade] != null) gradeCnt[grade] += cnt;
     if (statusCnt[st] != null) statusCnt[st] += cnt;
+    // 총 배포 건수(totalCnt)·송출 건수(sendCnt)는 초안 제외, 송출 금액(sendAmount)은 초안 포함
     if (grade !== '초안') {
+      totalCnt += cnt;
       sendCnt += cnt;
-      sendAmount += cnt * (p.price || 0);
     }
+    sendAmount += cnt * (p.price || 0);
   });
   const vatIncluded = Math.round(sendAmount * 10000 * 1.1);
   const DISCOUNT = 132000;
