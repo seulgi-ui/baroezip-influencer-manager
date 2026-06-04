@@ -10903,11 +10903,11 @@ function renderPrKpi(items) {
     const grade = p.grade || '일반';
     const st = p.articleStatus || 'wait';
     if (gradeCnt[grade] != null) gradeCnt[grade] += cnt;
-    if (statusCnt[st] != null) statusCnt[st] += cnt;
-    // 총 배포 건수(totalCnt)·송출 건수(sendCnt)는 초안 제외, 송출 금액(sendAmount)은 초안 포함
+    // 모든 건수 카운트(총 배포·진행중·송출 건수)는 초안 제외, 송출 금액만 초안 포함
     if (grade !== '초안') {
       totalCnt += cnt;
       sendCnt += cnt;
+      if (statusCnt[st] != null) statusCnt[st] += cnt;
     }
     sendAmount += cnt * (p.price || 0);
   });
@@ -10918,7 +10918,7 @@ function renderPrKpi(items) {
   const inProgress = statusCnt.draft + statusCnt.wait;
   const inProgressPct = sendCnt ? Math.round(inProgress / sendCnt * 100) : 0;
   const postedPct = sendCnt ? Math.round(statusCnt.confirm / sendCnt * 100) : 0;
-  const gradeSub = `메이저 ${gradeCnt['메이저']} · 준메이저 ${gradeCnt['준메이저']} · 일반 ${gradeCnt['일반']} · 초안 ${gradeCnt['초안']}`;
+  const gradeSub = `메이저 ${gradeCnt['메이저']} · 준메이저 ${gradeCnt['준메이저']} · 일반 ${gradeCnt['일반']}`;
   kpiEl.innerHTML = `
     <div class="pr-kpi-card k1">
       <div class="pr-kpi-label">총 배포</div>
