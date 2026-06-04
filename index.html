@@ -181,8 +181,9 @@
 .mm-table tbody tr { cursor:pointer;transition:background .15s; }
 .mm-table tbody tr:hover { background:#F9F8FF; }
 .mm-table tfoot td {
-  padding:12px 14px;font-weight:700;border-top:2px solid #E8E8EC;background:#FAFAFE;color:#111;
+  padding:12px 14px;font-weight:700;background:#FAFAFE;color:#1E1E2D;
 }
+.mm-table tfoot tr:first-child td { border-top:1px solid #E8E8EC; }
 .mm-table tfoot td.mm-num { text-align:right;font-variant-numeric:tabular-nums; }
 
 .mm-type-tag {
@@ -3662,14 +3663,14 @@ table { border-collapse: collapse; width: 100%; }
             <table class="mm-table" style="margin:0;">
               <thead><tr>
                 <th style="width:40px;text-align:center;">NO</th>
-                <th style="width:80px;white-space:nowrap;">구분</th>
-                <th style="width:230px;min-width:230px;max-width:280px;">언론사명 (순위별)</th>
+                <th style="width:90px;white-space:nowrap;text-align:center;">구분</th>
+                <th>언론사명 (순위별)</th>
                 <th class="mm-num" style="width:60px;white-space:nowrap;">수량</th>
                 <th class="mm-num" style="width:100px;white-space:nowrap;">단가</th>
                 <th class="mm-num" style="width:110px;white-space:nowrap;">송출 금액</th>
                 <th style="width:140px;white-space:nowrap;">송출 일정</th>
-                <th style="width:100px;white-space:nowrap;">상태</th>
-                <th style="width:160px;white-space:nowrap;">기사 URL</th>
+                <th style="width:90px;white-space:nowrap;text-align:center;">상태</th>
+                <th style="width:110px;white-space:nowrap;text-align:center;">기사 URL</th>
                 <th style="width:50px;"></th>
               </tr></thead>
               <tbody id="pr-plan-tbody"></tbody>
@@ -10699,14 +10700,19 @@ function renderPrPlan() {
             onclick="event.stopPropagation();"
             onchange="event.stopPropagation();updatePrPlanField('${id}','releaseDate',this.value)">
         </div>`;
-        // 기사 URL — 인라인 편집 (text input + 열기 버튼)
-        const urlHtml = `<div style="display:flex;align-items:center;gap:4px;">
-          <input type="text" value="${(p.articleUrl||'').replace(/"/g,'&quot;')}" placeholder="URL"
-            onclick="event.stopPropagation();"
-            onchange="event.stopPropagation();updatePrPlanField('${id}','articleUrl',this.value.trim())"
-            style="flex:1;min-width:0;font-size:11px;padding:4px 6px;border:1px solid #E2E8F0;border-radius:5px;background:#fff;">
-          ${p.articleUrl ? `<a href="${p.articleUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="font-size:13px;text-decoration:none;color:#2563EB;flex-shrink:0;" title="새 탭에서 열기">↗</a>` : ''}
-        </div>`;
+        // 기사 URL — URL 있으면 '🔗 보기' 링크 + 편집 아이콘, 없으면 input
+        const urlSafe = (p.articleUrl || '').replace(/'/g,"\\'");
+        const urlHtml = p.articleUrl
+          ? `<div style="display:inline-flex;align-items:center;gap:6px;">
+              <a href="${p.articleUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();"
+                style="color:#2563EB;font-weight:700;font-size:12px;text-decoration:none;">🔗 보기</a>
+              <button onclick="event.stopPropagation();const v=prompt('기사 URL','${urlSafe}');if(v!==null)updatePrPlanField('${id}','articleUrl',v.trim());"
+                style="background:none;border:none;cursor:pointer;color:#94A3B8;font-size:11px;padding:0;" title="편집">✎</button>
+            </div>`
+          : `<input type="text" value="" placeholder="URL"
+              onclick="event.stopPropagation();"
+              onchange="event.stopPropagation();updatePrPlanField('${id}','articleUrl',this.value.trim())"
+              style="width:100%;font-size:11px;padding:4px 6px;border:1px solid #E2E8F0;border-radius:5px;background:#fff;">`;
         // 상태 셀렉트
         const st = p.articleStatus || 'wait';
         const statusOptions = [
@@ -10739,39 +10745,39 @@ function renderPrPlan() {
     const totalAmountWon = totalAmount * 10000;
     const vatIncludedWon = Math.round(totalAmountWon * (1 + VAT_RATE));
     const finalWon = vatIncludedWon - DISCOUNT_AMOUNT;
-    // 글씨 크기 통일: 라벨/금액 모두 13px, 부연만 11px 회색
+    // 합계/VAT/할인/최종 — 글씨 크기 통일 + 최종만 보라 강조
     const LBL = 'font-size:13px;font-weight:700;';
     const AMT = 'font-size:13px;font-weight:700;white-space:nowrap;';
     const SUB = 'color:#9CA3AF;font-size:11px;font-weight:500;margin-left:4px;';
     tfoot.innerHTML = `
       <tr>
-        <td></td>
-        <td colspan="2" style="${LBL}">합계<span style="${SUB}">(VAT 제외)</span></td>
-        <td class="mm-num" style="${AMT}">${totalCount}건</td>
-        <td class="mm-num" style="${AMT}">-</td>
-        <td class="mm-num" style="${AMT}color:var(--primary);">${totalAmountWon.toLocaleString()}원</td>
-        <td></td><td></td><td></td><td></td>
+        <td style="background:#FAFAFE;"></td>
+        <td colspan="2" style="${LBL}background:#FAFAFE;color:#1E1E2D;">합계<span style="${SUB}">(VAT 제외)</span></td>
+        <td class="mm-num" style="${AMT}background:#FAFAFE;color:#1E1E2D;">${totalCount}건</td>
+        <td class="mm-num" style="${AMT}background:#FAFAFE;color:#94A3B8;">—</td>
+        <td class="mm-num" style="${AMT}background:#FAFAFE;color:#7C3AED;">${totalAmountWon.toLocaleString()}원</td>
+        <td style="background:#FAFAFE;"></td><td style="background:#FAFAFE;"></td><td style="background:#FAFAFE;"></td><td style="background:#FAFAFE;"></td>
       </tr>
       <tr>
-        <td></td>
-        <td colspan="2" style="${LBL}color:#475569;">VAT 포함<span style="${SUB}">(+10%)</span></td>
-        <td></td><td></td>
-        <td class="mm-num" style="${AMT}color:#475569;">${vatIncludedWon.toLocaleString()}원</td>
-        <td></td><td></td><td></td><td></td>
+        <td style="background:#FAFAFE;"></td>
+        <td colspan="2" style="${LBL}background:#FAFAFE;color:#475569;">VAT 포함<span style="${SUB}">(+10%)</span></td>
+        <td style="background:#FAFAFE;"></td><td style="background:#FAFAFE;"></td>
+        <td class="mm-num" style="${AMT}background:#FAFAFE;color:#475569;">${vatIncludedWon.toLocaleString()}원</td>
+        <td style="background:#FAFAFE;"></td><td style="background:#FAFAFE;"></td><td style="background:#FAFAFE;"></td><td style="background:#FAFAFE;"></td>
       </tr>
       <tr>
-        <td></td>
-        <td colspan="2" style="${LBL}color:#DC2626;">할인<span style="${SUB}">(${DISCOUNT_PCT}%)</span></td>
-        <td></td><td></td>
-        <td class="mm-num" style="${AMT}color:#DC2626;">-${DISCOUNT_AMOUNT.toLocaleString()}원</td>
-        <td></td><td></td><td></td><td></td>
+        <td style="background:#FAFAFE;"></td>
+        <td colspan="2" style="${LBL}background:#FAFAFE;color:#DC2626;">할인<span style="${SUB}">(${DISCOUNT_PCT}%)</span></td>
+        <td style="background:#FAFAFE;"></td><td style="background:#FAFAFE;"></td>
+        <td class="mm-num" style="${AMT}background:#FAFAFE;color:#DC2626;">-${DISCOUNT_AMOUNT.toLocaleString()}원</td>
+        <td style="background:#FAFAFE;"></td><td style="background:#FAFAFE;"></td><td style="background:#FAFAFE;"></td><td style="background:#FAFAFE;"></td>
       </tr>
-      <tr style="background:#F5F3FF;border-top:2px solid #DDD6FE;">
-        <td></td>
-        <td colspan="2" style="${LBL}">최종 견적가<span style="${SUB}">(VAT 포함)</span></td>
-        <td></td><td></td>
-        <td class="mm-num" style="${AMT}color:var(--primary);">${finalWon.toLocaleString()}원</td>
-        <td></td><td></td><td></td><td></td>
+      <tr>
+        <td style="background:#F5F3FF;border-top:2px solid #DDD6FE;"></td>
+        <td colspan="2" style="${LBL}background:#F5F3FF;border-top:2px solid #DDD6FE;color:#1E1E2D;font-weight:800;">최종 견적가<span style="${SUB}">(VAT 포함)</span></td>
+        <td style="background:#F5F3FF;border-top:2px solid #DDD6FE;"></td><td style="background:#F5F3FF;border-top:2px solid #DDD6FE;"></td>
+        <td class="mm-num" style="background:#F5F3FF;border-top:2px solid #DDD6FE;font-size:15px;font-weight:900;color:#7C3AED;white-space:nowrap;">${finalWon.toLocaleString()}원</td>
+        <td style="background:#F5F3FF;border-top:2px solid #DDD6FE;"></td><td style="background:#F5F3FF;border-top:2px solid #DDD6FE;"></td><td style="background:#F5F3FF;border-top:2px solid #DDD6FE;"></td><td style="background:#F5F3FF;border-top:2px solid #DDD6FE;"></td>
       </tr>`;
 
     // Info bar
