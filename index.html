@@ -3586,12 +3586,12 @@ table { border-collapse: collapse; width: 100%; }
               <thead><tr>
                 <th style="width:40px;text-align:center;">NO</th>
                 <th style="width:90px;">구분</th>
-                <th style="min-width:180px;">언론사명 (순위별)</th>
-                <th class="mm-num" style="width:60px;">수량</th>
-                <th class="mm-num" style="width:90px;">단가</th>
-                <th class="mm-num" style="width:110px;">송출 금액</th>
-                <th style="width:110px;">송출 일정</th>
-                <th style="width:90px;">기사 URL</th>
+                <th style="width:170px;max-width:170px;">언론사명 (순위별)</th>
+                <th class="mm-num" style="width:60px;white-space:nowrap;">수량</th>
+                <th class="mm-num" style="width:110px;white-space:nowrap;">단가</th>
+                <th class="mm-num" style="width:120px;white-space:nowrap;">송출 금액</th>
+                <th style="width:100px;white-space:nowrap;">송출 일정</th>
+                <th style="width:90px;white-space:nowrap;">기사 URL</th>
                 <th style="width:60px;"></th>
               </tr></thead>
               <tbody id="pr-plan-tbody"></tbody>
@@ -4489,6 +4489,7 @@ table { border-collapse: collapse; width: 100%; }
             <label class="chip-toggle"><input type="radio" name="pr-plan-grade" value="메이저" checked><span>메이저</span></label>
             <label class="chip-toggle"><input type="radio" name="pr-plan-grade" value="준메이저"><span>준메이저</span></label>
             <label class="chip-toggle"><input type="radio" name="pr-plan-grade" value="일반"><span>일반</span></label>
+            <label class="chip-toggle"><input type="radio" name="pr-plan-grade" value="초안"><span>초안 작성비</span></label>
           </div>
         </div>
         <div class="form-group" style="margin:0 0 12px;">
@@ -10453,9 +10454,9 @@ function switchPrTab(tab) {
 }
 
 // --- 기획 탭 ---
-const PR_GRADE_COLORS = {'메이저':'#EF4444','준메이저':'#F59E0B','일반':'#3B82F6'};
-const PR_GRADE_BG = {'메이저':'#FEE2E2','준메이저':'#FEF3C7','일반':'#DBEAFE'};
-const PR_GRADE_ORDER = ['메이저','준메이저','일반'];
+const PR_GRADE_COLORS = {'메이저':'#EF4444','준메이저':'#F59E0B','일반':'#3B82F6','초안':'#64748B'};
+const PR_GRADE_BG = {'메이저':'#FEE2E2','준메이저':'#FEF3C7','일반':'#DBEAFE','초안':'#F1F5F9'};
+const PR_GRADE_ORDER = ['메이저','준메이저','일반','초안'];
 
 function renderPrPlan() {
   if (!firebaseReady) return;
@@ -10536,9 +10537,9 @@ function renderPrPlan() {
           <td style="text-align:center;font-size:12px;color:#8B8BA7;font-weight:600;">${rowNo}</td>
           ${gradeCell}
           <td style="font-weight:600;">${mediaCell}</td>
-          <td class="mm-num">${cnt}건</td>
-          <td class="mm-num">${(price*10000).toLocaleString()}원</td>
-          <td class="mm-num" style="font-weight:700;color:var(--primary);">${(sub*10000).toLocaleString()}원</td>
+          <td class="mm-num" style="white-space:nowrap;">${cnt}건</td>
+          <td class="mm-num" style="white-space:nowrap;">${(price*10000).toLocaleString()}원</td>
+          <td class="mm-num" style="font-weight:700;color:var(--primary);white-space:nowrap;">${(sub*10000).toLocaleString()}원</td>
           <td style="text-align:center;">${releaseDateHtml}</td>
           <td style="text-align:center;">${urlHtml}</td>
           <td onclick="event.stopPropagation();"><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deletePrPlan('${id}')" style="font-size:11px;color:var(--danger);">삭제</button></td>
