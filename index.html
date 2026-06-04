@@ -10692,16 +10692,23 @@ function renderPrPlan() {
               ranksData.map((r, mi) => `<span style="white-space:nowrap;"><span style="color:#9CA3AF;font-weight:800;font-size:10.5px;margin-right:3px;">${mi+1}.</span>${r.m}<span class="rank-badge ${r.t}">${r.t==='reserve'?'예비':'요청'}</span></span>`).join('')
             }</div>`
           : (p.media ? `<div style="font-size:12px;">${p.media}</div>` : '<span style="color:#CBD5E1;">-</span>');
-        // 송출 일정 — 한국식 표시(6/11(목) 09:00) + 클릭 시 datetime 피커
-        const releaseDateHtml = `<div class="upload-date-cell" style="display:block;width:100%;">
-          <button type="button" class="upload-date-display ${p.releaseDate ? '' : 'empty'}"
-            onclick="event.stopPropagation();const i=this.nextElementSibling;i.showPicker&&i.showPicker();i.focus();i.click();"
-            style="width:100%;font-size:11.5px;">
-            ${formatUploadDate(p.releaseDate)}<span class="upload-date-caret">▾</span>
-          </button>
-          <input type="datetime-local" class="upload-date-hidden" value="${p.releaseDate || ''}"
-            onclick="event.stopPropagation();"
-            onchange="event.stopPropagation();updatePrPlanField('${id}','releaseDate',this.value)">
+        // 송출 일정 — 한국식 표시 + 시간 미정 토글
+        const dateOnly = (p.releaseDate || '').split('T')[0];
+        const isTbd = !p.releaseDate ? false : (!p.releaseDate.includes('T') || /T00:00/.test(p.releaseDate));
+        const releaseDateHtml = `<div style="display:flex;align-items:center;gap:4px;width:100%;">
+          <div class="upload-date-cell" style="display:block;flex:1;min-width:0;">
+            <button type="button" class="upload-date-display ${p.releaseDate ? '' : 'empty'}"
+              onclick="event.stopPropagation();const i=this.nextElementSibling;i.showPicker&&i.showPicker();i.focus();i.click();"
+              style="width:100%;font-size:11.5px;">
+              ${formatUploadDate(p.releaseDate)}<span class="upload-date-caret">▾</span>
+            </button>
+            <input type="datetime-local" class="upload-date-hidden" value="${p.releaseDate || ''}"
+              onclick="event.stopPropagation();"
+              onchange="event.stopPropagation();updatePrPlanField('${id}','releaseDate',this.value)">
+          </div>
+          ${p.releaseDate ? `<button type="button" onclick="event.stopPropagation();updatePrPlanField('${id}','releaseDate','${dateOnly}T00:00');"
+            title="시간을 미정으로 변경"
+            style="flex-shrink:0;width:24px;height:24px;border-radius:5px;border:1px solid #E2E8F0;background:${isTbd ? '#EDE9FE' : '#fff'};color:${isTbd ? '#6D28D9' : '#94A3B8'};cursor:pointer;font-size:11px;font-weight:700;padding:0;">🕐</button>` : ''}
         </div>`;
         // 기사 URL — URL 있으면 '🔗 보기' 링크 + 편집 아이콘, 없으면 input
         const urlSafe = (p.articleUrl || '').replace(/'/g,"\\'");
