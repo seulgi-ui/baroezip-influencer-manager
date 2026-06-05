@@ -7057,7 +7057,23 @@ function renderTrackTable() {
           <option value="feed" ${e.contentType === 'feed' ? 'selected' : ''}>피드</option>
           <option value="image" ${e.contentType === 'image' ? 'selected' : ''}>이미지</option>
         </select></td>
-        <td><div class="upload-date-cell"><button type="button" class="upload-date-display ${e.uploadDate ? '' : 'empty'}" onclick="this.nextElementSibling.showPicker && this.nextElementSibling.showPicker(); this.nextElementSibling.focus(); this.nextElementSibling.click();">${formatUploadDate(e.uploadDate)}<span class="upload-date-caret">▾</span></button><input type="datetime-local" class="upload-date-hidden" value="${e.uploadDate || ''}" onchange="saveTrackField('${currentProjectId}','${e.infId}','uploadDate',this.value)"></div></td>
+        <td>${(() => {
+          const dateOnlyU = (e.uploadDate || '').split('T')[0];
+          const isTbdU = !e.uploadDate ? false : (!e.uploadDate.includes('T') || /T00:00/.test(e.uploadDate));
+          return `<div style="display:flex;align-items:center;gap:4px;">
+            <div class="upload-date-cell" style="display:block;flex:1;min-width:0;">
+              <button type="button" class="upload-date-display ${e.uploadDate ? '' : 'empty'}"
+                onclick="this.nextElementSibling.showPicker && this.nextElementSibling.showPicker(); this.nextElementSibling.focus(); this.nextElementSibling.click();">
+                ${formatUploadDate(e.uploadDate)}<span class="upload-date-caret">▾</span>
+              </button>
+              <input type="datetime-local" class="upload-date-hidden" value="${e.uploadDate || ''}"
+                onchange="saveTrackField('${currentProjectId}','${e.infId}','uploadDate',this.value)">
+            </div>
+            ${e.uploadDate ? `<button type="button" onclick="event.stopPropagation();saveTrackField('${currentProjectId}','${e.infId}','uploadDate','${dateOnlyU}T00:00');"
+              title="시간을 미정으로 변경"
+              style="flex-shrink:0;width:24px;height:24px;border-radius:5px;border:1px solid #E2E8F0;background:${isTbdU ? '#EDE9FE' : '#fff'};color:${isTbdU ? '#6D28D9' : '#94A3B8'};cursor:pointer;font-size:11px;font-weight:700;padding:0;">🕐</button>` : ''}
+          </div>`;
+        })()}</td>
         <td><select onchange="saveTrackField('${currentProjectId}','${e.infId}','propertyType',this.value)">
           <option value="">-</option>
           <option value="sale" ${e.propertyType === 'sale' ? 'selected' : ''}>매매</option>
