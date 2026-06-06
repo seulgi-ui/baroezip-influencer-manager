@@ -7084,9 +7084,18 @@ function renderTrackTable() {
         <td>${renderTrackingUrlCell(e)}</td>
         <td>${renderFinalCell(e)}</td>
         <td><input type="text" value="${e.uploadUrl || ''}" placeholder="URL 입력" onchange="saveTrackField('${currentProjectId}','${e.infId}','uploadUrl',this.value)" style="width:140px;"></td>
-        <td style="font-weight:600;">${fmt(e.views)}</td>
-        <td style="font-weight:600;">${fmt(e.likes)}</td>
-        <td style="font-weight:600;">${fmt(e.comments)}</td>
+        <td><input type="number" value="${e.views || ''}" placeholder="0" min="0"
+          onclick="event.stopPropagation();"
+          onchange="event.stopPropagation();saveTrackField('${currentProjectId}','${e.infId}','views',Number(this.value)||0)"
+          style="width:100%;padding:5px 6px;font-size:12px;font-weight:600;text-align:right;border:1px solid #E2E8F0;border-radius:5px;background:#fff;"></td>
+        <td><input type="number" value="${e.likes || ''}" placeholder="0" min="0"
+          onclick="event.stopPropagation();"
+          onchange="event.stopPropagation();saveTrackField('${currentProjectId}','${e.infId}','likes',Number(this.value)||0)"
+          style="width:100%;padding:5px 6px;font-size:12px;font-weight:600;text-align:right;border:1px solid #E2E8F0;border-radius:5px;background:#fff;"></td>
+        <td><input type="number" value="${e.comments || ''}" placeholder="0" min="0"
+          onclick="event.stopPropagation();"
+          onchange="event.stopPropagation();saveTrackField('${currentProjectId}','${e.infId}','comments',Number(this.value)||0)"
+          style="width:100%;padding:5px 6px;font-size:12px;font-weight:600;text-align:right;border:1px solid #E2E8F0;border-radius:5px;background:#fff;"></td>
         <td><button class="btn btn-ghost btn-xs" onclick="crawlUploadUrl('${currentProjectId}','${e.infId}')" ${!e.uploadUrl ? 'disabled style="opacity:0.3;"' : ''}>수집</button></td>
       </tr>`;
     });
