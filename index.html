@@ -1354,7 +1354,8 @@ table { border-collapse: collapse; width: 100%; }
 }
 .tl-name-cell:hover { background: #F8FAFC; }
 .tl-name-cell .tl-name-avatar {
-  width: 22px; height: 22px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+  width: 22px !important; height: 22px !important; min-width: 22px; max-width: 22px; max-height: 22px;
+  border-radius: 50%; object-fit: cover; flex-shrink: 0; box-sizing: border-box; overflow: hidden;
   background: linear-gradient(135deg, #6366F1, #8B5CF6); color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: 800;
@@ -2125,9 +2126,12 @@ table { border-collapse: collapse; width: 100%; }
 .creator-list-item:hover { background: var(--primary-light); }
 .creator-list-item.active { background: var(--primary-light); border-color: var(--primary); }
 .creator-list-item .cli-avatar {
-  width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--surface-2);
+  width: 32px !important; height: 32px !important; min-width: 32px; max-width: 32px; max-height: 32px;
+  border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--surface-2);
   display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--text-muted);
+  box-sizing: border-box; overflow: hidden;
 }
+img.cli-avatar { display: block; padding: 0; }
 .creator-list-item .cli-info { flex: 1; min-width: 0; }
 .creator-list-item .cli-name { font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .creator-list-item .cli-sub { font-size: 11px; color: var(--text-muted); }
@@ -3166,7 +3170,9 @@ table { border-collapse: collapse; width: 100%; }
 .inf-table .name-cell { display: flex; align-items: center; gap: 10px; }
 .inf-table .name-avatar,
 .track-table .name-avatar {
-  width: 36px; height: 36px; border-radius: 10px;
+  width: 36px !important; height: 36px !important;
+  min-width: 36px; max-width: 36px; max-height: 36px;
+  border-radius: 10px;
   background: linear-gradient(135deg, #A855F7, #6366F1);
   display: flex; align-items: center; justify-content: center;
   font-size: 14px; font-weight: 800; color: #fff; flex-shrink: 0;
@@ -3175,7 +3181,7 @@ table { border-collapse: collapse; width: 100%; }
 }
 .inf-table .name-avatar img,
 .track-table .name-avatar img {
-  width: 100%; height: 100%; object-fit: cover; display: block;
+  width: 100% !important; height: 100% !important; object-fit: cover; display: block;
 }
 .inf-table .name-text { font-weight: 700; color: var(--text-primary); }
 .inf-table .name-sub { font-size: 11px; color: var(--text-muted); }
