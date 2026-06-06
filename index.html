@@ -1591,6 +1591,24 @@ table { border-collapse: collapse; width: 100%; }
 }
 .tl-popover-item.active .tl-pop-check { background: #2563EB; border-color: #2563EB; }
 
+/* 진행 현황 통계 인라인 input (조회수/좋아요/댓글) */
+.stat-input {
+  width: 100%;
+  padding: 6px 4px;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: right;
+  color: #1F2937;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.stat-input::placeholder { color: #CBD5E1; font-weight: 500; }
+.stat-input:hover { background: #F8FAFC; border-color: #E2E8F0; }
+.stat-input:focus { outline: none; background: #fff; border-color: #2563EB; box-shadow: 0 0 0 2px rgba(37,99,235,0.15); }
+
 /* 진행 현황 헤더 필터 드롭다운 */
 .track-filter-trigger {
   background: transparent; border: none; padding: 0;
@@ -4112,9 +4130,9 @@ table { border-collapse: collapse; width: 100%; }
                 <th style="width:100px;">원링크<div class="th-resizer"></div></th>
                 <th style="width:110px;">최종본<div class="th-resizer"></div></th>
                 <th style="width:160px;">업로드 링크<div class="th-resizer"></div></th>
-                <th style="width:80px;">조회수<div class="th-resizer"></div></th>
-                <th style="width:70px;">좋아요<div class="th-resizer"></div></th>
-                <th style="width:60px;">댓글<div class="th-resizer"></div></th>
+                <th style="width:95px;">조회수<div class="th-resizer"></div></th>
+                <th style="width:80px;">좋아요<div class="th-resizer"></div></th>
+                <th style="width:70px;">댓글<div class="th-resizer"></div></th>
                 <th style="width:60px;">수집<div class="th-resizer"></div></th>
               </tr>
             </thead>
@@ -7084,18 +7102,18 @@ function renderTrackTable() {
         <td>${renderTrackingUrlCell(e)}</td>
         <td>${renderFinalCell(e)}</td>
         <td><input type="text" value="${e.uploadUrl || ''}" placeholder="URL 입력" onchange="saveTrackField('${currentProjectId}','${e.infId}','uploadUrl',this.value)" style="width:140px;"></td>
-        <td><input type="number" value="${e.views || ''}" placeholder="0" min="0"
-          onclick="event.stopPropagation();"
-          onchange="event.stopPropagation();saveTrackField('${currentProjectId}','${e.infId}','views',Number(this.value)||0)"
-          style="width:100%;padding:5px 6px;font-size:12px;font-weight:600;text-align:right;border:1px solid #E2E8F0;border-radius:5px;background:#fff;"></td>
-        <td><input type="number" value="${e.likes || ''}" placeholder="0" min="0"
-          onclick="event.stopPropagation();"
-          onchange="event.stopPropagation();saveTrackField('${currentProjectId}','${e.infId}','likes',Number(this.value)||0)"
-          style="width:100%;padding:5px 6px;font-size:12px;font-weight:600;text-align:right;border:1px solid #E2E8F0;border-radius:5px;background:#fff;"></td>
-        <td><input type="number" value="${e.comments || ''}" placeholder="0" min="0"
-          onclick="event.stopPropagation();"
-          onchange="event.stopPropagation();saveTrackField('${currentProjectId}','${e.infId}','comments',Number(this.value)||0)"
-          style="width:100%;padding:5px 6px;font-size:12px;font-weight:600;text-align:right;border:1px solid #E2E8F0;border-radius:5px;background:#fff;"></td>
+        <td><input type="text" inputmode="numeric" class="stat-input" value="${e.views ? Number(e.views).toLocaleString('ko-KR') : ''}" placeholder="0"
+          onclick="event.stopPropagation();this.select();"
+          onfocus="this.value=this.value.replace(/[^0-9]/g,'');"
+          onblur="const v=Number(this.value.replace(/[^0-9]/g,''))||0;this.value=v?v.toLocaleString('ko-KR'):'';saveTrackField('${currentProjectId}','${e.infId}','views',v);"></td>
+        <td><input type="text" inputmode="numeric" class="stat-input" value="${e.likes ? Number(e.likes).toLocaleString('ko-KR') : ''}" placeholder="0"
+          onclick="event.stopPropagation();this.select();"
+          onfocus="this.value=this.value.replace(/[^0-9]/g,'');"
+          onblur="const v=Number(this.value.replace(/[^0-9]/g,''))||0;this.value=v?v.toLocaleString('ko-KR'):'';saveTrackField('${currentProjectId}','${e.infId}','likes',v);"></td>
+        <td><input type="text" inputmode="numeric" class="stat-input" value="${e.comments ? Number(e.comments).toLocaleString('ko-KR') : ''}" placeholder="0"
+          onclick="event.stopPropagation();this.select();"
+          onfocus="this.value=this.value.replace(/[^0-9]/g,'');"
+          onblur="const v=Number(this.value.replace(/[^0-9]/g,''))||0;this.value=v?v.toLocaleString('ko-KR'):'';saveTrackField('${currentProjectId}','${e.infId}','comments',v);"></td>
         <td><button class="btn btn-ghost btn-xs" onclick="crawlUploadUrl('${currentProjectId}','${e.infId}')" ${!e.uploadUrl ? 'disabled style="opacity:0.3;"' : ''}>수집</button></td>
       </tr>`;
     });
