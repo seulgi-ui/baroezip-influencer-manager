@@ -1700,11 +1700,19 @@ table { border-collapse: collapse; width: 100%; }
 .upload-date-caret { font-size: 9px; opacity: 0.6; margin-left: 2px; }
 .upload-date-hidden {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  left: 0;
+  bottom: -2px;
+  width: 1px;
+  height: 1px;
   opacity: 0;
   pointer-events: none;
+  overflow: hidden;
+}
+.upload-date-hidden::-webkit-calendar-picker-indicator,
+.upload-date-hidden::-webkit-inner-spin-button,
+.upload-date-hidden::-webkit-clear-button {
+  display: none;
+  -webkit-appearance: none;
 }
 
 /* 진행 현황 테이블 - 메모 아이콘 버튼 */
