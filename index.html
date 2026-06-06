@@ -2799,6 +2799,25 @@ img.cli-avatar { display: block; padding: 0; }
 }
 .track-table tbody tr { transition: background 0.15s; }
 .track-table tbody tr:hover td { background: var(--primary-light); }
+.tt-avatar {
+  display: inline-flex !important;
+  width: 32px !important; height: 32px !important;
+  min-width: 32px !important; min-height: 32px !important;
+  max-width: 32px !important; max-height: 32px !important;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #A855F7, #6366F1);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  vertical-align: middle;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+img.tt-avatar { object-fit: cover; padding: 0; }
 .track-group-header td {
   background: var(--surface-2) !important;
   font-weight: 700;
@@ -7063,14 +7082,14 @@ function renderTrackTable() {
       // Profile image
       const initial = (e.inf.name || '?')[0];
       const avatar = e.inf.profileImage
-        ? `<img src="${e.inf.profileImage}" style="width:28px;height:28px;border-radius:8px;object-fit:cover;vertical-align:middle;margin-right:6px;">`
-        : `<span style="display:inline-flex;width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#A855F7,#6366F1);color:#fff;font-size:11px;font-weight:800;align-items:center;justify-content:center;margin-right:6px;vertical-align:middle;">${initial}</span>`;
+        ? `<img class="tt-avatar" src="${e.inf.profileImage}" alt="">`
+        : `<span class="tt-avatar">${initial}</span>`;
       const isExcluded = e.status === 'excluded';
       const rowStyle = isExcluded ? 'background:#FEF2F2;opacity:0.75;' : '';
       const nameStyle = isExcluded ? 'font-weight:600;text-decoration:line-through;color:#9CA3AF;' : 'font-weight:600;';
       // 제외 사유 (제외 상태일 때만 빨강)
       const reasonHtml = isExcluded
-        ? `<div style="font-size:11px;color:#DC2626;margin-top:3px;margin-left:34px;cursor:pointer;" onclick="event.stopPropagation();editExcludeReason('${e.infId}')" title="클릭하면 사유 수정">📌 ${e.excludeReason ? escapeHtml(e.excludeReason) : '사유 미입력 (클릭하여 입력)'}</div>`
+        ? `<div style="font-size:11px;color:#DC2626;margin-top:3px;margin-left:40px;cursor:pointer;" onclick="event.stopPropagation();editExcludeReason('${e.infId}')" title="클릭하면 사유 수정">📌 ${e.excludeReason ? escapeHtml(e.excludeReason) : '사유 미입력 (클릭하여 입력)'}</div>`
         : '';
       // 회신/진행 메모 (제외 외 모든 상태) — memos 배열 기반
       const memoArr = getMemoList(e);
