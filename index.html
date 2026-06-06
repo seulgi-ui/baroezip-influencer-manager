@@ -1591,7 +1591,7 @@ table { border-collapse: collapse; width: 100%; }
 }
 .tl-popover-item.active .tl-pop-check { background: #2563EB; border-color: #2563EB; }
 
-/* 진행 현황 통계 인라인 input (조회수/좋아요/댓글) */
+/* 진행 현황 통계 인라인 input (조회수/좋아요/댓글) — 텍스트처럼 보이고 포커스 시에만 박스 */
 .stat-input {
   width: 100%;
   padding: 6px 4px;
@@ -1600,14 +1600,18 @@ table { border-collapse: collapse; width: 100%; }
   text-align: right;
   color: #1F2937;
   background: transparent;
-  border: 1px solid transparent;
+  border: none;
+  outline: none;
   border-radius: 5px;
   font-family: inherit;
   font-variant-numeric: tabular-nums;
+  cursor: text;
 }
 .stat-input::placeholder { color: #CBD5E1; font-weight: 500; }
-.stat-input:hover { background: #F8FAFC; border-color: #E2E8F0; }
-.stat-input:focus { outline: none; background: #fff; border-color: #2563EB; box-shadow: 0 0 0 2px rgba(37,99,235,0.15); }
+.stat-input:focus {
+  background: #fff;
+  box-shadow: 0 0 0 1.5px #2563EB, 0 0 0 4px rgba(37,99,235,0.15);
+}
 
 /* 진행 현황 헤더 필터 드롭다운 */
 .track-filter-trigger {
