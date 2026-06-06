@@ -5419,7 +5419,12 @@ let assignChannel = 'youtube';
 let msgTab = 'creator';
 
 // ===== 진행 현황 테이블 필터/정렬 상태 =====
-let trackStatusFilter = new Set();  // 비어있으면 전체 표시
+// 디폴트: 무응답·제외 빼고 모두 선택 (해당 항목은 첫 진입 시 자동으로 숨겨짐)
+const TRACK_STATUS_DEFAULT_HIDE = new Set(['noResponse', 'excluded']);
+let trackStatusFilter = new Set(
+  ['recruiting','noResponse','priceTalk','recruited','guide','producing','confirmed','scheduled','done','excluded']
+    .filter(k => !TRACK_STATUS_DEFAULT_HIDE.has(k))
+);
 let trackCostSortDir = null;        // null | 'asc' | 'desc'
 let trackUploadSortDir = null;      // null | 'asc' | 'desc'
 
