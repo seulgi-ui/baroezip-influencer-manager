@@ -8154,13 +8154,9 @@ function renderSettleFileCell(projId, infId, s, kind) {
   const name = s[nameKey];
   const mime = s[mimeKey] || '';
   if (url) {
-    // 파일명은 노출하지 않고, 형식만 추상화해서 표시
-    const isPdf = mime === 'application/pdf' || /\.pdf$/i.test(name || '');
-    const isImg = /^image\//.test(mime) || /\.(jpe?g|png)$/i.test(name || '');
-    const icon = isPdf ? '📄' : isImg ? '🖼️' : '📎';
-    const kindLabel = isPdf ? 'PDF 보기' : isImg ? '이미지 보기' : '파일 보기';
+    // 형식 구분 없이 공통 라벨로 표시
     return `<div class="settle-file-row">
-      <button type="button" class="settle-file-chip" onclick="openSettleFile('${projId}','${infId}','${kind}')" title="클릭하여 새 탭에서 보기">${icon} ${kindLabel}</button>
+      <button type="button" class="settle-file-chip" onclick="openSettleFile('${projId}','${infId}','${kind}')" title="클릭하여 새 탭에서 보기">📄 보기</button>
       <button type="button" class="settle-file-del" onclick="deleteSettleFile('${projId}','${infId}','${kind}')" title="삭제">×</button>
     </div>`;
   }
