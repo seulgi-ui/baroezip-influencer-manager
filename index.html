@@ -3867,12 +3867,12 @@ img.tt-avatar { object-fit: cover; padding: 0; }
           <div class="settle-kpi-sub" id="settle-kpi-total-cnt">0건</div>
         </div>
         <div class="settle-kpi-card kpi-pending">
-          <div class="settle-kpi-label">⏳ 발행 대기</div>
+          <div class="settle-kpi-label">📋 계산서 대기</div>
           <div class="settle-kpi-value" id="settle-kpi-pending">₩0</div>
           <div class="settle-kpi-sub" id="settle-kpi-pending-cnt">0건</div>
         </div>
         <div class="settle-kpi-card kpi-invoiced">
-          <div class="settle-kpi-label">📄 계산서 발행</div>
+          <div class="settle-kpi-label">💰 입금 대기</div>
           <div class="settle-kpi-value" id="settle-kpi-invoiced">₩0</div>
           <div class="settle-kpi-sub" id="settle-kpi-invoiced-cnt">0건</div>
         </div>
@@ -3890,8 +3890,8 @@ img.tt-avatar { object-fit: cover; padding: 0; }
         </select>
         <select id="settle-filter-status" class="form-input settle-filter" onchange="renderSettlement()">
           <option value="">전체 상태</option>
-          <option value="pending">⏳ 발행 대기</option>
-          <option value="invoiced">📄 계산서 발행</option>
+          <option value="pending">📋 계산서 대기</option>
+          <option value="invoiced">💰 입금 대기</option>
           <option value="paid">✅ 입금 완료</option>
         </select>
         <select id="settle-filter-biz" class="form-input settle-filter" onchange="renderSettlement()">
@@ -7974,7 +7974,8 @@ const BIZ_HINT = {
   taxFree: '면세사업자 — VAT 없음',
 };
 const BIZ_BADGE_LABEL = { none: '미정', personal: '개인', business: '일반과세', taxFree: '면세' };
-const SETTLE_STATUS_LABEL = { pending: '⏳ 발행 대기', invoiced: '📄 계산서 발행', paid: '✅ 입금 완료' };
+// 우리(회사) 관점에서 "다음에 해야 할 액션"을 라벨로 표시
+const SETTLE_STATUS_LABEL = { pending: '📋 계산서 대기', invoiced: '💰 입금 대기', paid: '✅ 입금 완료' };
 
 function fmtKRW(n) {
   const v = Number(n) || 0;
@@ -7992,10 +7993,10 @@ function settleComputeRow(e) {
   const withholding = bizType === 'personal' ? Math.round(amount * 0.033) : 0;
   const adjustment = vat - withholding;          // 양수=가산, 음수=차감
   const total = amount + adjustment;             // 실지급/실수령 금액
-  // 상태 자동 판정 (체크박스 없이 날짜만으로):
-  //  · 입금일 입력 → '입금 완료'
-  //  · 발행일 입력 또는 개인 사업자 → '입금 대기'
-  //  · 그 외 → '발행 대기'
+  // 상태 = "우리(회사)가 다음에 해야 할 액션"
+  //  · 입금일 입력 → ✅ 입금 완료
+  //  · 발행일 입력 또는 개인 사업자 → 💰 입금 대기 (우리가 입금할 차례)
+  //  · 그 외 → 📋 계산서 대기 (우리가 인플로부터 계산서 받아야 함)
   const hasInvoice = !!s.invoiceIssued || !!s.invoiceDate;
   const hasPaid = !!s.paid || !!s.paymentDate;
   let status = 'pending';
@@ -8135,7 +8136,7 @@ function renderSettlement() {
       <td><input type="date" value="${s.paymentDate || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','paymentDate',this.value)" title="입금일을 입력하면 상태가 자동으로 '입금 완료'로 전환됩니다"></td>
       <td>${renderSettleFileCell(e.projId, e.infId, s, 'bankbook')}</td>
       <td>${renderSettleFileCell(e.projId, e.infId, s, 'bizCert')}</td>
-      <td><span class="settle-status-chip status-${c.status}">${c.status === 'invoiced' && c.bizType === 'personal' ? '💰 입금 대기' : SETTLE_STATUS_LABEL[c.status]}</span></td>
+      <td><span class="settle-status-chip status-${c.status}">${SETTLE_STATUS_LABEL[c.status]}</span></td>
       <td><input type="text" value="${escapeHtml(s.memo || '')}" placeholder="메모" onchange="updateSettlement('${e.projId}','${e.infId}','memo',this.value)"></td>
     </tr>`;
   }).join('');
@@ -8357,7 +8358,7 @@ function exportSettlementCsv() {
       s.paymentDate || '',
       s.bankbookUrl ? '있음' : '',
       s.bizCertUrl ? '있음' : '',
-      (c.status === 'invoiced' && c.bizType === 'personal' ? '입금 대기' : SETTLE_STATUS_LABEL[c.status].replace(/^[^\w가-힣]+/, '')),
+      SETTLE_STATUS_LABEL[c.status].replace(/^[^\w가-힣]+/, ''),
       (s.memo || '').replace(/\n/g, ' '),
     ];
   });
