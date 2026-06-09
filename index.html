@@ -2973,6 +2973,54 @@ img.tt-avatar { object-fit: cover; padding: 0; }
   padding: 40px 20px;
   font-size: 13px;
 }
+.settle-file-upload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #F1F5F9;
+  color: #475569;
+  border: 1.5px dashed #CBD5E1;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.settle-file-upload:hover { background: #E0E7FF; border-color: #6366F1; color: #4338CA; }
+.settle-file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #DBEAFE;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+  text-decoration: none;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+.settle-file-chip:hover { background: #BFDBFE; }
+.settle-file-del {
+  width: 22px; height: 22px;
+  border: 1px solid #FECACA;
+  background: #FEF2F2;
+  color: #DC2626;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
+  flex-shrink: 0;
+  padding: 0;
+}
+.settle-file-del:hover { background: #FEE2E2; }
 
 .track-group-header td {
   background: var(--surface-2) !important;
@@ -3809,8 +3857,9 @@ img.tt-avatar { object-fit: cover; padding: 0; }
               <th style="width:90px;" class="num">VAT(₩)</th>
               <th style="width:120px;" class="num">합계(₩)</th>
               <th style="width:130px;">계산서 발행일</th>
-              <th style="width:130px;">입금 예정일</th>
               <th style="width:130px;">입금 완료일</th>
+              <th style="width:110px;">통장 사본</th>
+              <th style="width:120px;">사업자등록증</th>
               <th style="width:110px;">상태</th>
               <th style="width:160px;">메모</th>
             </tr>
@@ -3822,7 +3871,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
               <td class="num" id="settle-foot-cost">-</td>
               <td class="num" id="settle-foot-vat">-</td>
               <td class="num" id="settle-foot-total" style="font-weight:900;color:#0066FF;">-</td>
-              <td colspan="5"></td>
+              <td colspan="6"></td>
             </tr>
           </tfoot>
         </table>
@@ -4401,9 +4450,9 @@ img.tt-avatar { object-fit: cover; padding: 0; }
           <table class="track-table" id="track-table">
             <thead>
               <tr>
-                <th style="width:120px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('name')" title="이름순 정렬"><span id="track-name-sort-label">인플루언서</span><div class="th-resizer"></div></th>
-                <th style="width:70px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('channel')" title="채널순 정렬"><span id="track-channel-sort-label">채널</span><div class="th-resizer"></div></th>
-                <th style="width:110px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('cost')" title="단가순 정렬"><span id="track-cost-sort-label">단가(원)</span><div class="th-resizer"></div></th>
+                <th style="width:120px;cursor:pointer;user-select:none;" data-sort-key="name" title="이름순 정렬"><span id="track-name-sort-label">인플루언서</span><div class="th-resizer"></div></th>
+                <th style="width:70px;cursor:pointer;user-select:none;" data-sort-key="channel" title="채널순 정렬"><span id="track-channel-sort-label">채널</span><div class="th-resizer"></div></th>
+                <th style="width:110px;cursor:pointer;user-select:none;" data-sort-key="cost" title="단가순 정렬"><span id="track-cost-sort-label">단가(원)</span><div class="th-resizer"></div></th>
                 <th style="width:140px;position:relative;">
                   <button type="button" class="track-filter-trigger" id="track-filter-btn" onclick="event.stopPropagation();toggleTrackStatusDropdown()">
                     현황 <span class="track-filter-badge" id="track-filter-badge" style="display:none;"></span>
@@ -4412,16 +4461,16 @@ img.tt-avatar { object-fit: cover; padding: 0; }
                   <div class="track-filter-dropdown" id="track-status-dropdown" onclick="event.stopPropagation();"></div>
                   <div class="th-resizer"></div>
                 </th>
-                <th style="width:100px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('contentType')" title="유형순 정렬"><span id="track-ctype-sort-label">유형</span><div class="th-resizer"></div></th>
-                <th style="width:185px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('uploadDate')" title="업로드 예정일순 정렬"><span id="track-upload-sort-label">업로드 예정일</span><div class="th-resizer"></div></th>
-                <th style="width:90px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('propertyType')" title="매물 유형순 정렬"><span id="track-property-sort-label">매물 유형</span><div class="th-resizer"></div></th>
+                <th style="width:100px;cursor:pointer;user-select:none;" data-sort-key="contentType" title="유형순 정렬"><span id="track-ctype-sort-label">유형</span><div class="th-resizer"></div></th>
+                <th style="width:185px;cursor:pointer;user-select:none;" data-sort-key="uploadDate" title="업로드 예정일순 정렬"><span id="track-upload-sort-label">업로드 예정일</span><div class="th-resizer"></div></th>
+                <th style="width:90px;cursor:pointer;user-select:none;" data-sort-key="propertyType" title="매물 유형순 정렬"><span id="track-property-sort-label">매물 유형</span><div class="th-resizer"></div></th>
                 <th style="width:100px;">기획안<div class="th-resizer"></div></th>
                 <th style="width:100px;">원링크<div class="th-resizer"></div></th>
                 <th style="width:110px;">최종본<div class="th-resizer"></div></th>
                 <th style="width:160px;">업로드 링크<div class="th-resizer"></div></th>
-                <th style="width:95px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('views')" title="조회수순 정렬"><span id="track-views-sort-label">조회수</span><div class="th-resizer"></div></th>
-                <th style="width:80px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('likes')" title="좋아요순 정렬"><span id="track-likes-sort-label">좋아요</span><div class="th-resizer"></div></th>
-                <th style="width:70px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('comments')" title="댓글순 정렬"><span id="track-comments-sort-label">댓글</span><div class="th-resizer"></div></th>
+                <th style="width:95px;cursor:pointer;user-select:none;" data-sort-key="views" title="조회수순 정렬"><span id="track-views-sort-label">조회수</span><div class="th-resizer"></div></th>
+                <th style="width:80px;cursor:pointer;user-select:none;" data-sort-key="likes" title="좋아요순 정렬"><span id="track-likes-sort-label">좋아요</span><div class="th-resizer"></div></th>
+                <th style="width:70px;cursor:pointer;user-select:none;" data-sort-key="comments" title="댓글순 정렬"><span id="track-comments-sort-label">댓글</span><div class="th-resizer"></div></th>
                 <th style="width:60px;">수집<div class="th-resizer"></div></th>
               </tr>
             </thead>
@@ -7952,7 +8001,7 @@ function renderSettlement() {
 
   const tbody = document.getElementById('settle-tbody');
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="13" class="settle-empty">정산 대상 인플루언서가 없습니다.<br><span style="font-size:11px;">진행 현황에서 상태가 <b>✅ 완료</b>로 변경된 인플만 자동으로 표시됩니다.</span></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="14" class="settle-empty">정산 대상 인플루언서가 없습니다.<br><span style="font-size:11px;">진행 현황에서 상태가 <b>✅ 완료</b>로 변경된 인플만 자동으로 표시됩니다.</span></td></tr>`;
     return;
   }
 
@@ -8000,15 +8049,126 @@ function renderSettlement() {
         <input type="checkbox" ${s.invoiceIssued ? 'checked' : ''} onchange="updateSettlement('${e.projId}','${e.infId}','invoiceIssued',this.checked)">
         <input type="date" value="${s.invoiceDate || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','invoiceDate',this.value)" style="flex:1;min-width:0;">
       </div></td>
-      <td><input type="date" value="${s.paymentScheduled || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','paymentScheduled',this.value)"></td>
       <td><div class="settle-checkbox-row">
         <input type="checkbox" ${s.paid ? 'checked' : ''} onchange="updateSettlement('${e.projId}','${e.infId}','paid',this.checked)">
         <input type="date" value="${s.paymentDate || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','paymentDate',this.value)" style="flex:1;min-width:0;">
       </div></td>
+      <td>${renderSettleFileCell(e.projId, e.infId, s, 'bankbook')}</td>
+      <td>${renderSettleFileCell(e.projId, e.infId, s, 'bizCert')}</td>
       <td><span class="settle-status-chip status-${c.status}">${SETTLE_STATUS_LABEL[c.status]}</span></td>
       <td><input type="text" value="${escapeHtml(s.memo || '')}" placeholder="메모" onchange="updateSettlement('${e.projId}','${e.infId}','memo',this.value)"></td>
     </tr>`;
   }).join('');
+}
+
+// 통장/사업자등록증 파일 셀 렌더링
+const SETTLE_FILE_ACCEPT = '.jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf';
+const SETTLE_FILE_MAX_MB = 10;
+const SETTLE_FILE_LABEL = { bankbook: '통장사본', bizCert: '사업자등록증' };
+
+function renderSettleFileCell(projId, infId, s, kind) {
+  // kind: 'bankbook' | 'bizCert'
+  const urlKey = kind + 'Url';
+  const nameKey = kind + 'FileName';
+  const url = s[urlKey];
+  const name = s[nameKey];
+  if (url) {
+    const short = name && name.length > 14 ? name.slice(0, 13) + '…' : (name || '파일');
+    return `<div style="display:flex;gap:4px;align-items:center;">
+      <a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="settle-file-chip" title="${escapeHtml(name || '파일')} (새 탭에서 보기)">📄 ${escapeHtml(short)}</a>
+      <button type="button" class="settle-file-del" onclick="deleteSettleFile('${projId}','${infId}','${kind}')" title="삭제">×</button>
+    </div>`;
+  }
+  return `<label class="settle-file-upload" title="${SETTLE_FILE_LABEL[kind]} 업로드 (JPG/PNG/PDF, ${SETTLE_FILE_MAX_MB}MB↓)">
+    📎 업로드
+    <input type="file" accept="${SETTLE_FILE_ACCEPT}" style="display:none;" onchange="uploadSettleFile('${projId}','${infId}','${kind}',this)">
+  </label>`;
+}
+
+async function uploadSettleFile(projId, infId, kind, inputEl) {
+  const file = inputEl.files && inputEl.files[0];
+  if (!file) return;
+  // 확장자/타입 검증
+  const ok = /\.(jpe?g|png|pdf)$/i.test(file.name) || ['image/jpeg','image/png','application/pdf'].includes(file.type);
+  if (!ok) {
+    alert('지원하지 않는 파일 형식입니다. JPG / JPEG / PNG / PDF 만 업로드 가능합니다.');
+    inputEl.value = '';
+    return;
+  }
+  if (file.size > SETTLE_FILE_MAX_MB * 1024 * 1024) {
+    alert(`파일이 너무 큽니다. ${SETTLE_FILE_MAX_MB}MB 이하만 업로드 가능합니다.`);
+    inputEl.value = '';
+    return;
+  }
+  if (!storage) {
+    alert('Firebase Storage가 초기화되지 않았습니다.');
+    return;
+  }
+
+  // 임시 안내
+  const label = inputEl.closest('label');
+  if (label) { label.textContent = '⏳ 0%'; }
+
+  try {
+    const safeName = file.name.replace(/[^\w가-힣ㄱ-ㅎㅏ-ㅣ.\-]/g, '_');
+    const path = `settlements/${projId}/${infId}/${kind}_${Date.now()}_${safeName}`;
+    const ref = storage.ref(path);
+    const task = ref.put(file);
+    await new Promise((resolve, reject) => {
+      task.on('state_changed',
+        snap => {
+          if (label) {
+            const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+            label.textContent = `⏳ ${pct}%`;
+          }
+        },
+        err => reject(err),
+        () => resolve()
+      );
+    });
+    const url = await ref.getDownloadURL();
+    const updates = {
+      [kind + 'Url']: url,
+      [kind + 'FileName']: file.name,
+      [kind + 'Path']: path,
+    };
+    if (firebaseReady && db) {
+      await db.ref(PATHS.assignments + '/' + projId + '/' + infId + '/settlement').update(updates);
+    } else {
+      if (!allAssignments[projId]) allAssignments[projId] = {};
+      if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
+      if (!allAssignments[projId][infId].settlement) allAssignments[projId][infId].settlement = {};
+      Object.assign(allAssignments[projId][infId].settlement, updates);
+      renderSettlement();
+    }
+    showToast(SETTLE_FILE_LABEL[kind] + ' 업로드 완료');
+  } catch (e) {
+    console.error('settle file upload failed', e);
+    alert('업로드 실패: ' + (e.message || e));
+    if (label) label.textContent = '📎 업로드';
+  } finally {
+    inputEl.value = '';
+  }
+}
+
+async function deleteSettleFile(projId, infId, kind) {
+  if (!confirm(`${SETTLE_FILE_LABEL[kind]} 파일을 삭제할까요?`)) return;
+  const cur = (allAssignments[projId] && allAssignments[projId][infId] && allAssignments[projId][infId].settlement) || {};
+  const path = cur[kind + 'Path'];
+  try {
+    if (path && storage) {
+      try { await storage.ref(path).delete(); } catch (e) { console.warn('storage delete failed (ignored):', e); }
+    }
+  } finally {
+    const updates = { [kind + 'Url']: '', [kind + 'FileName']: '', [kind + 'Path']: '' };
+    if (firebaseReady && db) {
+      db.ref(PATHS.assignments + '/' + projId + '/' + infId + '/settlement').update(updates)
+        .catch(e => alert('삭제 정보 저장 실패: ' + (e.message || e)));
+    } else {
+      Object.assign(allAssignments[projId][infId].settlement, updates);
+      renderSettlement();
+    }
+  }
 }
 
 // settlement 서브객체 필드 1개 업데이트
@@ -8055,7 +8215,7 @@ function exportSettlementCsv() {
     return true;
   });
 
-  const headers = ['인플루언서','채널','프로젝트','사업자유형','사업자등록번호','단가(₩)','VAT(₩)','합계(₩)','계산서발행','계산서일','입금예정일','입금완료','입금일','상태','메모'];
+  const headers = ['인플루언서','채널','프로젝트','사업자유형','사업자등록번호','단가(₩)','VAT(₩)','합계(₩)','계산서발행','계산서일','입금완료','입금일','통장사본','사업자등록증','상태','메모'];
   const rows = filtered.map(e => {
     const c = settleComputeRow(e);
     const s = c.s;
@@ -8070,9 +8230,10 @@ function exportSettlementCsv() {
       c.total,
       s.invoiceIssued ? 'O' : '',
       s.invoiceDate || '',
-      s.paymentScheduled || '',
       s.paid ? 'O' : '',
       s.paymentDate || '',
+      s.bankbookUrl || '',
+      s.bizCertUrl || '',
       SETTLE_STATUS_LABEL[c.status].replace(/^[^\w가-힣]+/, ''),
       (s.memo || '').replace(/\n/g, ' '),
     ];
@@ -10168,17 +10329,20 @@ function initColumnResize(tableId) {
     if (!resizer || resizer._init) return;
     resizer._init = true;
 
-    let startX, startW;
+    let startX, startW, didResize = false;
     resizer.addEventListener('mousedown', (e) => {
       e.preventDefault();
       e.stopPropagation();
       startX = e.clientX;
       startW = th.offsetWidth;
+      didResize = false;
       document.body.style.cursor = 'col-resize';
       document.body.style.userSelect = 'none';
 
       function onMove(e2) {
-        const w = Math.max(40, startW + (e2.clientX - startX));
+        const dx = e2.clientX - startX;
+        if (Math.abs(dx) > 2) didResize = true;
+        const w = Math.max(40, startW + dx);
         th.style.width = w + 'px';
       }
       function onUp() {
@@ -10194,6 +10358,8 @@ function initColumnResize(tableId) {
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup', onUp);
     });
+    // resizer 영역 click이 th의 sort onclick으로 버블링되지 않게 막기 (드래그 후 의도치 않은 정렬 방지)
+    resizer.addEventListener('click', (e) => { e.stopPropagation(); });
   });
 }
 
@@ -11919,6 +12085,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // URL hash가 있으면 그 섹션으로, 없으면 기본 mediamix
     const hash = (location.hash || '').replace(/^#/, '');
     navigate(VALID_SECTIONS.includes(hash) ? hash : 'mediamix');
+
+    // 진행 현황 thead 위임 클릭 — 헤더 data-sort-key 기반 정렬
+    const trackThead = document.querySelector('#track-table thead');
+    if (trackThead) {
+      trackThead.addEventListener('click', (e) => {
+        if (e.target.closest('.th-resizer')) return;                     // 리사이저 클릭 무시
+        if (e.target.closest('.track-filter-trigger') || e.target.closest('.track-filter-dropdown')) return;  // 상태 드롭다운 무시
+        const th = e.target.closest('th[data-sort-key]');
+        if (!th) return;
+        toggleTrackSort(th.dataset.sortKey);
+      });
+    }
   }
 });
 
