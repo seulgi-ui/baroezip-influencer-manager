@@ -11172,12 +11172,12 @@ function renderTimeline() {
   html += `</div>`;
   container.innerHTML = html;
 
-  // 보고 있는 달이 '이번 달'이면 오늘 컬럼이 보이도록 자동 스크롤 (이름 컬럼은 sticky라 0번째 day 기준 offset 적용)
+  // 보고 있는 달이 '이번 달'이면 오늘 컬럼 + 왼쪽 7일치가 보이도록 자동 스크롤
   const now = new Date();
   if (now.getFullYear() === calYear && now.getMonth() === calMonth) {
     const todayDay = now.getDate();
-    // 오늘 컬럼 앞에 2일치 여백을 두고 보이게
-    const targetScroll = Math.max(0, (todayDay - 3) * DAY_W);
+    // 첫 컬럼 = 오늘로부터 7일 전 (오늘은 화면 왼쪽 8번째쯤에 위치)
+    const targetScroll = Math.max(0, (todayDay - 8) * DAY_W);
     container.scrollLeft = targetScroll;
   } else {
     container.scrollLeft = 0;
