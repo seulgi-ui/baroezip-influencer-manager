@@ -2912,7 +2912,8 @@ img.tt-avatar { object-fit: cover; padding: 0; }
   background: var(--surface);
 }
 .settle-table tbody tr:hover td { background: var(--primary-light); }
-.settle-table td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.settle-table td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; font-size: 12px; }
+.settle-table tfoot td.num { font-size: 12px; }
 /* 평소엔 입력 박스가 안 보이고 텍스트만 — 호버/포커스 시에만 편집 가능 표시 */
 .settle-table input:not([type="checkbox"]),
 .settle-table select {
@@ -3890,10 +3891,12 @@ img.tt-avatar { object-fit: cover; padding: 0; }
               <th style="width:140px;">프로젝트</th>
               <th style="width:130px;">사업자 유형</th>
               <th style="width:120px;">사업자등록번호</th>
-              <th style="width:110px;" class="num">단가(₩)</th>
-              <th style="width:110px;" class="num" title="일반과세 +VAT 10% / 개인 -원천세 3.3%">조정(₩)</th>
-              <th style="width:120px;" class="num">실지급(₩)</th>
+              <th style="width:110px;" class="num" title="공급가액 — 인플과 약속한 금액">단가(₩)</th>
+              <th style="width:90px;" class="num" title="일반과세 사업자: +10% 자동 가산 (인플이 부가세 신고)">부가세(₩)</th>
+              <th style="width:90px;" class="num" title="개인: -3.3% 자동 차감 (회사가 세무서 납부)">원천세(₩)</th>
+              <th style="width:120px;" class="num" title="입금 완료일에 회사가 통장으로 실제 송금하는 금액">송금액(₩)</th>
               <th style="width:130px;">계산서 발행일</th>
+              <th style="width:110px;">계산서 캡처</th>
               <th style="width:130px;">입금 완료일</th>
               <th style="width:110px;">통장 사본</th>
               <th style="width:120px;">사업자등록증</th>
@@ -3907,8 +3910,9 @@ img.tt-avatar { object-fit: cover; padding: 0; }
               <td colspan="5" style="text-align:right;font-weight:800;">합계</td>
               <td class="num" id="settle-foot-cost">-</td>
               <td class="num" id="settle-foot-vat">-</td>
+              <td class="num" id="settle-foot-wh">-</td>
               <td class="num" id="settle-foot-total" style="font-weight:900;color:#0066FF;">-</td>
-              <td colspan="6"></td>
+              <td colspan="7"></td>
             </tr>
           </tfoot>
         </table>
@@ -8021,12 +8025,12 @@ function renderSettlement() {
   // KPI 누계
   let kTotal = 0, kPending = 0, kInvoiced = 0, kPaid = 0;
   let cTotal = 0, cPending = 0, cInvoiced = 0, cPaid = 0;
-  let sumCost = 0, sumAdj = 0, sumTotal = 0;
+  let sumCost = 0, sumVat = 0, sumWh = 0, sumTotal = 0;
 
   filtered.forEach(e => {
     const c = settleComputeRow(e);
     kTotal += c.total; cTotal++;
-    sumCost += c.amount; sumAdj += c.adjustment; sumTotal += c.total;
+    sumCost += c.amount; sumVat += c.vat; sumWh += c.withholding; sumTotal += c.total;
     if (c.status === 'pending') { kPending += c.total; cPending++; }
     else if (c.status === 'invoiced') { kInvoiced += c.total; cInvoiced++; }
     else if (c.status === 'paid') { kPaid += c.total; cPaid++; }
@@ -8042,14 +8046,17 @@ function renderSettlement() {
   document.getElementById('settle-kpi-paid-cnt').textContent = cPaid + '건';
 
   document.getElementById('settle-foot-cost').textContent = fmtKRW(sumCost);
-  const footAdj = document.getElementById('settle-foot-vat');
-  footAdj.textContent = sumAdj > 0 ? '+' + fmtKRW(sumAdj) : sumAdj < 0 ? '−' + fmtKRW(-sumAdj) : '-';
-  footAdj.style.color = sumAdj > 0 ? '#0066FF' : sumAdj < 0 ? '#DC2626' : 'var(--text-muted)';
+  const footVat = document.getElementById('settle-foot-vat');
+  footVat.textContent = sumVat ? '+' + fmtKRW(sumVat) : '-';
+  footVat.style.color = sumVat ? '#0066FF' : 'var(--text-muted)';
+  const footWh = document.getElementById('settle-foot-wh');
+  footWh.textContent = sumWh ? '−' + fmtKRW(sumWh) : '-';
+  footWh.style.color = sumWh ? '#DC2626' : 'var(--text-muted)';
   document.getElementById('settle-foot-total').textContent = fmtKRW(sumTotal);
 
   const tbody = document.getElementById('settle-tbody');
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="14" class="settle-empty">정산 대상 인플루언서가 없습니다.<br><span style="font-size:11px;">진행 현황에서 상태가 <b>✅ 완료</b>로 변경된 인플만 자동으로 표시됩니다.</span></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="16" class="settle-empty">정산 대상 인플루언서가 없습니다.<br><span style="font-size:11px;">진행 현황에서 상태가 <b>✅ 완료</b>로 변경된 인플만 자동으로 표시됩니다.</span></td></tr>`;
     return;
   }
 
@@ -8091,12 +8098,14 @@ function renderSettlement() {
       <td><select onchange="updateSettlement('${e.projId}','${e.infId}','bizType',this.value)">${bizOpts}</select></td>
       <td><input type="text" value="${escapeHtml(s.bizNo || '')}" placeholder="000-00-00000" onchange="updateSettlement('${e.projId}','${e.infId}','bizNo',this.value)"></td>
       <td class="num">${fmtKRW(c.amount)}</td>
-      <td class="num" style="color:${c.adjustment > 0 ? '#0066FF' : c.adjustment < 0 ? '#DC2626' : 'var(--text-muted)'};font-weight:${c.adjustment ? 700 : 400};" title="${c.bizType === 'business' ? `+VAT 10% = ${fmtKRW(c.vat)}` : c.bizType === 'personal' ? `-원천세 3.3% = ${fmtKRW(c.withholding)}` : '조정 없음'}">${c.adjustment > 0 ? '+' + fmtKRW(c.adjustment) : c.adjustment < 0 ? '−' + fmtKRW(-c.adjustment) : '-'}</td>
-      <td class="num" style="font-weight:800;color:var(--text-primary);">${fmtKRW(c.total)}</td>
+      <td class="num" style="color:${c.vat ? '#0066FF' : 'var(--text-muted)'};font-weight:${c.vat ? 700 : 400};" title="${c.bizType === 'business' ? '일반과세 인플 부가세(+10%)' : '해당 없음'}">${c.vat ? '+' + fmtKRW(c.vat) : '-'}</td>
+      <td class="num" style="color:${c.withholding ? '#DC2626' : 'var(--text-muted)'};font-weight:${c.withholding ? 700 : 400};" title="${c.bizType === 'personal' ? '개인 원천세(-3.3%) · 회사가 세무서 납부' : '해당 없음'}">${c.withholding ? '−' + fmtKRW(c.withholding) : '-'}</td>
+      <td class="num" style="font-weight:800;color:var(--text-primary);" title="${c.bizType === 'business' ? '단가 + 부가세 (인플 전액 송금)' : c.bizType === 'personal' ? '단가 − 원천세 (실송금액)' : '단가 그대로'}">${fmtKRW(c.total)}</td>
       <td><div class="settle-checkbox-row">
         <input type="checkbox" ${s.invoiceIssued ? 'checked' : ''} onchange="updateSettlement('${e.projId}','${e.infId}','invoiceIssued',this.checked)">
         <input type="date" value="${s.invoiceDate || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','invoiceDate',this.value)" style="flex:1;min-width:0;">
       </div></td>
+      <td>${renderSettleFileCell(e.projId, e.infId, s, 'invoiceFile')}</td>
       <td><div class="settle-checkbox-row">
         <input type="checkbox" ${s.paid ? 'checked' : ''} onchange="updateSettlement('${e.projId}','${e.infId}','paid',this.checked)">
         <input type="date" value="${s.paymentDate || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','paymentDate',this.value)" style="flex:1;min-width:0;">
@@ -8111,11 +8120,10 @@ function renderSettlement() {
 
 // 통장/사업자등록증 파일 셀 렌더링
 const SETTLE_FILE_ACCEPT = '.jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf';
-const SETTLE_FILE_MAX_MB = 10;
-const SETTLE_FILE_LABEL = { bankbook: '통장사본', bizCert: '사업자등록증' };
+const SETTLE_FILE_MAX_MB = 5;       // base64로 RTDB 저장 — 부담을 줄이기 위해 5MB로 제한
+const SETTLE_FILE_LABEL = { bankbook: '통장사본', bizCert: '사업자등록증', invoiceFile: '계산서 캡처' };
 
 function renderSettleFileCell(projId, infId, s, kind) {
-  // kind: 'bankbook' | 'bizCert'
   const urlKey = kind + 'Url';
   const nameKey = kind + 'FileName';
   const url = s[urlKey];
@@ -8123,7 +8131,7 @@ function renderSettleFileCell(projId, infId, s, kind) {
   if (url) {
     const short = name && name.length > 14 ? name.slice(0, 13) + '…' : (name || '파일');
     return `<div style="display:flex;gap:4px;align-items:center;">
-      <a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="settle-file-chip" title="${escapeHtml(name || '파일')} (새 탭에서 보기)">📄 ${escapeHtml(short)}</a>
+      <button type="button" class="settle-file-chip" onclick="openSettleFile('${projId}','${infId}','${kind}')" title="${escapeHtml(name || '파일')} (새 탭에서 보기)">📄 ${escapeHtml(short)}</button>
       <button type="button" class="settle-file-del" onclick="deleteSettleFile('${projId}','${infId}','${kind}')" title="삭제">×</button>
     </div>`;
   }
@@ -8133,6 +8141,38 @@ function renderSettleFileCell(projId, infId, s, kind) {
   </label>`;
 }
 
+// data URL이든 일반 URL이든 안전하게 새 탭에서 열기
+function openSettleFile(projId, infId, kind) {
+  const cur = (allAssignments[projId] && allAssignments[projId][infId] && allAssignments[projId][infId].settlement) || {};
+  const url = cur[kind + 'Url'];
+  const name = cur[kind + 'FileName'] || '파일';
+  if (!url) return;
+
+  if (url.startsWith('data:')) {
+    // base64 → Blob → blob URL로 변환해서 새 탭 (Chrome PDF data URL 차단 우회)
+    fetch(url)
+      .then(r => r.blob())
+      .then(blob => {
+        const blobUrl = URL.createObjectURL(blob);
+        const win = window.open(blobUrl, '_blank', 'noopener');
+        if (!win) {
+          // 팝업 차단된 경우: 다운로드로 fallback
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = name;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+      })
+      .catch(e => alert('파일 열기 실패: ' + (e.message || e)));
+  } else {
+    window.open(url, '_blank', 'noopener');
+  }
+}
+
+// 파일을 base64 dataURL로 변환 (Firebase Storage 의존 없이 RTDB에 직접 저장)
 async function uploadSettleFile(projId, infId, kind, inputEl) {
   const file = inputEl.files && inputEl.files[0];
   if (!file) return;
@@ -8148,16 +8188,11 @@ async function uploadSettleFile(projId, infId, kind, inputEl) {
     inputEl.value = '';
     return;
   }
-  if (!storage) {
-    alert('Firebase Storage가 초기화되지 않았습니다.');
-    return;
-  }
 
-  // 진행률 표시 — label의 input은 그대로 보존, 텍스트 노드만 교체
+  // 진행률 표시 — label 내부의 file input은 보존, 텍스트 노드만 교체
   const label = inputEl.closest('label');
   const setProg = pct => {
     if (!label) return;
-    // input element를 그대로 두고 텍스트만 교체
     Array.from(label.childNodes).forEach(n => { if (n.nodeType === Node.TEXT_NODE) n.remove(); });
     label.insertBefore(document.createTextNode(`⏳ ${pct}% `), label.firstChild);
     label.style.pointerEvents = 'none';
@@ -8165,42 +8200,40 @@ async function uploadSettleFile(projId, infId, kind, inputEl) {
   setProg(0);
 
   try {
-    const safeName = file.name.replace(/[^\w가-힣ㄱ-ㅎㅏ-ㅣ.\-]/g, '_');
-    const path = `settlements/${projId}/${infId}/${kind}_${Date.now()}_${safeName}`;
-    const ref = storage.ref(path);
-    const task = ref.put(file);
-    await new Promise((resolve, reject) => {
-      task.on('state_changed',
-        snap => {
-          const pct = snap.totalBytes ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100) : 0;
+    // FileReader로 base64 dataURL 변환
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onprogress = ev => {
+        if (ev.lengthComputable) {
+          const pct = Math.min(99, Math.round((ev.loaded / ev.total) * 100));
           setProg(pct);
-        },
-        err => reject(err),
-        () => resolve()
-      );
+        }
+      };
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error || new Error('FileReader failed'));
+      reader.readAsDataURL(file);
     });
     setProg(100);
-    const url = await ref.getDownloadURL();
+
     const updates = {
-      [kind + 'Url']: url,
+      [kind + 'Url']: dataUrl,              // data:... 형식의 URL — <a href>·<img src>에 그대로 사용 가능
       [kind + 'FileName']: file.name,
-      [kind + 'Path']: path,
+      [kind + 'Mime']: file.type,
+      [kind + 'Size']: file.size,
     };
-    // 로컬 캐시 먼저 반영 (onValue 지연/누락 대비)
+    // 로컬 캐시 먼저 반영 (UI 즉시 갱신)
     if (!allAssignments[projId]) allAssignments[projId] = {};
     if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
     if (!allAssignments[projId][infId].settlement) allAssignments[projId][infId].settlement = {};
     Object.assign(allAssignments[projId][infId].settlement, updates);
+    renderSettlement();   // 셀 즉시 재렌더
     if (firebaseReady && db) {
       await db.ref(PATHS.assignments + '/' + projId + '/' + infId + '/settlement').update(updates);
     }
-    // 셀을 즉시 새로 그려서 0% 멈춤 방지
-    renderSettlement();
     showToast(SETTLE_FILE_LABEL[kind] + ' 업로드 완료');
   } catch (e) {
     console.error('settle file upload failed', e);
     alert('업로드 실패: ' + (e.message || e));
-    // 실패 시 셀 다시 그려서 업로드 버튼 복원
     renderSettlement();
   } finally {
     inputEl.value = '';
@@ -8209,21 +8242,21 @@ async function uploadSettleFile(projId, infId, kind, inputEl) {
 
 async function deleteSettleFile(projId, infId, kind) {
   if (!confirm(`${SETTLE_FILE_LABEL[kind]} 파일을 삭제할까요?`)) return;
-  const cur = (allAssignments[projId] && allAssignments[projId][infId] && allAssignments[projId][infId].settlement) || {};
-  const path = cur[kind + 'Path'];
-  try {
-    if (path && storage) {
-      try { await storage.ref(path).delete(); } catch (e) { console.warn('storage delete failed (ignored):', e); }
-    }
-  } finally {
-    const updates = { [kind + 'Url']: '', [kind + 'FileName']: '', [kind + 'Path']: '' };
-    if (firebaseReady && db) {
-      db.ref(PATHS.assignments + '/' + projId + '/' + infId + '/settlement').update(updates)
-        .catch(e => alert('삭제 정보 저장 실패: ' + (e.message || e)));
-    } else {
-      Object.assign(allAssignments[projId][infId].settlement, updates);
-      renderSettlement();
-    }
+  const updates = {
+    [kind + 'Url']: '',
+    [kind + 'FileName']: '',
+    [kind + 'Mime']: '',
+    [kind + 'Size']: 0,
+  };
+  // 로컬 캐시 즉시 반영
+  if (!allAssignments[projId]) allAssignments[projId] = {};
+  if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
+  if (!allAssignments[projId][infId].settlement) allAssignments[projId][infId].settlement = {};
+  Object.assign(allAssignments[projId][infId].settlement, updates);
+  renderSettlement();
+  if (firebaseReady && db) {
+    db.ref(PATHS.assignments + '/' + projId + '/' + infId + '/settlement').update(updates)
+      .catch(e => alert('삭제 정보 저장 실패: ' + (e.message || e)));
   }
 }
 
@@ -8271,7 +8304,7 @@ function exportSettlementCsv() {
     return true;
   });
 
-  const headers = ['인플루언서','채널','프로젝트','사업자유형','사업자등록번호','단가(₩)','VAT(₩)','원천세(₩)','조정(₩)','실지급(₩)','계산서발행','계산서일','입금완료','입금일','통장사본','사업자등록증','상태','메모'];
+  const headers = ['인플루언서','채널','프로젝트','사업자유형','사업자등록번호','단가(₩)','부가세(₩)','원천세(₩)','송금액(₩)','계산서발행','계산서일','계산서캡처','입금완료','입금일','통장사본','사업자등록증','상태','메모'];
   const rows = filtered.map(e => {
     const c = settleComputeRow(e);
     const s = c.s;
@@ -8284,14 +8317,14 @@ function exportSettlementCsv() {
       c.amount,
       c.vat,
       c.withholding,
-      c.adjustment,
       c.total,
       s.invoiceIssued ? 'O' : '',
       s.invoiceDate || '',
+      s.invoiceFileUrl ? '있음' : '',
       s.paid ? 'O' : '',
       s.paymentDate || '',
-      s.bankbookUrl || '',
-      s.bizCertUrl || '',
+      s.bankbookUrl ? '있음' : '',
+      s.bizCertUrl ? '있음' : '',
       SETTLE_STATUS_LABEL[c.status].replace(/^[^\w가-힣]+/, ''),
       (s.memo || '').replace(/\n/g, ' '),
     ];
