@@ -1431,6 +1431,33 @@ table { border-collapse: collapse; width: 100%; }
   font-weight: 700;
   margin-left: 4px;
 }
+.tl-group-caret {
+  font-size: 10px;
+  color: #64748B;
+  margin-right: 4px;
+  transition: transform 0.12s;
+  display: inline-block;
+}
+.tl-group-header:hover .tl-group-count { background: rgba(0,0,0,0.1); }
+/* 완료된 인플 행 — 회색조 + 옅은 톤으로 시각적 분리 */
+.tl-name-done {
+  opacity: 0.62;
+  background: linear-gradient(90deg, #F0FDF4, #fff);
+}
+.tl-name-done .tl-name-cost { filter: grayscale(0.7); }
+.tl-done-chip {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 5px;
+  padding: 1px 7px;
+  border-radius: 9px;
+  background: #D1FAE5;
+  color: #065F46;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  vertical-align: middle;
+}
 
 /* 일반 일자 셀 */
 .tl-cell {
@@ -10997,8 +11024,18 @@ function renderTimeline() {
     if (ub) return 1;
     return (b.inf.followers || 0) - (a.inf.followers || 0); // 둘 다 없으면 구독자순
   }
-  const ytList = infsAll.filter(x => x.channel === 'youtube').sort(sortByUploadThenFollowers);
-  const igList = infsAll.filter(x => x.channel === 'instagram').sort(sortByUploadThenFollowers);
+  // "전체 완료" 판정: 진행상태 done + 정산 입금 완료 (paid 또는 paymentDate 입력)
+  const isFullyComplete = x => {
+    if (x.assign.status !== 'done') return false;
+    const s = x.assign.settlement || {};
+    return !!s.paid || !!s.paymentDate;
+  };
+  const inProgressAll = infsAll.filter(x => !isFullyComplete(x));
+  const completedAll = infsAll.filter(isFullyComplete);
+
+  const ytList = inProgressAll.filter(x => x.channel === 'youtube').sort(sortByUploadThenFollowers);
+  const igList = inProgressAll.filter(x => x.channel === 'instagram').sort(sortByUploadThenFollowers);
+  const doneList = completedAll.sort(sortByUploadThenFollowers);
 
   const container = document.getElementById('tl-container');
   if (!infsAll.length) {
@@ -11029,17 +11066,33 @@ function renderTimeline() {
     html += `<div class="tl-date-header ${cls}">${d}<div class="tl-date-day">${dayNames[dow]}</div></div>`;
   }
 
-  // 그룹별 렌더링 (유튜브 / 인스타그램)
-  const renderGroup = (label, items, color, icon) => {
+  // 전체 완료 섹션 접힘 상태 (localStorage 저장)
+  const completedCollapsed = localStorage.getItem('baromcn-tl-completed-collapsed') !== 'false';   // 기본 접힘
+
+  // 그룹별 렌더링 (유튜브 / 인스타그램 / ✅ 전체 완료)
+  const renderGroup = (label, items, color, icon, opts) => {
     if (!items.length) return '';
-    // 그룹 헤더 (전체 컬럼 차지)
-    let groupHtml = `<div class="tl-group-header" style="border-left:3px solid ${color};">
+    opts = opts || {};
+    const isCompletedGroup = !!opts.completed;
+    // 그룹 헤더 (전체 컬럼 차지) — 완료 그룹은 토글 가능
+    const collapsedAttr = isCompletedGroup && completedCollapsed ? ' tl-group-collapsed' : '';
+    const caret = isCompletedGroup
+      ? `<span class="tl-group-caret">${completedCollapsed ? '▶' : '▼'}</span>`
+      : '';
+    const headerOnclick = isCompletedGroup
+      ? `onclick="toggleTimelineCompletedGroup()" style="cursor:pointer;border-left:3px solid ${color};background:linear-gradient(90deg,#F0FDF4,#ECFCCB);"`
+      : `style="border-left:3px solid ${color};"`;
+    let groupHtml = `<div class="tl-group-header${collapsedAttr}" ${headerOnclick}>
       <span style="display:inline-flex;align-items:center;gap:6px;">
+        ${caret}
         ${icon}
         <span>${escapeHtml(label)}</span>
         <span class="tl-group-count">${items.length}</span>
       </span>
     </div>`;
+
+    // 접힌 완료 그룹은 행 자체를 안 그림 (sticky grid 정합성 유지)
+    if (isCompletedGroup && completedCollapsed) return groupHtml;
 
     for (const { infId, assign, inf } of items) {
       const initial = (inf.name || '?')[0];
@@ -11071,10 +11124,12 @@ function renderTimeline() {
       if (propLabel) metaParts.push(`<span class="prop">${propLabel}</span>`);
       const metaLine = metaParts.join('<span class="sep">·</span>');
 
-      groupHtml += `<div class="tl-name-cell" title="${escapeHtml(inf.name)}">
+      const doneCls = isCompletedGroup ? ' tl-name-done' : '';
+      const doneBadge = isCompletedGroup ? '<span class="tl-done-chip">✅ 완료</span>' : '';
+      groupHtml += `<div class="tl-name-cell${doneCls}" title="${escapeHtml(inf.name)}">
         ${avatar}
         <div class="tl-name-text">
-          <div class="tl-name-top">${escapeHtml(inf.name)} ${costBadge}</div>
+          <div class="tl-name-top">${escapeHtml(inf.name)} ${costBadge}${doneBadge}</div>
           <div class="tl-name-meta">${metaLine}</div>
         </div>
       </div>`;
@@ -11111,6 +11166,9 @@ function renderTimeline() {
 
   html += renderGroup('유튜브', ytList, '#FF0000', ytIcon);
   html += renderGroup('인스타그램', igList, '#E1306C', igIcon);
+  // ✅ 전체 완료 섹션 — 진행 done + 정산 입금 완료된 인플만
+  const doneIcon = '<span style="font-size:14px;">✅</span>';
+  html += renderGroup(`전체 완료 (입금까지)`, doneList, '#10B981', doneIcon, { completed: true });
   html += `</div>`;
   container.innerHTML = html;
 
@@ -11124,6 +11182,13 @@ function renderTimeline() {
   } else {
     container.scrollLeft = 0;
   }
+}
+
+// 캘린더 '전체 완료' 섹션 접힘/펼침 토글
+function toggleTimelineCompletedGroup() {
+  const cur = localStorage.getItem('baromcn-tl-completed-collapsed') !== 'false';
+  localStorage.setItem('baromcn-tl-completed-collapsed', cur ? 'false' : 'true');
+  renderTimeline();
 }
 
 // 셀 클릭 → 팝오버 열기
