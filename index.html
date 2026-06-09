@@ -7992,12 +7992,14 @@ function settleComputeRow(e) {
   const withholding = bizType === 'personal' ? Math.round(amount * 0.033) : 0;
   const adjustment = vat - withholding;          // 양수=가산, 음수=차감
   const total = amount + adjustment;             // 실지급/실수령 금액
-  // 상태: 발행 대기 → 입금 대기 → 입금 완료
-  //  · 개인: 발행 대기 단계 없음 (즉시 입금 대기)
-  //  · 계산서 발행일이 입력되면 invoiceIssued 체크 없이도 입금 대기로 자동 전환
+  // 상태 자동 판정 (체크박스 없이 날짜만으로):
+  //  · 입금일 입력 → '입금 완료'
+  //  · 발행일 입력 또는 개인 사업자 → '입금 대기'
+  //  · 그 외 → '발행 대기'
   const hasInvoice = !!s.invoiceIssued || !!s.invoiceDate;
+  const hasPaid = !!s.paid || !!s.paymentDate;
   let status = 'pending';
-  if (s.paid) status = 'paid';
+  if (hasPaid) status = 'paid';
   else if (bizType === 'personal' || hasInvoice) status = 'invoiced';
   return { amount, vat, withholding, adjustment, total, status, bizType, s };
 }
@@ -8128,15 +8130,9 @@ function renderSettlement() {
       <td class="num" style="color:${c.vat ? '#0066FF' : 'var(--text-muted)'};font-weight:${c.vat ? 700 : 400};" title="${c.bizType === 'business' ? '일반과세 인플 부가세(+10%)' : '해당 없음'}">${c.vat ? '+' + fmtKRW(c.vat) : '-'}</td>
       <td class="num" style="color:${c.withholding ? '#DC2626' : 'var(--text-muted)'};font-weight:${c.withholding ? 700 : 400};" title="${c.bizType === 'personal' ? '개인 원천세(-3.3%) · 회사가 세무서 납부' : '해당 없음'}">${c.withholding ? '−' + fmtKRW(c.withholding) : '-'}</td>
       <td class="num" style="font-weight:800;color:var(--text-primary);" title="${c.bizType === 'business' ? '단가 + 부가세 (인플 전액 송금)' : c.bizType === 'personal' ? '단가 − 원천세 (실송금액)' : '단가 그대로'}">${fmtKRW(c.total)}</td>
-      <td><div class="settle-checkbox-row">
-        ${s.invoiceDate ? '' : `<input type="checkbox" ${s.invoiceIssued ? 'checked' : ''} onchange="updateSettlement('${e.projId}','${e.infId}','invoiceIssued',this.checked)" title="계산서 발행 처리 (날짜 입력 시 자동)">`}
-        <input type="date" value="${s.invoiceDate || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','invoiceDate',this.value)" style="flex:1;min-width:0;">
-      </div></td>
+      <td><input type="date" value="${s.invoiceDate || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','invoiceDate',this.value)" title="발행일을 입력하면 상태가 자동으로 '입금 대기'로 전환됩니다"></td>
       <td>${renderSettleFileCell(e.projId, e.infId, s, 'invoiceFile')}</td>
-      <td><div class="settle-checkbox-row">
-        <input type="checkbox" ${s.paid ? 'checked' : ''} onchange="updateSettlement('${e.projId}','${e.infId}','paid',this.checked)">
-        <input type="date" value="${s.paymentDate || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','paymentDate',this.value)" style="flex:1;min-width:0;">
-      </div></td>
+      <td><input type="date" value="${s.paymentDate || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','paymentDate',this.value)" title="입금일을 입력하면 상태가 자동으로 '입금 완료'로 전환됩니다"></td>
       <td>${renderSettleFileCell(e.projId, e.infId, s, 'bankbook')}</td>
       <td>${renderSettleFileCell(e.projId, e.infId, s, 'bizCert')}</td>
       <td><span class="settle-status-chip status-${c.status}">${c.status === 'invoiced' && c.bizType === 'personal' ? '💰 입금 대기' : SETTLE_STATUS_LABEL[c.status]}</span></td>
@@ -8298,9 +8294,12 @@ function updateSettlement(projId, infId, field, value) {
     const cur = (allAssignments[projId] && allAssignments[projId][infId] && allAssignments[projId][infId].settlement) || {};
     if (!cur.invoiceDate) updates.invoiceDate = today;
   }
-  // 날짜 입력 시 invoiceIssued 자동 동기 (날짜 지우면 false)
+  // 날짜 입력 시 invoiceIssued/paid 자동 동기 (날짜 지우면 false)
   if (field === 'invoiceDate') {
     updates.invoiceIssued = !!value;
+  }
+  if (field === 'paymentDate') {
+    updates.paid = !!value;
   }
   if (field === 'paid' && value === true) {
     const cur = (allAssignments[projId] && allAssignments[projId][infId] && allAssignments[projId][infId].settlement) || {};
