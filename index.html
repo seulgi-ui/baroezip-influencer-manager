@@ -3867,7 +3867,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
           <div class="settle-kpi-sub" id="settle-kpi-total-cnt">0건</div>
         </div>
         <div class="settle-kpi-card kpi-pending">
-          <div class="settle-kpi-label">📋 계산서 대기</div>
+          <div class="settle-kpi-label">📥 계산서 요청</div>
           <div class="settle-kpi-value" id="settle-kpi-pending">₩0</div>
           <div class="settle-kpi-sub" id="settle-kpi-pending-cnt">0건</div>
         </div>
@@ -3890,7 +3890,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
         </select>
         <select id="settle-filter-status" class="form-input settle-filter" onchange="renderSettlement()">
           <option value="">전체 상태</option>
-          <option value="pending">📋 계산서 대기</option>
+          <option value="pending">📥 계산서 요청</option>
           <option value="invoiced">💰 입금 대기</option>
           <option value="paid">✅ 입금 완료</option>
         </select>
@@ -7975,7 +7975,7 @@ const BIZ_HINT = {
 };
 const BIZ_BADGE_LABEL = { none: '미정', personal: '개인', business: '일반과세', taxFree: '면세' };
 // 우리(회사) 관점에서 "다음에 해야 할 액션"을 라벨로 표시
-const SETTLE_STATUS_LABEL = { pending: '📋 계산서 대기', invoiced: '💰 입금 대기', paid: '✅ 입금 완료' };
+const SETTLE_STATUS_LABEL = { pending: '📥 계산서 요청', invoiced: '💰 입금 대기', paid: '✅ 입금 완료' };
 
 function fmtKRW(n) {
   const v = Number(n) || 0;
@@ -7996,7 +7996,7 @@ function settleComputeRow(e) {
   // 상태 = "우리(회사)가 다음에 해야 할 액션"
   //  · 입금일 입력 → ✅ 입금 완료
   //  · 발행일 입력 또는 개인 사업자 → 💰 입금 대기 (우리가 입금할 차례)
-  //  · 그 외 → 📋 계산서 대기 (우리가 인플로부터 계산서 받아야 함)
+  //  · 그 외 → 📥 계산서 요청 (우리가 인플에게 계산서 요청해야 함)
   const hasInvoice = !!s.invoiceIssued || !!s.invoiceDate;
   const hasPaid = !!s.paid || !!s.paymentDate;
   let status = 'pending';
