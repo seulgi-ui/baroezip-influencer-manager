@@ -2913,19 +2913,56 @@ img.tt-avatar { object-fit: cover; padding: 0; }
 }
 .settle-table tbody tr:hover td { background: var(--primary-light); }
 .settle-table td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
-.settle-table input, .settle-table select {
+/* 평소엔 입력 박스가 안 보이고 텍스트만 — 호버/포커스 시에만 편집 가능 표시 */
+.settle-table input:not([type="checkbox"]),
+.settle-table select {
   padding: 5px 7px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid transparent;
   border-radius: 6px;
   font-size: 12px;
-  background: var(--surface);
+  background: transparent;
   outline: none;
-  transition: border-color 0.15s;
+  transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
   width: 100%;
   box-sizing: border-box;
+  color: var(--text-primary);
+  cursor: pointer;
 }
-.settle-table input:focus, .settle-table select:focus { border-color: #0066FF; }
+.settle-table input:not([type="checkbox"])::placeholder { color: #CBD5E1; }
+.settle-table input:not([type="checkbox"]):hover,
+.settle-table select:hover {
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+.settle-table input:not([type="checkbox"]):focus,
+.settle-table select:focus {
+  background: #fff;
+  border-color: #0066FF;
+  box-shadow: 0 0 0 2px rgba(0,102,255,0.12);
+  cursor: text;
+}
 .settle-table input[type="date"] { font-family: inherit; }
+/* select 화살표 — 호버/포커스 시에만 표시 */
+.settle-table select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 8px;
+  background-image: none;
+}
+.settle-table select:hover,
+.settle-table select:focus {
+  padding-right: 22px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23475569' d='M5 6L0 0h10z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 7px center;
+}
+/* date picker icon — 호버/포커스 시에만 표시 */
+.settle-table input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; }
+.settle-table input[type="date"]:hover::-webkit-calendar-picker-indicator,
+.settle-table input[type="date"]:focus::-webkit-calendar-picker-indicator { opacity: 0.6; }
+/* 값 없는 date input은 회색 placeholder처럼 */
+.settle-table input[type="date"]:not(:focus):not(:hover):invalid { color: #CBD5E1; }
 .settle-table tfoot td {
   padding: 12px 8px;
   background: linear-gradient(135deg, #F8FAFC, #F1F5F9);
@@ -3854,8 +3891,8 @@ img.tt-avatar { object-fit: cover; padding: 0; }
               <th style="width:130px;">사업자 유형</th>
               <th style="width:120px;">사업자등록번호</th>
               <th style="width:110px;" class="num">단가(₩)</th>
-              <th style="width:90px;" class="num">VAT(₩)</th>
-              <th style="width:120px;" class="num">합계(₩)</th>
+              <th style="width:110px;" class="num" title="일반과세 +VAT 10% / 개인 -원천세 3.3%">조정(₩)</th>
+              <th style="width:120px;" class="num">실지급(₩)</th>
               <th style="width:130px;">계산서 발행일</th>
               <th style="width:130px;">입금 완료일</th>
               <th style="width:110px;">통장 사본</th>
@@ -7899,9 +7936,15 @@ function saveTrackFields(projId, infId, fields) {
 // ============================================================
 const BIZ_LABEL = {
   none: '미정',
-  personal: '개인 (원천 3.3%)',
-  business: '일반과세 (VAT 10%)',
-  taxFree: '면세사업자',
+  personal: '개인',
+  business: '일반과세',
+  taxFree: '면세',
+};
+const BIZ_HINT = {
+  none: '사업자 유형 미지정',
+  personal: '개인 — 원천세 3.3% 차감 (실수령 표시용)',
+  business: '일반과세 — VAT 10% 자동 가산',
+  taxFree: '면세사업자 — VAT 없음',
 };
 const BIZ_BADGE_LABEL = { none: '미정', personal: '개인', business: '일반과세', taxFree: '면세' };
 const SETTLE_STATUS_LABEL = { pending: '⏳ 발행 대기', invoiced: '📄 계산서 발행', paid: '✅ 입금 완료' };
@@ -7917,12 +7960,15 @@ function settleComputeRow(e) {
   const override = s.amountOverride;
   const amount = (override != null && override !== '') ? Number(override) : baseCost * 10000;
   const bizType = s.bizType || 'none';
+  // 일반과세: VAT +10% / 개인: 원천세 -3.3% / 면세·미정: 0
   const vat = bizType === 'business' ? Math.round(amount * 0.1) : 0;
-  const total = amount + vat;
+  const withholding = bizType === 'personal' ? Math.round(amount * 0.033) : 0;
+  const adjustment = vat - withholding;          // 양수=가산, 음수=차감
+  const total = amount + adjustment;             // 실지급/실수령 금액
   let status = 'pending';
   if (s.paid) status = 'paid';
   else if (s.invoiceIssued) status = 'invoiced';
-  return { amount, vat, total, status, bizType, s };
+  return { amount, vat, withholding, adjustment, total, status, bizType, s };
 }
 
 function settleAllEntries() {
@@ -7975,12 +8021,12 @@ function renderSettlement() {
   // KPI 누계
   let kTotal = 0, kPending = 0, kInvoiced = 0, kPaid = 0;
   let cTotal = 0, cPending = 0, cInvoiced = 0, cPaid = 0;
-  let sumCost = 0, sumVat = 0, sumTotal = 0;
+  let sumCost = 0, sumAdj = 0, sumTotal = 0;
 
   filtered.forEach(e => {
     const c = settleComputeRow(e);
     kTotal += c.total; cTotal++;
-    sumCost += c.amount; sumVat += c.vat; sumTotal += c.total;
+    sumCost += c.amount; sumAdj += c.adjustment; sumTotal += c.total;
     if (c.status === 'pending') { kPending += c.total; cPending++; }
     else if (c.status === 'invoiced') { kInvoiced += c.total; cInvoiced++; }
     else if (c.status === 'paid') { kPaid += c.total; cPaid++; }
@@ -7996,7 +8042,9 @@ function renderSettlement() {
   document.getElementById('settle-kpi-paid-cnt').textContent = cPaid + '건';
 
   document.getElementById('settle-foot-cost').textContent = fmtKRW(sumCost);
-  document.getElementById('settle-foot-vat').textContent = fmtKRW(sumVat);
+  const footAdj = document.getElementById('settle-foot-vat');
+  footAdj.textContent = sumAdj > 0 ? '+' + fmtKRW(sumAdj) : sumAdj < 0 ? '−' + fmtKRW(-sumAdj) : '-';
+  footAdj.style.color = sumAdj > 0 ? '#0066FF' : sumAdj < 0 ? '#DC2626' : 'var(--text-muted)';
   document.getElementById('settle-foot-total').textContent = fmtKRW(sumTotal);
 
   const tbody = document.getElementById('settle-tbody');
@@ -8033,7 +8081,7 @@ function renderSettlement() {
       : `<span class="tt-avatar">${initial}</span>`;
 
     const bizOpts = Object.entries(BIZ_LABEL).map(([k, label]) =>
-      `<option value="${k}" ${(s.bizType || 'none') === k ? 'selected' : ''}>${label}</option>`
+      `<option value="${k}" title="${BIZ_HINT[k]}" ${(s.bizType || 'none') === k ? 'selected' : ''}>${label}</option>`
     ).join('');
 
     return `<tr>
@@ -8043,7 +8091,7 @@ function renderSettlement() {
       <td><select onchange="updateSettlement('${e.projId}','${e.infId}','bizType',this.value)">${bizOpts}</select></td>
       <td><input type="text" value="${escapeHtml(s.bizNo || '')}" placeholder="000-00-00000" onchange="updateSettlement('${e.projId}','${e.infId}','bizNo',this.value)"></td>
       <td class="num">${fmtKRW(c.amount)}</td>
-      <td class="num" style="color:${c.vat ? '#0066FF' : 'var(--text-muted)'};">${c.vat ? fmtKRW(c.vat) : '-'}</td>
+      <td class="num" style="color:${c.adjustment > 0 ? '#0066FF' : c.adjustment < 0 ? '#DC2626' : 'var(--text-muted)'};font-weight:${c.adjustment ? 700 : 400};" title="${c.bizType === 'business' ? `+VAT 10% = ${fmtKRW(c.vat)}` : c.bizType === 'personal' ? `-원천세 3.3% = ${fmtKRW(c.withholding)}` : '조정 없음'}">${c.adjustment > 0 ? '+' + fmtKRW(c.adjustment) : c.adjustment < 0 ? '−' + fmtKRW(-c.adjustment) : '-'}</td>
       <td class="num" style="font-weight:800;color:var(--text-primary);">${fmtKRW(c.total)}</td>
       <td><div class="settle-checkbox-row">
         <input type="checkbox" ${s.invoiceIssued ? 'checked' : ''} onchange="updateSettlement('${e.projId}','${e.infId}','invoiceIssued',this.checked)">
@@ -8105,9 +8153,16 @@ async function uploadSettleFile(projId, infId, kind, inputEl) {
     return;
   }
 
-  // 임시 안내
+  // 진행률 표시 — label의 input은 그대로 보존, 텍스트 노드만 교체
   const label = inputEl.closest('label');
-  if (label) { label.textContent = '⏳ 0%'; }
+  const setProg = pct => {
+    if (!label) return;
+    // input element를 그대로 두고 텍스트만 교체
+    Array.from(label.childNodes).forEach(n => { if (n.nodeType === Node.TEXT_NODE) n.remove(); });
+    label.insertBefore(document.createTextNode(`⏳ ${pct}% `), label.firstChild);
+    label.style.pointerEvents = 'none';
+  };
+  setProg(0);
 
   try {
     const safeName = file.name.replace(/[^\w가-힣ㄱ-ㅎㅏ-ㅣ.\-]/g, '_');
@@ -8117,35 +8172,36 @@ async function uploadSettleFile(projId, infId, kind, inputEl) {
     await new Promise((resolve, reject) => {
       task.on('state_changed',
         snap => {
-          if (label) {
-            const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
-            label.textContent = `⏳ ${pct}%`;
-          }
+          const pct = snap.totalBytes ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100) : 0;
+          setProg(pct);
         },
         err => reject(err),
         () => resolve()
       );
     });
+    setProg(100);
     const url = await ref.getDownloadURL();
     const updates = {
       [kind + 'Url']: url,
       [kind + 'FileName']: file.name,
       [kind + 'Path']: path,
     };
+    // 로컬 캐시 먼저 반영 (onValue 지연/누락 대비)
+    if (!allAssignments[projId]) allAssignments[projId] = {};
+    if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
+    if (!allAssignments[projId][infId].settlement) allAssignments[projId][infId].settlement = {};
+    Object.assign(allAssignments[projId][infId].settlement, updates);
     if (firebaseReady && db) {
       await db.ref(PATHS.assignments + '/' + projId + '/' + infId + '/settlement').update(updates);
-    } else {
-      if (!allAssignments[projId]) allAssignments[projId] = {};
-      if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
-      if (!allAssignments[projId][infId].settlement) allAssignments[projId][infId].settlement = {};
-      Object.assign(allAssignments[projId][infId].settlement, updates);
-      renderSettlement();
     }
+    // 셀을 즉시 새로 그려서 0% 멈춤 방지
+    renderSettlement();
     showToast(SETTLE_FILE_LABEL[kind] + ' 업로드 완료');
   } catch (e) {
     console.error('settle file upload failed', e);
     alert('업로드 실패: ' + (e.message || e));
-    if (label) label.textContent = '📎 업로드';
+    // 실패 시 셀 다시 그려서 업로드 버튼 복원
+    renderSettlement();
   } finally {
     inputEl.value = '';
   }
@@ -8215,7 +8271,7 @@ function exportSettlementCsv() {
     return true;
   });
 
-  const headers = ['인플루언서','채널','프로젝트','사업자유형','사업자등록번호','단가(₩)','VAT(₩)','합계(₩)','계산서발행','계산서일','입금완료','입금일','통장사본','사업자등록증','상태','메모'];
+  const headers = ['인플루언서','채널','프로젝트','사업자유형','사업자등록번호','단가(₩)','VAT(₩)','원천세(₩)','조정(₩)','실지급(₩)','계산서발행','계산서일','입금완료','입금일','통장사본','사업자등록증','상태','메모'];
   const rows = filtered.map(e => {
     const c = settleComputeRow(e);
     const s = c.s;
@@ -8227,6 +8283,8 @@ function exportSettlementCsv() {
       s.bizNo || '',
       c.amount,
       c.vat,
+      c.withholding,
+      c.adjustment,
       c.total,
       s.invoiceIssued ? 'O' : '',
       s.invoiceDate || '',
