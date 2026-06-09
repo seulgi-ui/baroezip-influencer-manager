@@ -3805,9 +3805,9 @@ img.tt-avatar { object-fit: cover; padding: 0; }
               <th style="width:140px;">프로젝트</th>
               <th style="width:130px;">사업자 유형</th>
               <th style="width:120px;">사업자등록번호</th>
-              <th style="width:90px;" class="num">단가(만원)</th>
-              <th style="width:80px;" class="num">VAT(₩)</th>
-              <th style="width:110px;" class="num">합계(₩)</th>
+              <th style="width:110px;" class="num">단가(₩)</th>
+              <th style="width:90px;" class="num">VAT(₩)</th>
+              <th style="width:120px;" class="num">합계(₩)</th>
               <th style="width:130px;">계산서 발행일</th>
               <th style="width:130px;">입금 예정일</th>
               <th style="width:130px;">입금 완료일</th>
@@ -4401,9 +4401,9 @@ img.tt-avatar { object-fit: cover; padding: 0; }
           <table class="track-table" id="track-table">
             <thead>
               <tr>
-                <th style="width:120px;">인플루언서<div class="th-resizer"></div></th>
-                <th style="width:70px;">채널<div class="th-resizer"></div></th>
-                <th style="width:80px;cursor:pointer;user-select:none;" onclick="toggleTrackCostSort()" title="클릭하여 정렬"><span id="track-cost-sort-label">단가(만원)</span><div class="th-resizer"></div></th>
+                <th style="width:120px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('name')" title="이름순 정렬"><span id="track-name-sort-label">인플루언서</span><div class="th-resizer"></div></th>
+                <th style="width:70px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('channel')" title="채널순 정렬"><span id="track-channel-sort-label">채널</span><div class="th-resizer"></div></th>
+                <th style="width:110px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('cost')" title="단가순 정렬"><span id="track-cost-sort-label">단가(원)</span><div class="th-resizer"></div></th>
                 <th style="width:140px;position:relative;">
                   <button type="button" class="track-filter-trigger" id="track-filter-btn" onclick="event.stopPropagation();toggleTrackStatusDropdown()">
                     현황 <span class="track-filter-badge" id="track-filter-badge" style="display:none;"></span>
@@ -4412,16 +4412,16 @@ img.tt-avatar { object-fit: cover; padding: 0; }
                   <div class="track-filter-dropdown" id="track-status-dropdown" onclick="event.stopPropagation();"></div>
                   <div class="th-resizer"></div>
                 </th>
-                <th style="width:100px;">유형<div class="th-resizer"></div></th>
-                <th style="width:185px;cursor:pointer;user-select:none;" onclick="toggleTrackUploadSort()" title="클릭하여 정렬"><span id="track-upload-sort-label">업로드 예정일</span><div class="th-resizer"></div></th>
-                <th style="width:90px;">매물 유형<div class="th-resizer"></div></th>
+                <th style="width:100px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('contentType')" title="유형순 정렬"><span id="track-ctype-sort-label">유형</span><div class="th-resizer"></div></th>
+                <th style="width:185px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('uploadDate')" title="업로드 예정일순 정렬"><span id="track-upload-sort-label">업로드 예정일</span><div class="th-resizer"></div></th>
+                <th style="width:90px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('propertyType')" title="매물 유형순 정렬"><span id="track-property-sort-label">매물 유형</span><div class="th-resizer"></div></th>
                 <th style="width:100px;">기획안<div class="th-resizer"></div></th>
                 <th style="width:100px;">원링크<div class="th-resizer"></div></th>
                 <th style="width:110px;">최종본<div class="th-resizer"></div></th>
                 <th style="width:160px;">업로드 링크<div class="th-resizer"></div></th>
-                <th style="width:95px;">조회수<div class="th-resizer"></div></th>
-                <th style="width:80px;">좋아요<div class="th-resizer"></div></th>
-                <th style="width:70px;">댓글<div class="th-resizer"></div></th>
+                <th style="width:95px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('views')" title="조회수순 정렬"><span id="track-views-sort-label">조회수</span><div class="th-resizer"></div></th>
+                <th style="width:80px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('likes')" title="좋아요순 정렬"><span id="track-likes-sort-label">좋아요</span><div class="th-resizer"></div></th>
+                <th style="width:70px;cursor:pointer;user-select:none;" onclick="toggleTrackSort('comments')" title="댓글순 정렬"><span id="track-comments-sort-label">댓글</span><div class="th-resizer"></div></th>
                 <th style="width:60px;">수집<div class="th-resizer"></div></th>
               </tr>
             </thead>
@@ -5702,8 +5702,11 @@ let trackStatusFilter = new Set(
   ['recruiting','noResponse','priceTalk','recruited','guide','producing','confirmed','scheduled','done','excluded']
     .filter(k => !TRACK_STATUS_DEFAULT_HIDE.has(k))
 );
-let trackCostSortDir = null;        // null | 'asc' | 'desc'
-let trackUploadSortDir = null;      // null | 'asc' | 'desc'
+let trackCostSortDir = null;        // (deprecated) 호환성용
+let trackUploadSortDir = null;      // (deprecated) 호환성용
+// 통합 정렬 — 기본: 업로드 예정일 빠른 순
+let trackSortKey = 'uploadDate';    // name|channel|cost|status|contentType|uploadDate|propertyType|views|likes|comments
+let trackSortDir = 'asc';           // 'asc' | 'desc' | null
 
 const STATUS_MAP = {
   recruiting: { label: '섭외중', color: '#F59E0B' },
@@ -7289,40 +7292,57 @@ function renderTrackTable() {
     const idx = STATUS_ORDER.indexOf(s || 'recruiting');
     return idx === -1 ? STATUS_ORDER.length : idx;
   };
-  // 정렬 우선순위: 단가 → 업로드 예정일 → 진행 단계 (mutex로 동작하지만 둘 다 켜지면 단가 우선)
-  const sortFn = trackCostSortDir
-    ? (a, b) => {
-        const av = Number(a.cost) || 0;
-        const bv = Number(b.cost) || 0;
-        return trackCostSortDir === 'asc' ? av - bv : bv - av;
-      }
-    : trackUploadSortDir
-    ? (a, b) => {
-        const av = a.uploadDate || '';
-        const bv = b.uploadDate || '';
-        if (!av && !bv) return 0;
-        if (!av) return 1;   // 일정 없으면 뒤
-        if (!bv) return -1;
-        if (av === bv) return 0;
-        return (trackUploadSortDir === 'asc' ? 1 : -1) * (av < bv ? -1 : 1);
-      }
-    : (a, b) => statusRank(a.status) - statusRank(b.status);
+  // 통합 정렬 — trackSortKey + trackSortDir
+  const CONTENT_TYPE_ORDER = ['long', 'short', 'reels', 'feed', 'image', ''];
+  const PROPERTY_TYPE_ORDER = ['sale', 'jeonse', 'monthly', ''];
+  const sortAccessor = key => e => {
+    switch (key) {
+      case 'name': return (e.inf.name || '').toLowerCase();
+      case 'channel': return (e.inf.channels || [])[0] || '';
+      case 'cost': return Number(e.cost) || 0;
+      case 'status': return statusRank(e.status);
+      case 'contentType': { const i = CONTENT_TYPE_ORDER.indexOf(e.contentType || ''); return i === -1 ? 99 : i; }
+      case 'uploadDate': return e.uploadDate || '';
+      case 'propertyType': { const i = PROPERTY_TYPE_ORDER.indexOf(e.propertyType || ''); return i === -1 ? 99 : i; }
+      case 'views': return Number(e.views) || 0;
+      case 'likes': return Number(e.likes) || 0;
+      case 'comments': return Number(e.comments) || 0;
+      default: return 0;
+    }
+  };
+  const sortFn = (() => {
+    if (!trackSortKey || !trackSortDir) return (a, b) => statusRank(a.status) - statusRank(b.status);
+    const acc = sortAccessor(trackSortKey);
+    const dir = trackSortDir === 'asc' ? 1 : -1;
+    const isEmpty = v => v === '' || v == null;
+    return (a, b) => {
+      const av = acc(a), bv = acc(b);
+      // 빈값(일정/유형 미입력)은 항상 뒤로
+      const ae = isEmpty(av), be = isEmpty(bv);
+      if (ae && be) return 0;
+      if (ae) return 1;
+      if (be) return -1;
+      if (av === bv) return 0;
+      return av < bv ? -dir : dir;
+    };
+  })();
   Object.values(groups).forEach(arr => arr.sort(sortFn));
 
-  // 헤더 정렬 표시 업데이트 — 단가
-  const costLbl = document.getElementById('track-cost-sort-label');
-  if (costLbl) {
-    costLbl.textContent = trackCostSortDir === 'asc' ? '단가(만원) ▲'
-      : trackCostSortDir === 'desc' ? '단가(만원) ▼'
-      : '단가(만원) ⇅';
-  }
-  // 헤더 정렬 표시 업데이트 — 업로드 예정일
-  const upLbl = document.getElementById('track-upload-sort-label');
-  if (upLbl) {
-    upLbl.textContent = trackUploadSortDir === 'asc' ? '업로드 예정일 ▲'
-      : trackUploadSortDir === 'desc' ? '업로드 예정일 ▼'
-      : '업로드 예정일 ⇅';
-  }
+  // 헤더 라벨에 정렬 화살표 갱신
+  const arrowFor = k => trackSortKey === k && trackSortDir ? (trackSortDir === 'asc' ? ' ▲' : ' ▼') : ' ⇅';
+  const setLabel = (id, base, key) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = base + arrowFor(key);
+  };
+  setLabel('track-name-sort-label', '인플루언서', 'name');
+  setLabel('track-channel-sort-label', '채널', 'channel');
+  setLabel('track-cost-sort-label', '단가(원)', 'cost');
+  setLabel('track-ctype-sort-label', '유형', 'contentType');
+  setLabel('track-upload-sort-label', '업로드 예정일', 'uploadDate');
+  setLabel('track-property-sort-label', '매물 유형', 'propertyType');
+  setLabel('track-views-sort-label', '조회수', 'views');
+  setLabel('track-likes-sort-label', '좋아요', 'likes');
+  setLabel('track-comments-sort-label', '댓글', 'comments');
 
   let html = '';
   [['youtube', '유튜브'], ['instagram', '인스타그램']].forEach(([key, label]) => {
@@ -7360,7 +7380,11 @@ function renderTrackTable() {
       html += `<tr style="${rowStyle}">
         <td style="cursor:pointer;" onclick="openDetailPanel('${e.infId}')"><div style="display:flex;align-items:center;">${avatar}<span style="${nameStyle}">${e.inf.name || '(삭제됨)'}</span></div>${reasonHtml}${memoHtml}</td>
         <td>${chBadge}</td>
-        <td><input type="number" value="${e.cost || 0}" style="width:60px;" onchange="saveTrackField('${currentProjectId}','${e.infId}','cost',Number(this.value))"></td>
+        <td><input type="text" inputmode="numeric" value="${e.cost ? (e.cost * 10000).toLocaleString('ko-KR') : ''}" placeholder="0" style="width:100px;text-align:right;font-variant-numeric:tabular-nums;"
+          onclick="event.stopPropagation();this.select();"
+          onfocus="this.value=this.value.replace(/[^0-9]/g,'');"
+          onblur="(function(el){const n=Number(el.value.replace(/[^0-9]/g,''))||0;el.value=n?n.toLocaleString('ko-KR'):'';})(this);"
+          onchange="saveTrackField('${currentProjectId}','${e.infId}','cost',Math.round((Number(this.value.replace(/[^0-9]/g,''))||0)/10000))"></td>
         <td><div style="display:flex;align-items:center;"><select onchange="handleStatusChange('${e.infId}', this, '${e.status || 'recruiting'}')" style="color:#fff;background:${st.color};border-color:${st.color};border-radius:12px;padding:3px 8px;font-size:11px;font-weight:600;">
           ${Object.entries(STATUS_MAP).map(([k, v]) => `<option value="${k}" ${k === e.status ? 'selected' : ''} style="color:#333;background:#fff;">${v.label}</option>`).join('')}
         </select>${memoIconBtn}</div></td>
@@ -7488,27 +7512,32 @@ document.addEventListener('click', (e) => {
   dd.classList.remove('open');
 });
 
-function toggleTrackCostSort() {
-  // null → asc → desc → null (정렬 해제)
-  trackCostSortDir = trackCostSortDir === null ? 'asc'
-    : trackCostSortDir === 'asc' ? 'desc'
-    : null;
-  trackUploadSortDir = null;  // 단가 정렬 켜면 업로드 정렬 해제
+// 통합 정렬 토글 — 같은 키 재클릭 시 asc → desc → 해제(uploadDate asc로 복귀), 다른 키는 asc로 시작
+function toggleTrackSort(key) {
+  if (trackSortKey === key) {
+    trackSortDir = trackSortDir === 'asc' ? 'desc'
+      : trackSortDir === 'desc' ? null
+      : 'asc';
+    // 완전 해제 시 기본값(uploadDate asc)로 복귀
+    if (trackSortDir === null) {
+      trackSortKey = 'uploadDate';
+      trackSortDir = 'asc';
+    }
+  } else {
+    trackSortKey = key;
+    trackSortDir = 'asc';
+  }
   renderTrackTable();
 }
 
-function toggleTrackUploadSort() {
-  trackUploadSortDir = trackUploadSortDir === null ? 'asc'
-    : trackUploadSortDir === 'asc' ? 'desc'
-    : null;
-  trackCostSortDir = null;    // 업로드 정렬 켜면 단가 정렬 해제
-  renderTrackTable();
-}
+// (deprecated) 기존 호출 호환용
+function toggleTrackCostSort() { toggleTrackSort('cost'); }
+function toggleTrackUploadSort() { toggleTrackSort('uploadDate'); }
 
 function resetTrackFilters() {
   trackStatusFilter.clear();
-  trackCostSortDir = null;
-  trackUploadSortDir = null;
+  trackSortKey = 'uploadDate';
+  trackSortDir = 'asc';
   renderTrackTable();
 }
 
@@ -7848,14 +7877,12 @@ function settleComputeRow(e) {
 }
 
 function settleAllEntries() {
-  // 모든 assignment 평탄화. cost가 있거나 settlement 정보가 있는 entry만 정산 대상.
+  // 정산 대상 = 진행 상태가 '완료(done)'인 assignment만
   const entries = [];
   Object.entries(allAssignments || {}).forEach(([projId, assigns]) => {
     Object.entries(assigns || {}).forEach(([infId, a]) => {
       if (!a || typeof a !== 'object') return;
-      const hasCost = Number(a.cost) > 0;
-      const hasSettle = a.settlement && Object.keys(a.settlement).length;
-      if (!hasCost && !hasSettle) return;
+      if (a.status !== 'done') return;     // 완료 상태만 정산 대상
       entries.push({
         projId, infId,
         inf: (allInfluencers || {})[infId] || {},
@@ -7925,7 +7952,7 @@ function renderSettlement() {
 
   const tbody = document.getElementById('settle-tbody');
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="13" class="settle-empty">정산 대상 인플루언서가 없습니다.<br><span style="font-size:11px;">진행 현황에서 단가가 입력된 인플이 자동으로 나타납니다.</span></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="13" class="settle-empty">정산 대상 인플루언서가 없습니다.<br><span style="font-size:11px;">진행 현황에서 상태가 <b>✅ 완료</b>로 변경된 인플만 자동으로 표시됩니다.</span></td></tr>`;
     return;
   }
 
@@ -7966,7 +7993,7 @@ function renderSettlement() {
       <td style="font-size:12px;color:var(--text-secondary);">${escapeHtml(e.proj.name || '-')}</td>
       <td><select onchange="updateSettlement('${e.projId}','${e.infId}','bizType',this.value)">${bizOpts}</select></td>
       <td><input type="text" value="${escapeHtml(s.bizNo || '')}" placeholder="000-00-00000" onchange="updateSettlement('${e.projId}','${e.infId}','bizNo',this.value)"></td>
-      <td class="num">${Number(e.cost) || 0}</td>
+      <td class="num">${fmtKRW(c.amount)}</td>
       <td class="num" style="color:${c.vat ? '#0066FF' : 'var(--text-muted)'};">${c.vat ? fmtKRW(c.vat) : '-'}</td>
       <td class="num" style="font-weight:800;color:var(--text-primary);">${fmtKRW(c.total)}</td>
       <td><div class="settle-checkbox-row">
@@ -8028,7 +8055,7 @@ function exportSettlementCsv() {
     return true;
   });
 
-  const headers = ['인플루언서','채널','프로젝트','사업자유형','사업자등록번호','단가(만원)','VAT(₩)','합계(₩)','계산서발행','계산서일','입금예정일','입금완료','입금일','상태','메모'];
+  const headers = ['인플루언서','채널','프로젝트','사업자유형','사업자등록번호','단가(₩)','VAT(₩)','합계(₩)','계산서발행','계산서일','입금예정일','입금완료','입금일','상태','메모'];
   const rows = filtered.map(e => {
     const c = settleComputeRow(e);
     const s = c.s;
@@ -8038,7 +8065,7 @@ function exportSettlementCsv() {
       e.proj.name || '',
       BIZ_BADGE_LABEL[c.bizType] || '미정',
       s.bizNo || '',
-      Number(e.cost) || 0,
+      c.amount,
       c.vat,
       c.total,
       s.invoiceIssued ? 'O' : '',
