@@ -3045,6 +3045,11 @@ img.tt-avatar { object-fit: cover; padding: 0; }
   min-width: 0;
 }
 .settle-file-chip:hover { background: #BFDBFE; }
+.settle-file-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
 .settle-file-del {
   width: 22px; height: 22px;
   border: 1px solid #FECACA;
@@ -3057,6 +3062,14 @@ img.tt-avatar { object-fit: cover; padding: 0; }
   font-weight: 700;
   flex-shrink: 0;
   padding: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s, visibility 0.12s, background 0.12s;
+}
+.settle-file-row:hover .settle-file-del,
+.settle-file-del:focus {
+  opacity: 1;
+  visibility: visible;
 }
 .settle-file-del:hover { background: #FEE2E2; }
 
@@ -8126,12 +8139,18 @@ const SETTLE_FILE_LABEL = { bankbook: '통장사본', bizCert: '사업자등록�
 function renderSettleFileCell(projId, infId, s, kind) {
   const urlKey = kind + 'Url';
   const nameKey = kind + 'FileName';
+  const mimeKey = kind + 'Mime';
   const url = s[urlKey];
   const name = s[nameKey];
+  const mime = s[mimeKey] || '';
   if (url) {
-    const short = name && name.length > 14 ? name.slice(0, 13) + '…' : (name || '파일');
-    return `<div style="display:flex;gap:4px;align-items:center;">
-      <button type="button" class="settle-file-chip" onclick="openSettleFile('${projId}','${infId}','${kind}')" title="${escapeHtml(name || '파일')} (새 탭에서 보기)">📄 ${escapeHtml(short)}</button>
+    // 파일명은 노출하지 않고, 형식만 추상화해서 표시
+    const isPdf = mime === 'application/pdf' || /\.pdf$/i.test(name || '');
+    const isImg = /^image\//.test(mime) || /\.(jpe?g|png)$/i.test(name || '');
+    const icon = isPdf ? '📄' : isImg ? '🖼️' : '📎';
+    const kindLabel = isPdf ? 'PDF 보기' : isImg ? '이미지 보기' : '파일 보기';
+    return `<div class="settle-file-row">
+      <button type="button" class="settle-file-chip" onclick="openSettleFile('${projId}','${infId}','${kind}')" title="클릭하여 새 탭에서 보기">${icon} ${kindLabel}</button>
       <button type="button" class="settle-file-del" onclick="deleteSettleFile('${projId}','${infId}','${kind}')" title="삭제">×</button>
     </div>`;
   }
