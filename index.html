@@ -1441,12 +1441,15 @@ table { border-collapse: collapse; width: 100%; }
   display: inline-block;
 }
 .tl-group-header:hover .tl-group-count { background: rgba(0,0,0,0.1); }
-/* 완료된 인플 행 — 회색조 + 옅은 톤으로 시각적 분리 */
+/* 완료된 인플 행 — 색조로만 시각적 분리 (opacity 사용 X — sticky 뒤가 비춤) */
 .tl-name-done {
-  opacity: 0.62;
-  background: linear-gradient(90deg, #F0FDF4, #fff);
+  background: linear-gradient(90deg, #F0FDF4, #F1F5F9) !important;
+  color: #94A3B8;
 }
-.tl-name-done .tl-name-cost { filter: grayscale(0.7); }
+.tl-name-done .tl-name-top,
+.tl-name-done .tl-name-meta { color: #94A3B8; }
+.tl-name-done .tl-name-cost { filter: grayscale(0.6); opacity: 0.75; }
+.tl-name-done .tl-name-avatar { filter: grayscale(0.5); }
 .tl-done-chip {
   display: inline-flex;
   align-items: center;
