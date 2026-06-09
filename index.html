@@ -2818,6 +2818,162 @@ img.cli-avatar { display: block; padding: 0; }
   box-sizing: border-box;
 }
 img.tt-avatar { object-fit: cover; padding: 0; }
+
+/* ===== Settlement (비용 정산) ===== */
+.settle-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.settle-kpi-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+.settle-kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #0066FF, #4F46E5);
+}
+.settle-kpi-card.kpi-pending::before { background: linear-gradient(90deg, #F59E0B, #FB923C); }
+.settle-kpi-card.kpi-invoiced::before { background: linear-gradient(90deg, #6366F1, #8B5CF6); }
+.settle-kpi-card.kpi-paid::before { background: linear-gradient(90deg, #10B981, #34D399); }
+.settle-kpi-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+.settle-kpi-value {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+.settle-kpi-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-weight: 600;
+}
+.settle-filter-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  align-items: center;
+}
+.settle-filter {
+  font-size: 13px;
+  padding: 7px 11px;
+  width: auto;
+  min-width: 130px;
+}
+.settle-table-wrap {
+  background: var(--surface);
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  overflow-x: auto;
+  box-shadow: var(--shadow);
+}
+.settle-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1500px;
+  font-size: 13px;
+}
+.settle-table thead th {
+  background: var(--surface-2);
+  padding: 10px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  border-bottom: 1.5px solid var(--border);
+  text-align: left;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.settle-table thead th.num { text-align: right; }
+.settle-table tbody td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  background: var(--surface);
+}
+.settle-table tbody tr:hover td { background: var(--primary-light); }
+.settle-table td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.settle-table input, .settle-table select {
+  padding: 5px 7px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  background: var(--surface);
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+.settle-table input:focus, .settle-table select:focus { border-color: #0066FF; }
+.settle-table input[type="date"] { font-family: inherit; }
+.settle-table tfoot td {
+  padding: 12px 8px;
+  background: linear-gradient(135deg, #F8FAFC, #F1F5F9);
+  border-top: 2.5px solid #0066FF;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+.settle-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.settle-biz-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border-radius: 11px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+.biz-none { background: #F3F4F6; color: #6B7280; border: 1px solid #E5E7EB; }
+.biz-personal { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+.biz-business { background: #DBEAFE; color: #1D4ED8; border: 1px solid #BFDBFE; }
+.biz-taxFree { background: #E0E7FF; color: #5B21B6; border: 1px solid #C7D2FE; }
+.settle-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.status-pending { background: #FEF3C7; color: #B45309; }
+.status-invoiced { background: #E0E7FF; color: #4338CA; }
+.status-paid { background: #D1FAE5; color: #065F46; }
+.settle-checkbox-row { display: flex; align-items: center; gap: 6px; }
+.settle-checkbox-row input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #0066FF; flex-shrink: 0; }
+.settle-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 40px 20px;
+  font-size: 13px;
+}
+
 .track-group-header td {
   background: var(--surface-2) !important;
   font-weight: 700;
@@ -3453,6 +3609,10 @@ img.tt-avatar { object-fit: cover; padding: 0; }
         <div class="nav-dot"></div>
         <span class="nav-label">캘린더</span>
       </div>
+      <div class="nav-item" data-section="settlement" onclick="navigate('settlement')">
+        <div class="nav-dot"></div>
+        <span class="nav-label">비용 정산</span>
+      </div>
     </nav>
     <div class="sidebar-footer">
       <div class="sidebar-user">
@@ -3578,6 +3738,95 @@ img.tt-avatar { object-fit: cover; padding: 0; }
       <div id="tl-legend" class="tl-legend"></div>
       <!-- 타임라인 그리드 -->
       <div id="tl-container" class="tl-container"></div>
+    </div>
+  </section>
+
+  <!-- Settlement Section (비용 정산) -->
+  <section id="section-settlement" class="section">
+    <div class="main-header">
+      <h1>비용 정산</h1>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-secondary btn-sm" onclick="exportSettlementCsv()" title="CSV로 내보내기">📥 CSV 내보내기</button>
+      </div>
+    </div>
+    <div class="main-body" style="padding:24px;">
+      <!-- KPI 카드 -->
+      <div class="settle-kpi-grid">
+        <div class="settle-kpi-card kpi-total">
+          <div class="settle-kpi-label">총 정산 대상</div>
+          <div class="settle-kpi-value" id="settle-kpi-total">₩0</div>
+          <div class="settle-kpi-sub" id="settle-kpi-total-cnt">0건</div>
+        </div>
+        <div class="settle-kpi-card kpi-pending">
+          <div class="settle-kpi-label">⏳ 발행 대기</div>
+          <div class="settle-kpi-value" id="settle-kpi-pending">₩0</div>
+          <div class="settle-kpi-sub" id="settle-kpi-pending-cnt">0건</div>
+        </div>
+        <div class="settle-kpi-card kpi-invoiced">
+          <div class="settle-kpi-label">📄 계산서 발행</div>
+          <div class="settle-kpi-value" id="settle-kpi-invoiced">₩0</div>
+          <div class="settle-kpi-sub" id="settle-kpi-invoiced-cnt">0건</div>
+        </div>
+        <div class="settle-kpi-card kpi-paid">
+          <div class="settle-kpi-label">✅ 입금 완료</div>
+          <div class="settle-kpi-value" id="settle-kpi-paid">₩0</div>
+          <div class="settle-kpi-sub" id="settle-kpi-paid-cnt">0건</div>
+        </div>
+      </div>
+
+      <!-- 필터바 -->
+      <div class="settle-filter-bar">
+        <select id="settle-filter-project" class="form-input settle-filter" onchange="renderSettlement()">
+          <option value="">전체 프로젝트</option>
+        </select>
+        <select id="settle-filter-status" class="form-input settle-filter" onchange="renderSettlement()">
+          <option value="">전체 상태</option>
+          <option value="pending">⏳ 발행 대기</option>
+          <option value="invoiced">📄 계산서 발행</option>
+          <option value="paid">✅ 입금 완료</option>
+        </select>
+        <select id="settle-filter-biz" class="form-input settle-filter" onchange="renderSettlement()">
+          <option value="">전체 사업자 유형</option>
+          <option value="none">미정</option>
+          <option value="personal">개인 (원천세 3.3%)</option>
+          <option value="business">일반과세 (VAT 10%)</option>
+          <option value="taxFree">면세사업자</option>
+        </select>
+        <input type="text" id="settle-filter-search" class="form-input settle-filter" placeholder="🔍 인플루언서 이름" oninput="renderSettlement()" style="flex:1;min-width:160px;">
+      </div>
+
+      <!-- 테이블 -->
+      <div class="settle-table-wrap">
+        <table class="settle-table">
+          <thead>
+            <tr>
+              <th style="width:180px;">인플루언서</th>
+              <th style="width:42px;">채널</th>
+              <th style="width:140px;">프로젝트</th>
+              <th style="width:130px;">사업자 유형</th>
+              <th style="width:120px;">사업자등록번호</th>
+              <th style="width:90px;" class="num">단가(만원)</th>
+              <th style="width:80px;" class="num">VAT(₩)</th>
+              <th style="width:110px;" class="num">합계(₩)</th>
+              <th style="width:130px;">계산서 발행일</th>
+              <th style="width:130px;">입금 예정일</th>
+              <th style="width:130px;">입금 완료일</th>
+              <th style="width:110px;">상태</th>
+              <th style="width:160px;">메모</th>
+            </tr>
+          </thead>
+          <tbody id="settle-tbody"></tbody>
+          <tfoot>
+            <tr id="settle-foot">
+              <td colspan="5" style="text-align:right;font-weight:800;">합계</td>
+              <td class="num" id="settle-foot-cost">-</td>
+              <td class="num" id="settle-foot-vat">-</td>
+              <td class="num" id="settle-foot-total" style="font-weight:900;color:#0066FF;">-</td>
+              <td colspan="5"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
     </div>
   </section>
 
@@ -5493,7 +5742,7 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 
 // ===== Navigation =====
 // 유효 섹션 화이트리스트
-const VALID_SECTIONS = ['mediamix', 'calendar', 'pr', 'influencer', 'projects'];
+const VALID_SECTIONS = ['mediamix', 'calendar', 'pr', 'influencer', 'projects', 'settlement'];
 
 function navigate(section, opts) {
   if (!VALID_SECTIONS.includes(section)) section = 'mediamix';
@@ -5507,6 +5756,7 @@ function navigate(section, opts) {
   if (section === 'calendar') renderCalendar();
   if (section === 'creatives') renderCreatives();
   if (section === 'pr') renderPrPlan();
+  if (section === 'settlement') renderSettlement();
 
   // URL hash 동기화 (hashchange 이벤트 무한루프 방지 위해 옵션으로 분기)
   if (!opts || !opts.fromHash) {
@@ -5641,6 +5891,7 @@ function initRealtimeListeners() {
     allProjects = snap.val() || {};
     renderProjects();
     if (currentProjectId) renderProjectDetail(currentProjectId);
+    if (currentSection === 'settlement') renderSettlement();
   });
 
   db.ref(PATHS.templates).on('value', snap => {
@@ -5659,6 +5910,7 @@ function initRealtimeListeners() {
       if (typeof refreshMemoPanelIfOpen === 'function') refreshMemoPanelIfOpen();
     }
     renderProjects();
+    if (currentSection === 'settlement') renderSettlement();
   });
 
   db.ref(PATHS.mailDrafts).on('value', snap => {
@@ -7562,6 +7814,257 @@ function saveTrackFields(projId, infId, fields) {
     renderTrackTable();
     renderReportBar();
   }
+}
+
+// ============================================================
+// ===== 비용 정산 (Settlement) =====
+// ============================================================
+const BIZ_LABEL = {
+  none: '미정',
+  personal: '개인 (원천 3.3%)',
+  business: '일반과세 (VAT 10%)',
+  taxFree: '면세사업자',
+};
+const BIZ_BADGE_LABEL = { none: '미정', personal: '개인', business: '일반과세', taxFree: '면세' };
+const SETTLE_STATUS_LABEL = { pending: '⏳ 발행 대기', invoiced: '📄 계산서 발행', paid: '✅ 입금 완료' };
+
+function fmtKRW(n) {
+  const v = Number(n) || 0;
+  return '₩' + v.toLocaleString('ko-KR');
+}
+
+function settleComputeRow(e) {
+  const s = e.settlement || {};
+  const baseCost = Number(e.cost) || 0;          // 단가(만원)
+  const override = s.amountOverride;
+  const amount = (override != null && override !== '') ? Number(override) : baseCost * 10000;
+  const bizType = s.bizType || 'none';
+  const vat = bizType === 'business' ? Math.round(amount * 0.1) : 0;
+  const total = amount + vat;
+  let status = 'pending';
+  if (s.paid) status = 'paid';
+  else if (s.invoiceIssued) status = 'invoiced';
+  return { amount, vat, total, status, bizType, s };
+}
+
+function settleAllEntries() {
+  // 모든 assignment 평탄화. cost가 있거나 settlement 정보가 있는 entry만 정산 대상.
+  const entries = [];
+  Object.entries(allAssignments || {}).forEach(([projId, assigns]) => {
+    Object.entries(assigns || {}).forEach(([infId, a]) => {
+      if (!a || typeof a !== 'object') return;
+      const hasCost = Number(a.cost) > 0;
+      const hasSettle = a.settlement && Object.keys(a.settlement).length;
+      if (!hasCost && !hasSettle) return;
+      entries.push({
+        projId, infId,
+        inf: (allInfluencers || {})[infId] || {},
+        proj: (allProjects || {})[projId] || {},
+        ...a,
+      });
+    });
+  });
+  return entries;
+}
+
+function renderSettlement() {
+  // 프로젝트 셀렉트 옵션 채우기
+  const projSel = document.getElementById('settle-filter-project');
+  if (projSel) {
+    const cur = projSel.value;
+    const projOpts = Object.entries(allProjects || {})
+      .filter(([id, p]) => p && p.name)
+      .map(([id, p]) => `<option value="${id}" ${id === cur ? 'selected' : ''}>${escapeHtml(p.name)}</option>`)
+      .join('');
+    projSel.innerHTML = `<option value="" ${!cur ? 'selected' : ''}>전체 프로젝트</option>` + projOpts;
+  }
+
+  const entries = settleAllEntries();
+
+  // 필터
+  const fProj = document.getElementById('settle-filter-project').value;
+  const fStat = document.getElementById('settle-filter-status').value;
+  const fBiz = document.getElementById('settle-filter-biz').value;
+  const fSearch = (document.getElementById('settle-filter-search').value || '').trim().toLowerCase();
+
+  const filtered = entries.filter(e => {
+    if (fProj && e.projId !== fProj) return false;
+    const c = settleComputeRow(e);
+    if (fStat && c.status !== fStat) return false;
+    if (fBiz && c.bizType !== fBiz) return false;
+    if (fSearch && !((e.inf.name || '').toLowerCase().includes(fSearch))) return false;
+    return true;
+  });
+
+  // KPI 누계
+  let kTotal = 0, kPending = 0, kInvoiced = 0, kPaid = 0;
+  let cTotal = 0, cPending = 0, cInvoiced = 0, cPaid = 0;
+  let sumCost = 0, sumVat = 0, sumTotal = 0;
+
+  filtered.forEach(e => {
+    const c = settleComputeRow(e);
+    kTotal += c.total; cTotal++;
+    sumCost += c.amount; sumVat += c.vat; sumTotal += c.total;
+    if (c.status === 'pending') { kPending += c.total; cPending++; }
+    else if (c.status === 'invoiced') { kInvoiced += c.total; cInvoiced++; }
+    else if (c.status === 'paid') { kPaid += c.total; cPaid++; }
+  });
+
+  document.getElementById('settle-kpi-total').textContent = fmtKRW(kTotal);
+  document.getElementById('settle-kpi-total-cnt').textContent = cTotal + '건';
+  document.getElementById('settle-kpi-pending').textContent = fmtKRW(kPending);
+  document.getElementById('settle-kpi-pending-cnt').textContent = cPending + '건';
+  document.getElementById('settle-kpi-invoiced').textContent = fmtKRW(kInvoiced);
+  document.getElementById('settle-kpi-invoiced-cnt').textContent = cInvoiced + '건';
+  document.getElementById('settle-kpi-paid').textContent = fmtKRW(kPaid);
+  document.getElementById('settle-kpi-paid-cnt').textContent = cPaid + '건';
+
+  document.getElementById('settle-foot-cost').textContent = fmtKRW(sumCost);
+  document.getElementById('settle-foot-vat').textContent = fmtKRW(sumVat);
+  document.getElementById('settle-foot-total').textContent = fmtKRW(sumTotal);
+
+  const tbody = document.getElementById('settle-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="13" class="settle-empty">정산 대상 인플루언서가 없습니다.<br><span style="font-size:11px;">진행 현황에서 단가가 입력된 인플이 자동으로 나타납니다.</span></td></tr>`;
+    return;
+  }
+
+  // 정렬: 상태(pending → invoiced → paid) → 입금예정일
+  const statRank = { pending: 0, invoiced: 1, paid: 2 };
+  filtered.sort((a, b) => {
+    const ca = settleComputeRow(a), cb = settleComputeRow(b);
+    if (ca.status !== cb.status) return statRank[ca.status] - statRank[cb.status];
+    const da = (a.settlement && a.settlement.paymentScheduled) || '';
+    const dbb = (b.settlement && b.settlement.paymentScheduled) || '';
+    if (da === dbb) return 0;
+    if (!da) return 1; if (!dbb) return -1;
+    return da < dbb ? -1 : 1;
+  });
+
+  tbody.innerHTML = filtered.map(e => {
+    const c = settleComputeRow(e);
+    const s = c.s;
+    const initial = (e.inf.name || '?')[0];
+    const ch = (e.inf.channels || [])[0] || 'instagram';
+    const chBadge = ch === 'youtube'
+      ? '<span class="badge badge-youtube"><svg width="13" height="9" viewBox="0 0 24 17" fill="#FF0000"><path d="M23.5 2.5c-.3-1-1-1.8-2-2.1C19.6 0 12 0 12 0S4.4 0 2.5.4c-1 .3-1.7 1.1-2 2.1C0 4.4 0 8.3 0 8.3s0 3.9.5 5.8c.3 1 1 1.8 2 2.1 1.9.5 9.5.5 9.5.5s7.6 0 9.5-.5c1-.3 1.7-1.1 2-2.1.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 12V4.7l6.4 3.6L9.5 12z"/></svg></span>'
+      : ch === 'threads'
+      ? '<span class="badge badge-threads">T</span>'
+      : '<span class="badge badge-instagram">IG</span>';
+
+    const avatarHtml = e.inf.profileImage
+      ? `<img class="tt-avatar" src="${e.inf.profileImage}" alt="">`
+      : `<span class="tt-avatar">${initial}</span>`;
+
+    const bizOpts = Object.entries(BIZ_LABEL).map(([k, label]) =>
+      `<option value="${k}" ${(s.bizType || 'none') === k ? 'selected' : ''}>${label}</option>`
+    ).join('');
+
+    return `<tr>
+      <td><div class="settle-name-cell">${avatarHtml}<span style="font-weight:700;">${escapeHtml(e.inf.name || '(삭제됨)')}</span></div></td>
+      <td>${chBadge}</td>
+      <td style="font-size:12px;color:var(--text-secondary);">${escapeHtml(e.proj.name || '-')}</td>
+      <td><select onchange="updateSettlement('${e.projId}','${e.infId}','bizType',this.value)">${bizOpts}</select></td>
+      <td><input type="text" value="${escapeHtml(s.bizNo || '')}" placeholder="000-00-00000" onchange="updateSettlement('${e.projId}','${e.infId}','bizNo',this.value)"></td>
+      <td class="num">${Number(e.cost) || 0}</td>
+      <td class="num" style="color:${c.vat ? '#0066FF' : 'var(--text-muted)'};">${c.vat ? fmtKRW(c.vat) : '-'}</td>
+      <td class="num" style="font-weight:800;color:var(--text-primary);">${fmtKRW(c.total)}</td>
+      <td><div class="settle-checkbox-row">
+        <input type="checkbox" ${s.invoiceIssued ? 'checked' : ''} onchange="updateSettlement('${e.projId}','${e.infId}','invoiceIssued',this.checked)">
+        <input type="date" value="${s.invoiceDate || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','invoiceDate',this.value)" style="flex:1;min-width:0;">
+      </div></td>
+      <td><input type="date" value="${s.paymentScheduled || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','paymentScheduled',this.value)"></td>
+      <td><div class="settle-checkbox-row">
+        <input type="checkbox" ${s.paid ? 'checked' : ''} onchange="updateSettlement('${e.projId}','${e.infId}','paid',this.checked)">
+        <input type="date" value="${s.paymentDate || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','paymentDate',this.value)" style="flex:1;min-width:0;">
+      </div></td>
+      <td><span class="settle-status-chip status-${c.status}">${SETTLE_STATUS_LABEL[c.status]}</span></td>
+      <td><input type="text" value="${escapeHtml(s.memo || '')}" placeholder="메모" onchange="updateSettlement('${e.projId}','${e.infId}','memo',this.value)"></td>
+    </tr>`;
+  }).join('');
+}
+
+// settlement 서브객체 필드 1개 업데이트
+function updateSettlement(projId, infId, field, value) {
+  // 체크박스로 invoiceIssued/paid 체크 시 자동으로 오늘 날짜 채워주기
+  const today = new Date().toISOString().split('T')[0];
+  const updates = { [field]: value };
+  if (field === 'invoiceIssued' && value === true) {
+    const cur = (allAssignments[projId] && allAssignments[projId][infId] && allAssignments[projId][infId].settlement) || {};
+    if (!cur.invoiceDate) updates.invoiceDate = today;
+  }
+  if (field === 'paid' && value === true) {
+    const cur = (allAssignments[projId] && allAssignments[projId][infId] && allAssignments[projId][infId].settlement) || {};
+    if (!cur.paymentDate) updates.paymentDate = today;
+  }
+  if (firebaseReady && db) {
+    const ref = db.ref(PATHS.assignments + '/' + projId + '/' + infId + '/settlement');
+    ref.update(updates).catch(e => {
+      console.error('settlement update failed', e);
+      alert('정산 정보 저장 실패: ' + (e.message || e));
+    });
+  } else {
+    if (!allAssignments[projId]) allAssignments[projId] = {};
+    if (!allAssignments[projId][infId]) allAssignments[projId][infId] = {};
+    if (!allAssignments[projId][infId].settlement) allAssignments[projId][infId].settlement = {};
+    Object.assign(allAssignments[projId][infId].settlement, updates);
+    renderSettlement();
+  }
+}
+
+// CSV 내보내기
+function exportSettlementCsv() {
+  const entries = settleAllEntries();
+  const fProj = document.getElementById('settle-filter-project').value;
+  const fStat = document.getElementById('settle-filter-status').value;
+  const fBiz = document.getElementById('settle-filter-biz').value;
+  const fSearch = (document.getElementById('settle-filter-search').value || '').trim().toLowerCase();
+  const filtered = entries.filter(e => {
+    if (fProj && e.projId !== fProj) return false;
+    const c = settleComputeRow(e);
+    if (fStat && c.status !== fStat) return false;
+    if (fBiz && c.bizType !== fBiz) return false;
+    if (fSearch && !((e.inf.name || '').toLowerCase().includes(fSearch))) return false;
+    return true;
+  });
+
+  const headers = ['인플루언서','채널','프로젝트','사업자유형','사업자등록번호','단가(만원)','VAT(₩)','합계(₩)','계산서발행','계산서일','입금예정일','입금완료','입금일','상태','메모'];
+  const rows = filtered.map(e => {
+    const c = settleComputeRow(e);
+    const s = c.s;
+    return [
+      e.inf.name || '',
+      ((e.inf.channels || [])[0] || ''),
+      e.proj.name || '',
+      BIZ_BADGE_LABEL[c.bizType] || '미정',
+      s.bizNo || '',
+      Number(e.cost) || 0,
+      c.vat,
+      c.total,
+      s.invoiceIssued ? 'O' : '',
+      s.invoiceDate || '',
+      s.paymentScheduled || '',
+      s.paid ? 'O' : '',
+      s.paymentDate || '',
+      SETTLE_STATUS_LABEL[c.status].replace(/^[^\w가-힣]+/, ''),
+      (s.memo || '').replace(/\n/g, ' '),
+    ];
+  });
+  const escapeCsv = v => {
+    const str = String(v == null ? '' : v);
+    if (/[",\n]/.test(str)) return '"' + str.replace(/"/g, '""') + '"';
+    return str;
+  };
+  const csv = '﻿' + [headers, ...rows].map(r => r.map(escapeCsv).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `비용정산_${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ===== 회신 메모 사이드 패널 (시계열 카드) =====
