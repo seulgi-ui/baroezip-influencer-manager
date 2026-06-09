@@ -2914,6 +2914,16 @@ img.tt-avatar { object-fit: cover; padding: 0; }
 .settle-table tbody tr:hover td { background: var(--primary-light); }
 .settle-table td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; font-size: 12px; }
 .settle-table tfoot td.num { font-size: 12px; }
+/* 셀이 두 줄로 내려가지 않도록 통일 (메모 input은 자체 width 안에서 잘림) */
+.settle-table thead th,
+.settle-table tbody td,
+.settle-table tfoot td { white-space: nowrap; }
+/* 프로젝트명은 길면 말줄임 처리 */
+.settle-proj-cell {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 /* 평소엔 입력 박스가 안 보이고 텍스트만 — 호버/포커스 시에만 편집 가능 표시 */
 .settle-table input:not([type="checkbox"]),
 .settle-table select {
@@ -3905,14 +3915,14 @@ img.tt-avatar { object-fit: cover; padding: 0; }
               <th style="width:130px;">사업자 유형</th>
               <th style="width:120px;">사업자등록번호</th>
               <th style="width:110px;" class="num" title="공급가액 — 인플과 약속한 금액">단가(₩)</th>
-              <th style="width:90px;" class="num" title="일반과세 사업자: +10% 자동 가산 (인플이 부가세 신고)">부가세(₩)</th>
-              <th style="width:90px;" class="num" title="개인: -3.3% 자동 차감 (회사가 세무서 납부)">원천세(₩)</th>
+              <th style="width:110px;" class="num" title="일반과세 사업자: +10% 자동 가산 (인플이 부가세 신고)">부가세(₩)</th>
+              <th style="width:110px;" class="num" title="개인: -3.3% 자동 차감 (회사가 세무서 납부)">원천세(₩)</th>
               <th style="width:120px;" class="num" title="입금 완료일에 회사가 통장으로 실제 송금하는 금액">송금액(₩)</th>
               <th style="width:130px;">계산서 발행일</th>
               <th style="width:110px;">계산서 캡처</th>
               <th style="width:130px;">입금 완료일</th>
               <th style="width:110px;">통장 사본</th>
-              <th style="width:120px;">사업자등록증</th>
+              <th style="width:120px;">사업자/신분증</th>
               <th style="width:110px;">상태</th>
               <th style="width:160px;">메모</th>
             </tr>
@@ -8107,7 +8117,7 @@ function renderSettlement() {
     return `<tr>
       <td><div class="settle-name-cell">${avatarHtml}<span style="font-weight:700;">${escapeHtml(e.inf.name || '(삭제됨)')}</span></div></td>
       <td>${chBadge}</td>
-      <td style="font-size:12px;color:var(--text-secondary);">${escapeHtml(e.proj.name || '-')}</td>
+      <td class="settle-proj-cell" style="font-size:12px;color:var(--text-secondary);" title="${escapeHtml(e.proj.name || '-')}">${escapeHtml(e.proj.name || '-')}</td>
       <td><select onchange="updateSettlement('${e.projId}','${e.infId}','bizType',this.value)">${bizOpts}</select></td>
       <td><input type="text" value="${escapeHtml(s.bizNo || '')}" placeholder="000-00-00000" onchange="updateSettlement('${e.projId}','${e.infId}','bizNo',this.value)"></td>
       <td class="num">${fmtKRW(c.amount)}</td>
@@ -8134,7 +8144,7 @@ function renderSettlement() {
 // 통장/사업자등록증 파일 셀 렌더링
 const SETTLE_FILE_ACCEPT = '.jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf';
 const SETTLE_FILE_MAX_MB = 5;       // base64로 RTDB 저장 — 부담을 줄이기 위해 5MB로 제한
-const SETTLE_FILE_LABEL = { bankbook: '통장사본', bizCert: '사업자등록증', invoiceFile: '계산서 캡처' };
+const SETTLE_FILE_LABEL = { bankbook: '통장사본', bizCert: '사업자/신분증', invoiceFile: '계산서 캡처' };
 
 function renderSettleFileCell(projId, infId, s, kind) {
   const urlKey = kind + 'Url';
@@ -8323,7 +8333,7 @@ function exportSettlementCsv() {
     return true;
   });
 
-  const headers = ['인플루언서','채널','프로젝트','사업자유형','사업자등록번호','단가(₩)','부가세(₩)','원천세(₩)','송금액(₩)','계산서발행','계산서일','계산서캡처','입금완료','입금일','통장사본','사업자등록증','상태','메모'];
+  const headers = ['인플루언서','채널','프로젝트','사업자유형','사업자등록번호','단가(₩)','부가세(₩)','원천세(₩)','송금액(₩)','계산서발행','계산서일','계산서캡처','입금완료','입금일','통장사본','사업자/신분증','상태','메모'];
   const rows = filtered.map(e => {
     const c = settleComputeRow(e);
     const s = c.s;
