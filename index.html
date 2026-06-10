@@ -8162,7 +8162,7 @@ function renderSettlement() {
       <td class="num">${fmtKRW(c.amount)}</td>
       <td class="num" style="color:${c.vat ? '#0066FF' : 'var(--text-muted)'};" title="${c.bizType === 'business' ? '일반과세 인플 부가세(+10%)' : '해당 없음'}">${c.vat ? '+' + fmtKRW(c.vat) : '-'}</td>
       <td class="num" style="color:${c.withholding ? '#DC2626' : 'var(--text-muted)'};" title="${c.bizType === 'personal' ? '개인 원천세(-3.3%) · 회사가 세무서 납부' : '해당 없음'}">${c.withholding ? '−' + fmtKRW(c.withholding) : '-'}</td>
-      <td class="num" style="color:var(--text-primary);" title="${c.bizType === 'business' ? '단가 + 부가세 (인플 전액 송금)' : c.bizType === 'personal' ? '단가 − 원천세 (실송금액)' : '단가 그대로'}">${fmtKRW(c.total)}</td>
+      <td class="num" style="font-weight:700;color:var(--text-primary);" title="${c.bizType === 'business' ? '단가 + 부가세 (인플 전액 송금)' : c.bizType === 'personal' ? '단가 − 원천세 (실송금액)' : '단가 그대로'}">${fmtKRW(c.total)}</td>
       <td><input type="date" value="${s.invoiceDate || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','invoiceDate',this.value)" title="발행일을 입력하면 상태가 자동으로 '입금 대기'로 전환됩니다"></td>
       <td>${renderSettleFileCell(e.projId, e.infId, s, 'invoiceFile')}</td>
       <td><input type="date" value="${s.paymentDate || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','paymentDate',this.value)" title="입금일을 입력하면 상태가 자동으로 '입금 완료'로 전환됩니다"></td>
