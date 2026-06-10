@@ -11714,9 +11714,9 @@ function renderPrPlan() {
         // 상태 셀렉트
         const st = p.articleStatus || 'wait';
         const statusOptions = [
-          {v:'draft',   l:'작성중'},
-          {v:'wait',    l:'배포대기'},
-          {v:'done',    l:'배포완료'},
+          {v:'draft',   l:'논의중'},
+          {v:'wait',    l:'기사검토'},
+          {v:'done',    l:'배포대기'},
           {v:'confirm', l:'게재완료'},
         ];
         const statusHtml = `<select class="pr-status-chip ${st}" onclick="event.stopPropagation();" onchange="event.stopPropagation();updatePrPlanField('${id}','articleStatus',this.value)">
@@ -11911,13 +11911,13 @@ function renderPrKpi(items) {
     <div class="pr-kpi-card k2">
       <div class="pr-kpi-label">진행중</div>
       <div class="pr-kpi-value">${inProgress}<span class="unit">건</span></div>
-      <div class="pr-kpi-sub">작성중 ${statusCnt.draft} · 배포대기 ${statusCnt.wait}</div>
+      <div class="pr-kpi-sub">논의중 ${statusCnt.draft} · 기사검토 ${statusCnt.wait}</div>
       <div class="pr-kpi-bar"><div class="pr-kpi-bar-fill" style="width:${inProgressPct}%;"></div></div>
     </div>
     <div class="pr-kpi-card k3">
       <div class="pr-kpi-label">게재 완료</div>
       <div class="pr-kpi-value">${statusCnt.confirm}<span class="unit">건</span></div>
-      <div class="pr-kpi-sub">${postedPct}% · 배포완료 ${statusCnt.done}건</div>
+      <div class="pr-kpi-sub">${postedPct}% · 배포대기 ${statusCnt.done}건</div>
       <div class="pr-kpi-bar"><div class="pr-kpi-bar-fill" style="width:${postedPct}%;"></div></div>
     </div>
     <div class="pr-kpi-card k4">
