@@ -2944,8 +2944,8 @@ img.tt-avatar { object-fit: cover; padding: 0; }
   background: var(--surface);
 }
 .settle-table tbody tr:hover td { background: var(--primary-light); }
-.settle-table td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; font-size: 12px; }
-.settle-table tfoot td.num { font-size: 12px; }
+.settle-table td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 400; font-size: 12px; }
+.settle-table tfoot td.num { font-size: 12px; font-weight: 700; }
 /* 셀이 두 줄로 내려가지 않도록 통일 (메모 input은 자체 width 안에서 잘림) */
 .settle-table thead th,
 .settle-table tbody td,
@@ -3945,7 +3945,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
               <th style="width:42px;">채널</th>
               <th style="width:140px;">프로젝트</th>
               <th style="width:130px;">사업자 유형</th>
-              <th style="width:120px;">사업자등록번호</th>
+              <th style="width:150px;">사업자등록번호</th>
               <th style="width:110px;" class="num" title="공급가액 — 인플과 약속한 금액">단가(₩)</th>
               <th style="width:110px;" class="num" title="일반과세 사업자: +10% 자동 가산 (인플이 부가세 신고)">부가세(₩)</th>
               <th style="width:120px;" class="num" title="개인: -3.3% 자동 차감 (회사가 세무서 납부)">원천세 3.3%(₩)</th>
@@ -8160,9 +8160,9 @@ function renderSettlement() {
       <td><select onchange="updateSettlement('${e.projId}','${e.infId}','bizType',this.value)">${bizOpts}</select></td>
       <td><input type="text" value="${escapeHtml(s.bizNo || '')}" placeholder="000-00-00000" onchange="updateSettlement('${e.projId}','${e.infId}','bizNo',this.value)"></td>
       <td class="num">${fmtKRW(c.amount)}</td>
-      <td class="num" style="color:${c.vat ? '#0066FF' : 'var(--text-muted)'};font-weight:${c.vat ? 700 : 400};" title="${c.bizType === 'business' ? '일반과세 인플 부가세(+10%)' : '해당 없음'}">${c.vat ? '+' + fmtKRW(c.vat) : '-'}</td>
-      <td class="num" style="color:${c.withholding ? '#DC2626' : 'var(--text-muted)'};font-weight:${c.withholding ? 700 : 400};" title="${c.bizType === 'personal' ? '개인 원천세(-3.3%) · 회사가 세무서 납부' : '해당 없음'}">${c.withholding ? '−' + fmtKRW(c.withholding) : '-'}</td>
-      <td class="num" style="font-weight:800;color:var(--text-primary);" title="${c.bizType === 'business' ? '단가 + 부가세 (인플 전액 송금)' : c.bizType === 'personal' ? '단가 − 원천세 (실송금액)' : '단가 그대로'}">${fmtKRW(c.total)}</td>
+      <td class="num" style="color:${c.vat ? '#0066FF' : 'var(--text-muted)'};" title="${c.bizType === 'business' ? '일반과세 인플 부가세(+10%)' : '해당 없음'}">${c.vat ? '+' + fmtKRW(c.vat) : '-'}</td>
+      <td class="num" style="color:${c.withholding ? '#DC2626' : 'var(--text-muted)'};" title="${c.bizType === 'personal' ? '개인 원천세(-3.3%) · 회사가 세무서 납부' : '해당 없음'}">${c.withholding ? '−' + fmtKRW(c.withholding) : '-'}</td>
+      <td class="num" style="color:var(--text-primary);" title="${c.bizType === 'business' ? '단가 + 부가세 (인플 전액 송금)' : c.bizType === 'personal' ? '단가 − 원천세 (실송금액)' : '단가 그대로'}">${fmtKRW(c.total)}</td>
       <td><input type="date" value="${s.invoiceDate || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','invoiceDate',this.value)" title="발행일을 입력하면 상태가 자동으로 '입금 대기'로 전환됩니다"></td>
       <td>${renderSettleFileCell(e.projId, e.infId, s, 'invoiceFile')}</td>
       <td><input type="date" value="${s.paymentDate || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','paymentDate',this.value)" title="입금일을 입력하면 상태가 자동으로 '입금 완료'로 전환됩니다"></td>
