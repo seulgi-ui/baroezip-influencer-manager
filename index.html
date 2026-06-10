@@ -3949,7 +3949,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
               <th style="width:42px;">채널</th>
               <th style="width:140px;">프로젝트</th>
               <th style="width:130px;">사업자 유형</th>
-              <th style="width:150px;">사업자등록번호</th>
+              <th style="width:170px;">사업자등록번호</th>
               <th style="width:110px;" class="num" title="공급가액 — 인플과 약속한 금액">단가(₩)</th>
               <th style="width:110px;" class="num" title="일반과세 사업자: +10% 자동 가산 (인플이 부가세 신고)">부가세(₩)</th>
               <th style="width:120px;" class="num" title="개인: -3.3% 자동 차감 (회사가 세무서 납부)">원천세 3.3%(₩)</th>
@@ -8146,7 +8146,7 @@ function renderSettlement() {
       <td>${chBadge}</td>
       <td class="settle-proj-cell" style="font-size:12px;color:var(--text-secondary);" title="${escapeHtml(e.proj.name || '-')}">${escapeHtml(e.proj.name || '-')}</td>
       <td><select onchange="updateSettlement('${e.projId}','${e.infId}','bizType',this.value)">${bizOpts}</select></td>
-      <td><input type="text" value="${escapeHtml(s.bizNo || '')}" placeholder="000-00-00000" onchange="updateSettlement('${e.projId}','${e.infId}','bizNo',this.value)"></td>
+      <td><input type="text" value="${escapeHtml(s.bizNo || '')}" placeholder="000-00-00000" onchange="updateSettlement('${e.projId}','${e.infId}','bizNo',this.value)" style="padding-left:5px;padding-right:5px;letter-spacing:-0.2px;"></td>
       <td class="num">${fmtKRW(c.amount)}</td>
       <td class="num" style="color:${c.vat ? '#0066FF' : 'var(--text-muted)'};" title="${c.bizType === 'business' ? '일반과세 인플 부가세(+10%)' : '해당 없음'}">${c.vat ? '+' + fmtKRW(c.vat) : '-'}</td>
       <td class="num" style="color:${c.withholding ? '#DC2626' : 'var(--text-muted)'};" title="${c.bizType === 'personal' ? '개인 원천세(-3.3%) · 회사가 세무서 납부' : '해당 없음'}">${c.withholding ? '−' + fmtKRW(c.withholding) : '-'}</td>
