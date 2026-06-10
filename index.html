@@ -309,6 +309,9 @@
 .rank-type-toggle button[data-type="reserve"].active {
   background: #94A3B8; color: #fff;
 }
+.rank-type-toggle button[data-type="unavailable"].active {
+  background: #DC2626; color: #fff;
+}
 .rank-badge {
   display: inline-block;
   padding: 0 5px;
@@ -319,8 +322,9 @@
   line-height: 1.5;
   letter-spacing: -0.2px;
 }
-.rank-badge.confirmed { background: #DBEAFE; color: #1E40AF; }
-.rank-badge.reserve   { background: #F1F5F9; color: #64748B; }
+.rank-badge.confirmed   { background: #DBEAFE; color: #1E40AF; }
+.rank-badge.reserve     { background: #F1F5F9; color: #64748B; }
+.rank-badge.unavailable { background: #FEE2E2; color: #991B1B; text-decoration: line-through; }
 
 /* ===== Chip Toggle ===== */
 .chip-toggle { cursor: pointer; }
@@ -5069,12 +5073,13 @@ img.tt-avatar { object-fit: cover; padding: 0; }
         </div>
         <div class="form-group" style="margin:0 0 12px;">
           <label style="font-size:12px;">언론사 (순위별) <span style="color:#9CA3AF;font-weight:500;font-size:11px;">— 1순위는 필수</span></label>
-          <div style="display:grid;grid-template-columns:54px 1fr 116px;gap:6px;align-items:center;margin-top:6px;">
+          <div style="display:grid;grid-template-columns:54px 1fr 158px;gap:6px;align-items:center;margin-top:6px;">
             <div style="font-size:11px;color:#6B7280;font-weight:800;">1순위 *</div>
             <input type="text" id="pr-plan-media-1" class="form-input" placeholder="예: 조선일보">
             <div class="rank-type-toggle" id="mediatype-1">
               <button type="button" data-type="confirmed" onclick="setMediaType(1,'confirmed')">요청</button>
               <button type="button" data-type="reserve" onclick="setMediaType(1,'reserve')">예비</button>
+              <button type="button" data-type="unavailable" onclick="setMediaType(1,'unavailable')">불가</button>
               <input type="hidden" id="pr-plan-media-1-type" value="confirmed">
             </div>
             <div style="font-size:11px;color:#6B7280;font-weight:700;">2순위</div>
@@ -5082,6 +5087,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
             <div class="rank-type-toggle" id="mediatype-2">
               <button type="button" data-type="confirmed" onclick="setMediaType(2,'confirmed')">요청</button>
               <button type="button" data-type="reserve" onclick="setMediaType(2,'reserve')">예비</button>
+              <button type="button" data-type="unavailable" onclick="setMediaType(2,'unavailable')">불가</button>
               <input type="hidden" id="pr-plan-media-2-type" value="confirmed">
             </div>
             <div style="font-size:11px;color:#6B7280;font-weight:700;">3순위</div>
@@ -5089,6 +5095,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
             <div class="rank-type-toggle" id="mediatype-3">
               <button type="button" data-type="confirmed" onclick="setMediaType(3,'confirmed')">요청</button>
               <button type="button" data-type="reserve" onclick="setMediaType(3,'reserve')">예비</button>
+              <button type="button" data-type="unavailable" onclick="setMediaType(3,'unavailable')">불가</button>
               <input type="hidden" id="pr-plan-media-3-type" value="confirmed">
             </div>
             <div style="font-size:11px;color:#6B7280;font-weight:700;">4순위</div>
@@ -5096,6 +5103,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
             <div class="rank-type-toggle" id="mediatype-4">
               <button type="button" data-type="confirmed" onclick="setMediaType(4,'confirmed')">요청</button>
               <button type="button" data-type="reserve" onclick="setMediaType(4,'reserve')">예비</button>
+              <button type="button" data-type="unavailable" onclick="setMediaType(4,'unavailable')">불가</button>
               <input type="hidden" id="pr-plan-media-4-type" value="confirmed">
             </div>
             <div style="font-size:11px;color:#6B7280;font-weight:700;">5순위</div>
@@ -5103,6 +5111,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
             <div class="rank-type-toggle" id="mediatype-5">
               <button type="button" data-type="confirmed" onclick="setMediaType(5,'confirmed')">요청</button>
               <button type="button" data-type="reserve" onclick="setMediaType(5,'reserve')">예비</button>
+              <button type="button" data-type="unavailable" onclick="setMediaType(5,'unavailable')">불가</button>
               <input type="hidden" id="pr-plan-media-5-type" value="confirmed">
             </div>
             <div style="font-size:11px;color:#6B7280;font-weight:700;">6순위</div>
@@ -5110,6 +5119,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
             <div class="rank-type-toggle" id="mediatype-6">
               <button type="button" data-type="confirmed" onclick="setMediaType(6,'confirmed')">요청</button>
               <button type="button" data-type="reserve" onclick="setMediaType(6,'reserve')">예비</button>
+              <button type="button" data-type="unavailable" onclick="setMediaType(6,'unavailable')">불가</button>
               <input type="hidden" id="pr-plan-media-6-type" value="confirmed">
             </div>
           </div>
@@ -11667,7 +11677,7 @@ function renderPrPlan() {
         ].filter(r => r.m);
         const mediaCell = ranksData.length
           ? `<div style="display:flex;flex-wrap:wrap;gap:6px 10px;font-size:12px;line-height:1.5;">${
-              ranksData.map((r, mi) => `<span style="white-space:nowrap;"><span style="color:#9CA3AF;font-weight:800;font-size:10.5px;margin-right:3px;">${mi+1}.</span>${r.m}<span class="rank-badge ${r.t}">${r.t==='reserve'?'예비':'요청'}</span></span>`).join('')
+              ranksData.map((r, mi) => `<span style="white-space:nowrap;"><span style="color:#9CA3AF;font-weight:800;font-size:10.5px;margin-right:3px;">${mi+1}.</span>${r.m}<span class="rank-badge ${r.t}">${r.t==='unavailable'?'불가':r.t==='reserve'?'예비':'요청'}</span></span>`).join('')
             }</div>`
           : (p.media ? `<div style="font-size:12px;">${p.media}</div>` : '<span style="color:#CBD5E1;">-</span>');
         // 송출 일정 — 한국식 표시 + 시간 미정 토글
