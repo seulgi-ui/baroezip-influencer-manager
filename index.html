@@ -7398,7 +7398,7 @@ function renderTrackTable() {
   }
 
   // Show crawl-all button if any has upload URL
-  document.getElementById('btn-crawl-all').style.display = allEntries.some(e => e.uploadUrl) ? 'inline-flex' : 'none';
+  document.getElementById('btn-crawl-all').style.display = allEntries.some(e => e.uploadUrl && ((e.inf.channels || []).includes('youtube'))) ? 'inline-flex' : 'none';
 
   // 현황 필터 적용
   const entries = trackStatusFilter.size === 0
@@ -7568,7 +7568,7 @@ function renderTrackTable() {
           onclick="event.stopPropagation();this.select();"
           onfocus="this.value=this.value.replace(/[^0-9]/g,'');"
           onblur="const v=Number(this.value.replace(/[^0-9]/g,''))||0;this.value=v?v.toLocaleString('ko-KR'):'';saveTrackField('${currentProjectId}','${e.infId}','comments',v);"></td>
-        <td><button class="btn btn-ghost btn-xs" onclick="crawlUploadUrl('${currentProjectId}','${e.infId}')" ${!e.uploadUrl ? 'disabled style="opacity:0.3;"' : ''}>수집</button></td>
+        <td>${key === 'youtube' ? `<button class="btn btn-ghost btn-xs" onclick="crawlUploadUrl('${currentProjectId}','${e.infId}')" ${!e.uploadUrl ? 'disabled style="opacity:0.3;"' : ''}>수집</button>` : ''}</td>
       </tr>`;
     });
   });
@@ -8885,14 +8885,16 @@ async function crawlUploadUrl(projId, infId) {
 async function crawlAllUploads() {
   if (!currentProjectId) return;
   const assigns = allAssignments[currentProjectId] || {};
-  let count = 0;
+  let count = 0, skipped = 0;
   for (const [infId, a] of Object.entries(assigns)) {
-    if (a.uploadUrl) {
-      await crawlUploadUrl(currentProjectId, infId);
-      count++;
-    }
+    if (!a.uploadUrl) continue;
+    // 유튜브만 수집 — 인스타는 자동 수집 의미 없음
+    const chans = (allInfluencers[infId] || {}).channels || [];
+    if (!chans.includes('youtube')) { skipped++; continue; }
+    await crawlUploadUrl(currentProjectId, infId);
+    count++;
   }
-  showToast(`${count}개 수집 완료`);
+  showToast(`유튜브 ${count}개 수집 완료${skipped ? ` (인스타 ${skipped}건 제외)` : ''}`);
 }
 
 // ===== Assignment Panel =====
