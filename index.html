@@ -2855,6 +2855,56 @@ img.cli-avatar { display: block; padding: 0; }
 }
 img.tt-avatar { object-fit: cover; padding: 0; }
 
+/* 업로드 링크 셀 — 버튼식 컴팩트화 */
+.upload-link-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.upload-link-open {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: #FEF2F2;
+  color: #DC2626;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px solid #FECACA;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.upload-link-open:hover { background: #FEE2E2; }
+.upload-link-edit {
+  width: 22px; height: 22px;
+  border: 1px solid #E2E8F0;
+  background: #fff;
+  color: #64748B;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  padding: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s, visibility 0.12s;
+}
+.upload-link-cell:hover .upload-link-edit { opacity: 1; visibility: visible; }
+.upload-link-edit:hover { background: #F1F5F9; color: #0F172A; }
+.upload-link-add {
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: #F1F5F9;
+  color: #64748B;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px dashed #CBD5E1;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.upload-link-add:hover { background: #E0E7FF; color: #4338CA; border-color: #C7D2FE; }
+
 /* ===== Settlement (비용 정산) ===== */
 .settle-kpi-grid {
   display: grid;
@@ -4545,7 +4595,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
                 <th style="width:100px;">기획안<div class="th-resizer"></div></th>
                 <th style="width:100px;">원링크<div class="th-resizer"></div></th>
                 <th style="width:110px;">최종본<div class="th-resizer"></div></th>
-                <th style="width:160px;">업로드 링크<div class="th-resizer"></div></th>
+                <th style="width:70px;text-align:center;">업로드<div class="th-resizer"></div></th>
                 <th style="width:95px;cursor:pointer;user-select:none;" data-sort-key="views" title="조회수순 정렬"><span id="track-views-sort-label">조회수</span><div class="th-resizer"></div></th>
                 <th style="width:80px;cursor:pointer;user-select:none;" data-sort-key="likes" title="좋아요순 정렬"><span id="track-likes-sort-label">좋아요</span><div class="th-resizer"></div></th>
                 <th style="width:70px;cursor:pointer;user-select:none;" data-sort-key="comments" title="댓글순 정렬"><span id="track-comments-sort-label">댓글</span><div class="th-resizer"></div></th>
@@ -7569,7 +7619,12 @@ function renderTrackTable() {
         <td>${renderProposalCell(e)}</td>
         <td>${renderTrackingUrlCell(e)}</td>
         <td>${renderFinalCell(e)}</td>
-        <td><input type="text" value="${e.uploadUrl || ''}" placeholder="URL 입력" onchange="saveTrackField('${currentProjectId}','${e.infId}','uploadUrl',this.value)" style="width:140px;"></td>
+        <td style="text-align:center;">${e.uploadUrl
+          ? `<div class="upload-link-cell">
+              <a class="upload-link-open" href="${escapeHtml(e.uploadUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation();" title="${escapeHtml(e.uploadUrl)}">▶ 열기</a>
+              <button type="button" class="upload-link-edit" onclick="event.stopPropagation();editUploadUrl('${e.infId}')" title="URL 편집">✎</button>
+            </div>`
+          : `<button type="button" class="upload-link-add" onclick="event.stopPropagation();editUploadUrl('${e.infId}')" title="URL 입력">+ URL</button>`}</td>
         <td><input type="text" inputmode="numeric" class="stat-input" value="${e.views ? Number(e.views).toLocaleString('ko-KR') : ''}" placeholder="0"
           onclick="event.stopPropagation();this.select();"
           onfocus="this.value=this.value.replace(/[^0-9]/g,'');"
@@ -8915,6 +8970,15 @@ async function crawlUploadUrl(projId, infId) {
     console.error('Crawl error:', e);
     showToast('수집에 실패했습니다');
   }
+}
+
+// 업로드 URL 빠른 편집 (prompt — 진행 현황 셀 컴팩트화)
+function editUploadUrl(infId) {
+  if (!currentProjectId) return;
+  const cur = ((allAssignments[currentProjectId] || {})[infId] || {}).uploadUrl || '';
+  const next = window.prompt('업로드 URL을 입력하세요 (비우면 삭제)', cur);
+  if (next === null) return;   // 취소
+  saveTrackField(currentProjectId, infId, 'uploadUrl', next.trim());
 }
 
 async function crawlAllUploads() {
