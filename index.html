@@ -8200,16 +8200,14 @@ function renderSettlement() {
     return;
   }
 
-  // 정렬: 상태(pending → invoiced → paid) → 입금예정일
-  const statRank = { pending: 0, invoiced: 1, paid: 2 };
+  // 정렬: 입금 완료일 최근 순(desc) — 미입금(빈 값)은 뒤로
   filtered.sort((a, b) => {
-    const ca = settleComputeRow(a), cb = settleComputeRow(b);
-    if (ca.status !== cb.status) return statRank[ca.status] - statRank[cb.status];
-    const da = (a.settlement && a.settlement.paymentScheduled) || '';
-    const dbb = (b.settlement && b.settlement.paymentScheduled) || '';
-    if (da === dbb) return 0;
-    if (!da) return 1; if (!dbb) return -1;
-    return da < dbb ? -1 : 1;
+    const da = (a.settlement && a.settlement.paymentDate) || '';
+    const dbb = (b.settlement && b.settlement.paymentDate) || '';
+    if (!da && !dbb) return 0;
+    if (!da) return 1;
+    if (!dbb) return -1;
+    return da < dbb ? 1 : da > dbb ? -1 : 0;
   });
 
   tbody.innerHTML = filtered.map(e => {
