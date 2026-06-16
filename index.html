@@ -9035,13 +9035,18 @@ function openPaidAdDetailModal(infId, contentType) {
       // 업로드일 — YYYY-MM-DD
       const pub = (v.publishedAt || '').slice(0,10) || '-';
       const rowBg = isOurs ? 'background:#FDF2F8;' : '';
+      // 색상 분기: 우리 영상 = 핑크, 일반 유료 = 보라, 그 외 = 회색
+      const titleColor = isOurs ? '#BE185D' : (v.paid ? '#0F172A' : '#0F172A');
+      const titleWeight = isOurs ? 700 : (v.paid ? 700 : 500);
+      const viewColor   = isOurs ? '#DB2777' : (v.paid ? '#7C3AED' : '#475569');
+      const viewWeight  = isOurs ? 800 : (v.paid ? 700 : 500);
       return `<tr style="border-bottom:1px solid #F1F5F9;${rowBg}" onmouseover="this.style.background='${isOurs ? '#FCE7F3' : '#F8FAFC'}'" onmouseout="this.style.background='${isOurs ? '#FDF2F8' : ''}'">
         <td style="text-align:center;padding:9px 6px;color:#8B8BA7;font-size:11.5px;font-weight:600;">${i+1}</td>
         <td style="text-align:center;padding:9px 6px;">${flag}${oursBadge}</td>
-        <td style="padding:9px 10px;color:${isOurs?'#BE185D':'#0F172A'};font-weight:${isOurs?700:500};"><a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">${escapeHtml(v.title)}</a></td>
+        <td style="padding:9px 10px;color:${titleColor};font-weight:${titleWeight};"><a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">${escapeHtml(v.title)}</a></td>
         <td style="text-align:center;padding:9px 8px;color:#64748B;font-size:11.5px;font-variant-numeric:tabular-nums;">${pub}</td>
         <td style="text-align:right;padding:9px 8px;color:#94A3B8;font-size:11.5px;font-variant-numeric:tabular-nums;">${dur}</td>
-        <td style="text-align:right;padding:9px 8px;font-variant-numeric:tabular-nums;color:${isOurs?'#DB2777':'#475569'};font-weight:${isOurs?800:500};">${(v.views||0).toLocaleString('ko-KR')}</td>
+        <td style="text-align:right;padding:9px 8px;font-variant-numeric:tabular-nums;color:${viewColor};font-weight:${viewWeight};">${(v.views||0).toLocaleString('ko-KR')}</td>
       </tr>`;
     }).join('');
   }
