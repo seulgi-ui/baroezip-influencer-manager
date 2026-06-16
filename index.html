@@ -9020,7 +9020,7 @@ function openPaidAdDetailModal(infId, contentType) {
     `;
     document.getElementById('paidad-modal-tbody').innerHTML = data.videos.map((v, i) => {
       const flag = v.paid
-        ? '<span style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;background:#FEE2E2;color:#B91C1C;font-size:10.5px;font-weight:800;">🔴 유료</span>'
+        ? '<span style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;background:#FEE2E2;color:#B91C1C;font-size:10.5px;font-weight:800;white-space:nowrap;">🔴 유료</span>'
         : '<span style="color:#CBD5E1;font-size:13px;">·</span>';
       // 길이 — m:ss 통일 (60초 미만이어도 0:15 형식)
       const m = Math.floor((v.durSec||0)/60), s = (v.durSec||0)%60;
@@ -12633,7 +12633,7 @@ window.addEventListener('beforeunload', (e) => {
         <thead style="position:sticky;top:0;background:#fff;z-index:1;">
           <tr style="border-bottom:1.5px solid #E2E8F0;">
             <th style="text-align:center;padding:9px 6px;font-size:11px;color:#64748B;width:32px;">#</th>
-            <th style="text-align:center;padding:9px 6px;font-size:11px;color:#64748B;width:60px;">표기</th>
+            <th style="text-align:center;padding:9px 6px;font-size:11px;color:#64748B;width:70px;white-space:nowrap;">표기</th>
             <th style="text-align:left;padding:9px 10px;font-size:11px;color:#64748B;">제목</th>
             <th style="text-align:center;padding:9px 8px;font-size:11px;color:#64748B;width:90px;">업로드일</th>
             <th style="text-align:right;padding:9px 8px;font-size:11px;color:#64748B;width:86px;">조회수</th>
