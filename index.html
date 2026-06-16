@@ -9020,7 +9020,7 @@ function openPaidAdDetailModal(infId, contentType) {
     `;
     document.getElementById('paidad-modal-tbody').innerHTML = data.videos.map((v, i) => {
       const flag = v.paid
-        ? '<span style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;background:#FEE2E2;color:#B91C1C;font-size:10.5px;font-weight:800;">🔴 유료광고</span>'
+        ? '<span style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;background:#FEE2E2;color:#B91C1C;font-size:10.5px;font-weight:800;">🔴 유료</span>'
         : '<span style="color:#CBD5E1;font-size:13px;">·</span>';
       const m = Math.floor((v.durSec||0)/60), s = (v.durSec||0)%60;
       const dur = m ? `${m}:${String(s).padStart(2,'0')}` : `${s}s`;
