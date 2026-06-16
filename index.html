@@ -6827,9 +6827,9 @@ async function fetchYouTubeData(url) {
         const views = Number(v.statistics.viewCount) || 0;
         const lk = Number(v.statistics.likeCount) || 0;
         const cm = Number(v.statistics.commentCount) || 0;
-        if (sec > 0 && sec <= 60) {
+        if (sec > 0 && sec <= 180) {
           if (shorts.length < 10) { shorts.push(views); totalLikes += lk; totalComments += cm; sampleCount++; }
-        } else if (sec > 60) {
+        } else if (sec > 180) {
           if (longs.length < 10) { longs.push(views); totalLikes += lk; totalComments += cm; sampleCount++; }
         }
       });
@@ -7000,7 +7000,7 @@ async function recrawlAccurateForInfluencer(infId, onProgress) {
       checked++;
       onProgress && onProgress(`SHORTS 식별중... (${checked}개 검증 / L ${longs.length}/10, S ${shorts.length}/10)`);
       const result = await isShortsAccurate(vid);
-      if (result === null) isShort = sec > 0 && sec <= 60;
+      if (result === null) isShort = sec > 0 && sec <= 180;
       else isShort = result;
     }
     if (isShort) {
@@ -9042,7 +9042,7 @@ async function analyzePaidAds(infId, contentType) {
       (detData.items || []).forEach(v => {
         const sec = parseDuration(v.contentDetails && v.contentDetails.duration);
         if (!sec) return;
-        const isShort = sec > 0 && sec <= 60;
+        const isShort = sec > 0 && sec <= 180;   // YouTube 쇼츠 최대 3분(2024-10~)
         // 원하는 유형만 채움
         if (wantShort && !isShort) return;
         if (!wantShort && isShort) return;
@@ -10402,7 +10402,7 @@ async function refreshAllInfluencers() {
           const views = Number(v.statistics.viewCount) || 0;
           totalLikes += Number(v.statistics.likeCount) || 0;
           totalComments += Number(v.statistics.commentCount) || 0;
-          if (sec <= 60) shorts.push(views); else longs.push(views);
+          if (sec <= 180) shorts.push(views); else longs.push(views);
         });
         const total = detData.items.length;
         avgViewsLong = longs.length ? Math.round(longs.reduce((a, b) => a + b, 0) / longs.length) : 0;
