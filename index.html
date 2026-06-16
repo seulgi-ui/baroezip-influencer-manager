@@ -4425,7 +4425,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
         <div id="proj-overview" class="overview-bar"></div>
 
         <!-- Timetable -->
-        <div id="proj-timetable" style="margin-bottom:20px;"></div>
+        <div id="proj-timetable" style="display:none;"></div>
 
         <!-- Message / Guide Panel -->
         <div style="margin-bottom:20px;">
@@ -4601,7 +4601,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
                 <th style="width:60px;cursor:pointer;user-select:none;" data-sort-key="comments" title="댓글순 정렬"><span id="track-comments-sort-label">댓글</span><div class="th-resizer"></div></th>
                 <th style="width:70px;cursor:pointer;user-select:none;" data-sort-key="cpv" title="CPV (조회당 단가) — 낮을수록 좋음"><span id="track-cpv-sort-label">CPV</span><div class="th-resizer"></div></th>
                 <th style="width:65px;cursor:pointer;user-select:none;" data-sort-key="er" title="ER (좋아요+댓글)/조회수 — 높을수록 좋음"><span id="track-er-sort-label">ER</span><div class="th-resizer"></div></th>
-                <th style="width:100px;cursor:pointer;user-select:none;" data-sort-key="paidAdAvg" title="[유료광고 포함] 표기된 영상들의 최근 12개 평균 조회수"><span id="track-paidad-sort-label">유료광고 평균</span><div class="th-resizer"></div></th>
+                <th style="width:100px;cursor:pointer;user-select:none;" data-sort-key="paidAdAvg" title="[유료광고 포함] 표기된 영상들의 최근 20개 평균 조회수"><span id="track-paidad-sort-label">유료광고 평균</span><div class="th-resizer"></div></th>
               </tr>
             </thead>
             <tbody id="track-tbody"></tbody>
@@ -7672,7 +7672,7 @@ function renderTrackTable() {
               const cnt = bucket.count || 0;
               paidHtml = `<td class="num" style="font-size:12px;font-variant-numeric:tabular-nums;text-align:right;padding-right:8px;cursor:pointer;" onclick="event.stopPropagation();openPaidAdDetailModal('${e.infId}','${e.contentType || 'long'}')" title="${isShort ? '쇼츠' : '롱폼'} [유료광고] ${cnt}개 평균 — 클릭 시 상세 영상 목록">${n.toLocaleString('ko-KR')}<br><span style="font-size:9.5px;color:#94A3B8;font-weight:600;">n=${cnt}</span></td>`;
             } else {
-              paidHtml = `<td style="text-align:center;"><button onclick="event.stopPropagation();analyzePaidAds('${e.infId}','${e.contentType || 'long'}')" style="padding:3px 8px;border-radius:5px;background:#F1F5F9;color:#64748B;font-size:10.5px;font-weight:700;border:1px dashed #CBD5E1;cursor:pointer;white-space:nowrap;" title="채널 최근 12개 ${e.contentType === 'short' ? '쇼츠' : '롱폼'} 중 유료광고 영상 분석">📊 분석</button></td>`;
+              paidHtml = `<td style="text-align:center;"><button onclick="event.stopPropagation();analyzePaidAds('${e.infId}','${e.contentType || 'long'}')" style="padding:3px 8px;border-radius:5px;background:#F1F5F9;color:#64748B;font-size:10.5px;font-weight:700;border:1px dashed #CBD5E1;cursor:pointer;white-space:nowrap;" title="채널 최근 20개 ${e.contentType === 'short' ? '쇼츠' : '롱폼'} 중 유료광고 영상 분석">📊 분석</button></td>`;
             }
           }
           return cpvHtml + erHtml + paidHtml;
@@ -9095,7 +9095,7 @@ async function analyzePaidAds(infId, contentType) {
 
     // 2) uploads playlist → 최대 500개 영상 ID 페이징하며 쇼츠/롱폼 분리
     const uploadsId = 'UU' + channelId.slice(2);
-    const TARGET = 12;
+    const TARGET = 20;
     const collected = [];   // {id, views, paid, durSec}
     let pageToken = '';
     const MAX_PAGES = 10;
