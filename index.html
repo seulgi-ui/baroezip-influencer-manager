@@ -9015,7 +9015,7 @@ function openPaidAdDetailModal(infId, contentType) {
     document.getElementById('paidad-modal-stats').innerHTML = `
       <div><span style="color:#64748B;">검사 영상</span> <span style="font-weight:800;color:#0F172A;margin-left:4px;">${totalCnt}개</span></div>
       <div><span style="color:#64748B;">유료광고 표기</span> <span style="font-weight:800;color:#DC2626;margin-left:4px;">${paidCnt}건</span></div>
-      <div><span style="color:#64748B;">유료광고 평균 조회수</span> <span style="font-weight:900;color:#7C3AED;margin-left:4px;">${(data.avgViews||0).toLocaleString('ko-KR')}회</span></div>
+      <div><span style="color:#64748B;">유료광고 평균 조회수</span> <span style="font-weight:900;color:#DB2777;margin-left:4px;">${(data.avgViews||0).toLocaleString('ko-KR')}회</span></div>
       <div><span style="color:#64748B;">전체 평균 조회수</span> <span style="font-weight:700;color:#475569;margin-left:4px;">${avgAll.toLocaleString('ko-KR')}회</span></div>
     `;
     document.getElementById('paidad-modal-tbody').innerHTML = data.videos.map((v, i) => {
@@ -9033,7 +9033,7 @@ function openPaidAdDetailModal(infId, contentType) {
         <td style="padding:9px 10px;color:#0F172A;font-weight:${v.paid?700:500};"><a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">${escapeHtml(v.title)}</a></td>
         <td style="text-align:center;padding:9px 8px;color:#64748B;font-size:11.5px;font-variant-numeric:tabular-nums;">${pub}</td>
         <td style="text-align:right;padding:9px 8px;color:#94A3B8;font-size:11.5px;font-variant-numeric:tabular-nums;">${dur}</td>
-        <td style="text-align:right;padding:9px 8px;font-variant-numeric:tabular-nums;color:${v.paid?'#7C3AED':'#475569'};font-weight:${v.paid?700:500};">${(v.views||0).toLocaleString('ko-KR')}</td>
+        <td style="text-align:right;padding:9px 8px;font-variant-numeric:tabular-nums;color:${v.paid?'#DB2777':'#475569'};font-weight:${v.paid?700:500};">${(v.views||0).toLocaleString('ko-KR')}</td>
       </tr>`;
     }).join('');
   }
