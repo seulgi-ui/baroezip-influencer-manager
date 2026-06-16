@@ -8999,6 +8999,11 @@ function openPaidAdDetailModal(infId, contentType) {
   const data = inf[key];
   const typeLabel = wantShort ? '쇼츠' : '롱폼';
 
+  // 진행 현황의 업로드 URL과 매치되는 "우리 영상"의 video id 추출
+  const assign = (allAssignments[currentProjectId] || {})[infId] || {};
+  const ourMatch = (assign.uploadUrl || '').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/);
+  const ourVideoId = ourMatch ? ourMatch[1] : null;
+
   document.getElementById('paidad-modal-title').textContent = `${inf.name} — ${typeLabel} 유료광고 분석`;
 
   if (!data || !data.videos || !data.videos.length) {
@@ -9015,25 +9020,28 @@ function openPaidAdDetailModal(infId, contentType) {
     document.getElementById('paidad-modal-stats').innerHTML = `
       <div><span style="color:#64748B;">검사 영상</span> <span style="font-weight:800;color:#0F172A;margin-left:4px;">${totalCnt}개</span></div>
       <div><span style="color:#64748B;">유료광고 표기</span> <span style="font-weight:800;color:#DC2626;margin-left:4px;">${paidCnt}건</span></div>
-      <div><span style="color:#64748B;">유료광고 평균 조회수</span> <span style="font-weight:900;color:#DB2777;margin-left:4px;">${(data.avgViews||0).toLocaleString('ko-KR')}회</span></div>
+      <div><span style="color:#64748B;">유료광고 평균 조회수</span> <span style="font-weight:900;color:#7C3AED;margin-left:4px;">${(data.avgViews||0).toLocaleString('ko-KR')}회</span></div>
       <div><span style="color:#64748B;">전체 평균 조회수</span> <span style="font-weight:700;color:#475569;margin-left:4px;">${avgAll.toLocaleString('ko-KR')}회</span></div>
     `;
     document.getElementById('paidad-modal-tbody').innerHTML = data.videos.map((v, i) => {
+      const isOurs = ourVideoId && v.id === ourVideoId;
       const flag = v.paid
         ? '<span style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;background:#FEE2E2;color:#B91C1C;font-size:10.5px;font-weight:800;white-space:nowrap;">🔴 유료</span>'
         : '<span style="color:#CBD5E1;font-size:13px;">·</span>';
+      const oursBadge = isOurs ? ' <span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:9px;background:#FCE7F3;color:#BE185D;font-size:10px;font-weight:800;margin-left:3px;white-space:nowrap;">🎯 우리</span>' : '';
       // 길이 — m:ss 통일 (60초 미만이어도 0:15 형식)
       const m = Math.floor((v.durSec||0)/60), s = (v.durSec||0)%60;
       const dur = `${m}:${String(s).padStart(2,'0')}`;
       // 업로드일 — YYYY-MM-DD
       const pub = (v.publishedAt || '').slice(0,10) || '-';
-      return `<tr style="border-bottom:1px solid #F1F5F9;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''">
+      const rowBg = isOurs ? 'background:#FDF2F8;' : '';
+      return `<tr style="border-bottom:1px solid #F1F5F9;${rowBg}" onmouseover="this.style.background='${isOurs ? '#FCE7F3' : '#F8FAFC'}'" onmouseout="this.style.background='${isOurs ? '#FDF2F8' : ''}'">
         <td style="text-align:center;padding:9px 6px;color:#8B8BA7;font-size:11.5px;font-weight:600;">${i+1}</td>
-        <td style="text-align:center;padding:9px 6px;">${flag}</td>
-        <td style="padding:9px 10px;color:#0F172A;font-weight:${v.paid?700:500};"><a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">${escapeHtml(v.title)}</a></td>
+        <td style="text-align:center;padding:9px 6px;">${flag}${oursBadge}</td>
+        <td style="padding:9px 10px;color:${isOurs?'#BE185D':'#0F172A'};font-weight:${isOurs?700:500};"><a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">${escapeHtml(v.title)}</a></td>
         <td style="text-align:center;padding:9px 8px;color:#64748B;font-size:11.5px;font-variant-numeric:tabular-nums;">${pub}</td>
         <td style="text-align:right;padding:9px 8px;color:#94A3B8;font-size:11.5px;font-variant-numeric:tabular-nums;">${dur}</td>
-        <td style="text-align:right;padding:9px 8px;font-variant-numeric:tabular-nums;color:${v.paid?'#DB2777':'#475569'};font-weight:${v.paid?700:500};">${(v.views||0).toLocaleString('ko-KR')}</td>
+        <td style="text-align:right;padding:9px 8px;font-variant-numeric:tabular-nums;color:${isOurs?'#DB2777':'#475569'};font-weight:${isOurs?800:500};">${(v.views||0).toLocaleString('ko-KR')}</td>
       </tr>`;
     }).join('');
   }
