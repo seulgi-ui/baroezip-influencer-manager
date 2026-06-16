@@ -9004,7 +9004,7 @@ function openPaidAdDetailModal(infId, contentType) {
   if (!data || !data.videos || !data.videos.length) {
     document.getElementById('paidad-modal-sub').textContent = '분석 데이터가 없습니다. 분석을 실행해주세요.';
     document.getElementById('paidad-modal-stats').innerHTML = '';
-    document.getElementById('paidad-modal-tbody').innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px 20px;color:#94A3B8;font-size:13px;">아직 분석된 데이터가 없습니다.<br><button onclick="analyzePaidAds('${infId}','${contentType}');closePaidAdDetailModal();" class="btn btn-primary btn-sm" style="margin-top:12px;">📊 지금 분석 실행</button></td></tr>`;
+    document.getElementById('paidad-modal-tbody').innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px 20px;color:#94A3B8;font-size:13px;">아직 분석된 데이터가 없습니다.<br><button onclick="analyzePaidAds('${infId}','${contentType}');closePaidAdDetailModal();" class="btn btn-primary btn-sm" style="margin-top:12px;">📊 지금 분석 실행</button></td></tr>`;
   } else {
     const analyzedDate = data.analyzedAt ? new Date(data.analyzedAt).toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
     document.getElementById('paidad-modal-sub').textContent = `최근 분석: ${analyzedDate}`;
@@ -9022,14 +9022,18 @@ function openPaidAdDetailModal(infId, contentType) {
       const flag = v.paid
         ? '<span style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;background:#FEE2E2;color:#B91C1C;font-size:10.5px;font-weight:800;">🔴 유료</span>'
         : '<span style="color:#CBD5E1;font-size:13px;">·</span>';
+      // 길이 — m:ss 통일 (60초 미만이어도 0:15 형식)
       const m = Math.floor((v.durSec||0)/60), s = (v.durSec||0)%60;
-      const dur = m ? `${m}:${String(s).padStart(2,'0')}` : `${s}s`;
+      const dur = `${m}:${String(s).padStart(2,'0')}`;
+      // 업로드일 — YYYY-MM-DD
+      const pub = (v.publishedAt || '').slice(0,10) || '-';
       return `<tr style="border-bottom:1px solid #F1F5F9;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''">
-        <td style="text-align:center;padding:9px 8px;color:#8B8BA7;font-size:11.5px;font-weight:600;">${i+1}</td>
-        <td style="text-align:center;padding:9px 8px;">${flag}</td>
+        <td style="text-align:center;padding:9px 6px;color:#8B8BA7;font-size:11.5px;font-weight:600;">${i+1}</td>
+        <td style="text-align:center;padding:9px 6px;">${flag}</td>
         <td style="padding:9px 10px;color:#0F172A;font-weight:${v.paid?700:500};"><a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">${escapeHtml(v.title)}</a></td>
-        <td style="text-align:right;padding:9px 10px;font-variant-numeric:tabular-nums;color:${v.paid?'#7C3AED':'#475569'};font-weight:${v.paid?700:500};">${(v.views||0).toLocaleString('ko-KR')}</td>
-        <td style="text-align:right;padding:9px 10px;color:#94A3B8;font-size:11.5px;font-variant-numeric:tabular-nums;">${dur}</td>
+        <td style="text-align:center;padding:9px 8px;color:#64748B;font-size:11.5px;font-variant-numeric:tabular-nums;">${pub}</td>
+        <td style="text-align:right;padding:9px 8px;font-variant-numeric:tabular-nums;color:${v.paid?'#7C3AED':'#475569'};font-weight:${v.paid?700:500};">${(v.views||0).toLocaleString('ko-KR')}</td>
+        <td style="text-align:right;padding:9px 8px;color:#94A3B8;font-size:11.5px;font-variant-numeric:tabular-nums;">${dur}</td>
       </tr>`;
     }).join('');
   }
@@ -12628,11 +12632,12 @@ window.addEventListener('beforeunload', (e) => {
       <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
         <thead style="position:sticky;top:0;background:#fff;z-index:1;">
           <tr style="border-bottom:1.5px solid #E2E8F0;">
-            <th style="text-align:center;padding:9px 8px;font-size:11px;color:#64748B;width:36px;">#</th>
-            <th style="text-align:center;padding:9px 8px;font-size:11px;color:#64748B;width:60px;">표기</th>
+            <th style="text-align:center;padding:9px 6px;font-size:11px;color:#64748B;width:32px;">#</th>
+            <th style="text-align:center;padding:9px 6px;font-size:11px;color:#64748B;width:60px;">표기</th>
             <th style="text-align:left;padding:9px 10px;font-size:11px;color:#64748B;">제목</th>
-            <th style="text-align:right;padding:9px 10px;font-size:11px;color:#64748B;width:90px;">조회수</th>
-            <th style="text-align:right;padding:9px 10px;font-size:11px;color:#64748B;width:60px;">길이</th>
+            <th style="text-align:center;padding:9px 8px;font-size:11px;color:#64748B;width:90px;">업로드일</th>
+            <th style="text-align:right;padding:9px 8px;font-size:11px;color:#64748B;width:86px;">조회수</th>
+            <th style="text-align:right;padding:9px 8px;font-size:11px;color:#64748B;width:56px;">길이</th>
           </tr>
         </thead>
         <tbody id="paidad-modal-tbody"></tbody>
