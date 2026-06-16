@@ -7667,10 +7667,10 @@ function renderTrackTable() {
           if (key === 'youtube') {
             const isShort = e.contentType === 'short';
             const bucket = isShort ? (e.inf.paidAdShort || {}) : (e.inf.paidAdLong || {});
-            if (bucket.avgViews) {
+            if (bucket.videos && bucket.videos.length) {
               const n = Number(bucket.avgViews) || 0;
               const cnt = bucket.count || 0;
-              paidHtml = `<td class="num" style="font-size:12px;font-variant-numeric:tabular-nums;text-align:right;padding-right:8px;cursor:pointer;" onclick="event.stopPropagation();analyzePaidAds('${e.infId}','${e.contentType || 'long'}')" title="${isShort ? '쇼츠' : '롱폼'} [유료광고] ${cnt}개 평균 (클릭=새로 분석)">${n.toLocaleString('ko-KR')}<br><span style="font-size:9.5px;color:#94A3B8;font-weight:600;">n=${cnt}</span></td>`;
+              paidHtml = `<td class="num" style="font-size:12px;font-variant-numeric:tabular-nums;text-align:right;padding-right:8px;cursor:pointer;" onclick="event.stopPropagation();openPaidAdDetailModal('${e.infId}','${e.contentType || 'long'}')" title="${isShort ? '쇼츠' : '롱폼'} [유료광고] ${cnt}개 평균 — 클릭 시 상세 영상 목록">${n.toLocaleString('ko-KR')}<br><span style="font-size:9.5px;color:#94A3B8;font-weight:600;">n=${cnt}</span></td>`;
             } else {
               paidHtml = `<td style="text-align:center;"><button onclick="event.stopPropagation();analyzePaidAds('${e.infId}','${e.contentType || 'long'}')" style="padding:3px 8px;border-radius:5px;background:#F1F5F9;color:#64748B;font-size:10.5px;font-weight:700;border:1px dashed #CBD5E1;cursor:pointer;white-space:nowrap;" title="채널 최근 12개 ${e.contentType === 'short' ? '쇼츠' : '롱폼'} 중 유료광고 영상 분석">📊 분석</button></td>`;
             }
@@ -8989,6 +8989,67 @@ async function crawlUploadUrl(projId, infId) {
 }
 
 // ============================================================
+// 유료광고 분석 상세 모달
+// ============================================================
+function openPaidAdDetailModal(infId, contentType) {
+  const inf = allInfluencers[infId];
+  if (!inf) { alert('인플 정보를 찾을 수 없습니다.'); return; }
+  const wantShort = contentType === 'short';
+  const key = wantShort ? 'paidAdShort' : 'paidAdLong';
+  const data = inf[key];
+  const typeLabel = wantShort ? '쇼츠' : '롱폼';
+
+  document.getElementById('paidad-modal-title').textContent = `${inf.name} — ${typeLabel} 유료광고 분석`;
+
+  if (!data || !data.videos || !data.videos.length) {
+    document.getElementById('paidad-modal-sub').textContent = '분석 데이터가 없습니다. 분석을 실행해주세요.';
+    document.getElementById('paidad-modal-stats').innerHTML = '';
+    document.getElementById('paidad-modal-tbody').innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px 20px;color:#94A3B8;font-size:13px;">아직 분석된 데이터가 없습니다.<br><button onclick="analyzePaidAds('${infId}','${contentType}');closePaidAdDetailModal();" class="btn btn-primary btn-sm" style="margin-top:12px;">📊 지금 분석 실행</button></td></tr>`;
+  } else {
+    const analyzedDate = data.analyzedAt ? new Date(data.analyzedAt).toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+    document.getElementById('paidad-modal-sub').textContent = `최근 분석: ${analyzedDate}`;
+
+    const paidCnt = data.count || 0;
+    const totalCnt = data.videos.length;
+    const avgAll = totalCnt ? Math.round(data.videos.reduce((s,v) => s + (v.views||0), 0) / totalCnt) : 0;
+    document.getElementById('paidad-modal-stats').innerHTML = `
+      <div><span style="color:#64748B;">검사 영상</span> <span style="font-weight:800;color:#0F172A;margin-left:4px;">${totalCnt}개</span></div>
+      <div><span style="color:#64748B;">유료광고 표기</span> <span style="font-weight:800;color:#DC2626;margin-left:4px;">${paidCnt}건</span></div>
+      <div><span style="color:#64748B;">유료광고 평균 조회수</span> <span style="font-weight:900;color:#7C3AED;margin-left:4px;">${(data.avgViews||0).toLocaleString('ko-KR')}회</span></div>
+      <div><span style="color:#64748B;">전체 평균 조회수</span> <span style="font-weight:700;color:#475569;margin-left:4px;">${avgAll.toLocaleString('ko-KR')}회</span></div>
+    `;
+    document.getElementById('paidad-modal-tbody').innerHTML = data.videos.map((v, i) => {
+      const flag = v.paid
+        ? '<span style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;background:#FEE2E2;color:#B91C1C;font-size:10.5px;font-weight:800;">🔴 유료광고</span>'
+        : '<span style="color:#CBD5E1;font-size:13px;">·</span>';
+      const m = Math.floor((v.durSec||0)/60), s = (v.durSec||0)%60;
+      const dur = m ? `${m}:${String(s).padStart(2,'0')}` : `${s}s`;
+      return `<tr style="border-bottom:1px solid #F1F5F9;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''">
+        <td style="text-align:center;padding:9px 8px;color:#8B8BA7;font-size:11.5px;font-weight:600;">${i+1}</td>
+        <td style="text-align:center;padding:9px 8px;">${flag}</td>
+        <td style="padding:9px 10px;color:#0F172A;font-weight:${v.paid?700:500};"><a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">${escapeHtml(v.title)}</a></td>
+        <td style="text-align:right;padding:9px 10px;font-variant-numeric:tabular-nums;color:${v.paid?'#7C3AED':'#475569'};font-weight:${v.paid?700:500};">${(v.views||0).toLocaleString('ko-KR')}</td>
+        <td style="text-align:right;padding:9px 10px;color:#94A3B8;font-size:11.5px;font-variant-numeric:tabular-nums;">${dur}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('paidad-modal-refresh').onclick = () => {
+    analyzePaidAds(infId, contentType);
+  };
+  document.getElementById('paidad-detail-modal').style.display = 'flex';
+}
+function closePaidAdDetailModal() {
+  document.getElementById('paidad-detail-modal').style.display = 'none';
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const m = document.getElementById('paidad-detail-modal');
+    if (m && m.style.display === 'flex') closePaidAdDetailModal();
+  }
+});
+
+// ============================================================
 // 인플 채널의 [유료광고 포함] 영상 평균 조회수 분석
 // ============================================================
 async function analyzePaidAds(infId, contentType) {
@@ -9034,8 +9095,8 @@ async function analyzePaidAds(infId, contentType) {
       const batchIds = (plData.items || []).map(v => v.contentDetails.videoId).filter(Boolean);
       if (!batchIds.length) break;
 
-      // paidProductPlacementDetails + contentDetails(duration) + statistics(viewCount)
-      const detUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics,paidProductPlacementDetails&id=${batchIds.join(',')}&key=${YOUTUBE_API_KEY}`;
+      // paidProductPlacementDetails + contentDetails(duration) + statistics(viewCount) + snippet(title)
+      const detUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics,paidProductPlacementDetails&id=${batchIds.join(',')}&key=${YOUTUBE_API_KEY}`;
       const detRes = await fetch(detUrl);
       const detData = await detRes.json();
 
@@ -9049,6 +9110,8 @@ async function analyzePaidAds(infId, contentType) {
         if (collected.length >= TARGET) return;
         collected.push({
           id: v.id,
+          title: (v.snippet && v.snippet.title) || '(제목 없음)',
+          publishedAt: (v.snippet && v.snippet.publishedAt) || '',
           views: Number((v.statistics || {}).viewCount) || 0,
           paid: !!((v.paidProductPlacementDetails || {}).hasPaidProductPlacement),
           durSec: sec,
@@ -9070,13 +9133,16 @@ async function analyzePaidAds(infId, contentType) {
     const payload = {
       avgViews,
       count: paidOnly.length,
-      sampleSize: collected.length,       // 검사한 전체 영상 수 (참고)
+      sampleSize: collected.length,
       analyzedAt: Date.now(),
+      videos: collected,                  // 12개 상세 (제목/조회수/유료여부/duration)
     };
     await db.ref(PATHS.influencers + '/' + infId + '/' + key).set(payload);
     // 로컬 캐시도 즉시
     inf[key] = payload;
     renderTrackTable();
+    // 분석 직후 결과 상세 모달 자동 표시
+    openPaidAdDetailModal(infId, wantShort ? 'short' : 'long');
 
     if (!paidOnly.length) {
       showToast(`${inf.name}: ${label} ${collected.length}개 중 [유료광고] 표기된 영상 없음`);
@@ -12535,6 +12601,37 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 </script>
+
+<!-- 유료광고 분석 상세 모달 -->
+<div id="paidad-detail-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:0;width:680px;max-width:94vw;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 16px 40px rgba(15,23,42,0.22);overflow:hidden;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid #E2E8F0;background:linear-gradient(135deg,#FAFAFA,#F5F3FF);">
+      <div>
+        <h3 id="paidad-modal-title" style="font-size:15px;font-weight:800;margin:0 0 2px;">유료광고 분석</h3>
+        <div id="paidad-modal-sub" style="font-size:11.5px;color:#64748B;font-weight:600;"></div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button type="button" id="paidad-modal-refresh" class="btn btn-secondary btn-sm" style="font-size:11px;padding:5px 10px;">🔄 다시 분석</button>
+        <button type="button" onclick="closePaidAdDetailModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94A3B8;line-height:1;padding:0 4px;">×</button>
+      </div>
+    </div>
+    <div style="padding:14px 22px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;display:flex;gap:18px;flex-wrap:wrap;font-size:12px;" id="paidad-modal-stats"></div>
+    <div style="overflow-y:auto;flex:1;">
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
+        <thead style="position:sticky;top:0;background:#fff;z-index:1;">
+          <tr style="border-bottom:1.5px solid #E2E8F0;">
+            <th style="text-align:center;padding:9px 8px;font-size:11px;color:#64748B;width:36px;">#</th>
+            <th style="text-align:center;padding:9px 8px;font-size:11px;color:#64748B;width:60px;">표기</th>
+            <th style="text-align:left;padding:9px 10px;font-size:11px;color:#64748B;">제목</th>
+            <th style="text-align:right;padding:9px 10px;font-size:11px;color:#64748B;width:90px;">조회수</th>
+            <th style="text-align:right;padding:9px 10px;font-size:11px;color:#64748B;width:60px;">길이</th>
+          </tr>
+        </thead>
+        <tbody id="paidad-modal-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
 <!-- 기사 URL 다중 입력 모달 -->
 <div id="article-url-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.45);z-index:9999;align-items:center;justify-content:center;">
