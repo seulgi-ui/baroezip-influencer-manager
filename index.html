@@ -8205,11 +8205,11 @@ function renderSettlement() {
 
   document.getElementById('settle-foot-cost').textContent = fmtKRW(sumCost);
   const footVat = document.getElementById('settle-foot-vat');
-  footVat.textContent = sumVat ? '+' + fmtKRW(sumVat) : '-';
-  footVat.style.color = sumVat ? '#0066FF' : 'var(--text-muted)';
+  footVat.textContent = sumVat ? fmtKRW(sumVat) : '-';
+  footVat.style.color = sumVat ? 'var(--text-primary)' : 'var(--text-muted)';
   const footWh = document.getElementById('settle-foot-wh');
   footWh.textContent = sumWh ? '−' + fmtKRW(sumWh) : '-';
-  footWh.style.color = sumWh ? '#DC2626' : 'var(--text-muted)';
+  footWh.style.color = sumWh ? '#0066FF' : 'var(--text-muted)';
   document.getElementById('settle-foot-total').textContent = fmtKRW(sumTotal);
 
   const tbody = document.getElementById('settle-tbody');
@@ -8254,8 +8254,8 @@ function renderSettlement() {
       <td><select onchange="updateSettlement('${e.projId}','${e.infId}','bizType',this.value)">${bizOpts}</select></td>
       <td><input type="text" value="${escapeHtml(s.bizNo || '')}" placeholder="000-00-00000" onchange="updateSettlement('${e.projId}','${e.infId}','bizNo',this.value)" style="padding-left:5px;padding-right:5px;letter-spacing:-0.2px;"></td>
       <td class="num">${fmtKRW(c.amount)}</td>
-      <td class="num" style="color:${c.vat ? '#0066FF' : 'var(--text-muted)'};" title="${c.bizType === 'business' ? '일반과세 인플 부가세(+10%)' : '해당 없음'}">${c.vat ? '+' + fmtKRW(c.vat) : '-'}</td>
-      <td class="num" style="color:${c.withholding ? '#DC2626' : 'var(--text-muted)'};" title="${c.bizType === 'personal' ? '개인 원천세(-3.3%) · 회사가 세무서 납부' : '해당 없음'}">${c.withholding ? '−' + fmtKRW(c.withholding) : '-'}</td>
+      <td class="num" style="color:${c.vat ? 'var(--text-primary)' : 'var(--text-muted)'};" title="${c.bizType === 'business' ? '일반과세 인플 부가세(+10%)' : '해당 없음'}">${c.vat ? fmtKRW(c.vat) : '-'}</td>
+      <td class="num" style="color:${c.withholding ? '#0066FF' : 'var(--text-muted)'};" title="${c.bizType === 'personal' ? '개인 원천세(-3.3%) · 회사가 세무서 납부' : '해당 없음'}">${c.withholding ? '−' + fmtKRW(c.withholding) : '-'}</td>
       <td class="num" style="font-weight:700;color:var(--text-primary);" title="${c.bizType === 'business' ? '단가 + 부가세 (인플 전액 송금)' : c.bizType === 'personal' ? '단가 − 원천세 (실송금액)' : '단가 그대로'}">${fmtKRW(c.total)}</td>
       <td><input type="date" value="${s.invoiceDate || ''}" onchange="updateSettlement('${e.projId}','${e.infId}','invoiceDate',this.value)" title="발행일을 입력하면 상태가 자동으로 '입금 대기'로 전환됩니다"></td>
       <td>${renderSettleFileCell(e.projId, e.infId, s, 'invoiceFile')}</td>
