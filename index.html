@@ -1867,6 +1867,7 @@ table { border-collapse: collapse; width: 100%; }
   font-size: 13px;
   padding: 0;
   vertical-align: middle;
+  position: relative;          /* ::after notification dot 기준점 — 빠지면 점이 스크롤 따라다님 */
 }
 .memo-icon-btn:hover {
   background: #EFF6FF;
@@ -1881,12 +1882,12 @@ table { border-collapse: collapse; width: 100%; }
 .memo-icon-btn.has-memo::after {
   content: '';
   position: absolute;
-  width: 6px;
-  height: 6px;
+  top: -3px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: #2563EB;
-  margin-left: -4px;
-  margin-top: -14px;
   border: 1.5px solid #fff;
 }
 
