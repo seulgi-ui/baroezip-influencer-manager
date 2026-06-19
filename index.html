@@ -8991,6 +8991,40 @@ async function crawlUploadUrl(projId, infId) {
 // ============================================================
 // 유료광고 분석 상세 모달
 // ============================================================
+// 사용자가 표기 셀 클릭 시 paid 상태 수동 토글 (API 미감지 PPL 보완)
+async function togglePaidFlag(infId, contentType, videoIdx) {
+  const inf = allInfluencers[infId];
+  if (!inf) return;
+  const wantShort = contentType === 'short';
+  const key = wantShort ? 'paidAdShort' : 'paidAdLong';
+  const data = inf[key];
+  if (!data || !data.videos || !data.videos[videoIdx]) return;
+
+  const v = data.videos[videoIdx];
+  const wasPaid = !!(v.paid || v.userPaid);
+  if (wasPaid) {
+    // 해제: userPaid=false (API paid는 그대로 두고 강제 비표기 위해 userPaid에 false 저장)
+    v.userPaid = false;
+    if (v.paid) v.paid = false;            // API true도 사용자가 강제 해제
+  } else {
+    v.userPaid = true;
+  }
+  // avgViews 재계산 (paid OR userPaid 기준)
+  const paidVids = data.videos.filter(x => x.paid || x.userPaid);
+  data.count = paidVids.length;
+  data.avgViews = data.count ? Math.round(paidVids.reduce((s,x) => s+(x.views||0), 0) / data.count) : 0;
+  data.updatedAt = Date.now();
+
+  // Firebase 즉시 저장
+  if (firebaseReady && db) {
+    db.ref(PATHS.influencers + '/' + infId + '/' + key).set(data)
+      .catch(e => alert('저장 실패: ' + (e.message || e)));
+  }
+  // 모달 + 진행 현황 셀 재렌더
+  openPaidAdDetailModal(infId, contentType);
+  renderTrackTable();
+}
+
 function openPaidAdDetailModal(infId, contentType) {
   const inf = allInfluencers[infId];
   if (!inf) { alert('인플 정보를 찾을 수 없습니다.'); return; }
@@ -9014,35 +9048,41 @@ function openPaidAdDetailModal(infId, contentType) {
     const analyzedDate = data.analyzedAt ? new Date(data.analyzedAt).toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
     document.getElementById('paidad-modal-sub').textContent = `최근 분석: ${analyzedDate}`;
 
-    const paidCnt = data.count || 0;
+    // paid OR userPaid 합집합 기준으로 재집계 (사용자 수동 표기 반영)
+    const paidVideos = data.videos.filter(v => v.paid || v.userPaid);
+    const paidCnt = paidVideos.length;
+    const paidAvg = paidCnt ? Math.round(paidVideos.reduce((s,v) => s + (v.views||0), 0) / paidCnt) : 0;
     const totalCnt = data.videos.length;
     const avgAll = totalCnt ? Math.round(data.videos.reduce((s,v) => s + (v.views||0), 0) / totalCnt) : 0;
     document.getElementById('paidad-modal-stats').innerHTML = `
       <div><span style="color:#64748B;">검사 영상</span> <span style="font-weight:800;color:#0F172A;margin-left:4px;">${totalCnt}개</span></div>
       <div><span style="color:#64748B;">유료광고 표기</span> <span style="font-weight:800;color:#DC2626;margin-left:4px;">${paidCnt}건</span></div>
-      <div><span style="color:#64748B;">유료광고 평균 조회수</span> <span style="font-weight:900;color:#7C3AED;margin-left:4px;">${(data.avgViews||0).toLocaleString('ko-KR')}회</span></div>
+      <div><span style="color:#64748B;">유료광고 평균 조회수</span> <span style="font-weight:900;color:#7C3AED;margin-left:4px;">${paidAvg.toLocaleString('ko-KR')}회</span></div>
       <div><span style="color:#64748B;">전체 평균 조회수</span> <span style="font-weight:700;color:#475569;margin-left:4px;">${avgAll.toLocaleString('ko-KR')}회</span></div>
     `;
     document.getElementById('paidad-modal-tbody').innerHTML = data.videos.map((v, i) => {
       const isOurs = ourVideoId && v.id === ourVideoId;
-      const flag = v.paid
-        ? '<span style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;background:#FEE2E2;color:#B91C1C;font-size:10.5px;font-weight:800;white-space:nowrap;">🔴 유료</span>'
+      const isManual = !!v.userPaid;            // 사용자가 수동 표기한 경우
+      const isPaid = v.paid || isManual;
+      const flag = isPaid
+        ? `<span style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;background:#FEE2E2;color:#B91C1C;font-size:10.5px;font-weight:800;white-space:nowrap;">${isManual ? '✋' : '🔴'} 유료</span>`
         : '<span style="color:#CBD5E1;font-size:13px;">·</span>';
       const oursBadge = isOurs ? ' <span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:9px;background:#FCE7F3;color:#BE185D;font-size:10px;font-weight:800;margin-left:3px;white-space:nowrap;">🎯 우리</span>' : '';
-      // 길이 — m:ss 통일 (60초 미만이어도 0:15 형식)
+      // 길이 — m:ss 통일
       const m = Math.floor((v.durSec||0)/60), s = (v.durSec||0)%60;
       const dur = `${m}:${String(s).padStart(2,'0')}`;
-      // 업로드일 — YYYY-MM-DD
       const pub = (v.publishedAt || '').slice(0,10) || '-';
       const rowBg = isOurs ? 'background:#FDF2F8;' : '';
-      // 색상 분기: 우리 영상 = 핑크, 일반 유료 = 보라, 그 외 = 회색
-      const titleColor = isOurs ? '#BE185D' : (v.paid ? '#0F172A' : '#0F172A');
-      const titleWeight = isOurs ? 700 : (v.paid ? 700 : 500);
-      const viewColor   = isOurs ? '#DB2777' : (v.paid ? '#7C3AED' : '#475569');
-      const viewWeight  = isOurs ? 800 : (v.paid ? 700 : 500);
+      const titleColor = isOurs ? '#BE185D' : '#0F172A';
+      const titleWeight = isOurs ? 700 : (isPaid ? 700 : 500);
+      const viewColor   = isOurs ? '#DB2777' : (isPaid ? '#7C3AED' : '#475569');
+      const viewWeight  = isOurs ? 800 : (isPaid ? 700 : 500);
+      const toggleTitle = isPaid
+        ? (isManual ? '수동 PPL 표기 — 클릭하여 해제' : 'API 자동 감지 — 클릭하여 비표기 강제')
+        : '클릭하여 수동 PPL로 표기';
       return `<tr style="border-bottom:1px solid #F1F5F9;${rowBg}" onmouseover="this.style.background='${isOurs ? '#FCE7F3' : '#F8FAFC'}'" onmouseout="this.style.background='${isOurs ? '#FDF2F8' : ''}'">
         <td style="text-align:center;padding:9px 6px;color:#8B8BA7;font-size:11.5px;font-weight:600;">${i+1}</td>
-        <td style="text-align:center;padding:9px 6px;">${flag}${oursBadge}</td>
+        <td style="text-align:center;padding:9px 6px;cursor:pointer;" onclick="togglePaidFlag('${infId}','${contentType}',${i})" title="${toggleTitle}">${flag}${oursBadge}</td>
         <td style="padding:9px 10px;color:${titleColor};font-weight:${titleWeight};"><a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">${escapeHtml(v.title)}</a></td>
         <td style="text-align:center;padding:9px 8px;color:#64748B;font-size:11.5px;font-variant-numeric:tabular-nums;">${pub}</td>
         <td style="text-align:right;padding:9px 8px;color:#94A3B8;font-size:11.5px;font-variant-numeric:tabular-nums;">${dur}</td>
