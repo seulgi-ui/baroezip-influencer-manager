@@ -3789,6 +3789,10 @@ img.tt-avatar { object-fit: cover; padding: 0; }
         <span class="nav-label">미디어믹스</span>
       </div>
       <div class="nav-section-label" style="margin-top:12px;">기획</div>
+      <div class="nav-item" data-section="apt" onclick="navigate('apt')">
+        <div class="nav-dot"></div>
+        <span class="nav-label">아파트게시판</span>
+      </div>
       <div class="nav-item" data-section="pr" onclick="navigate('pr')">
         <div class="nav-dot"></div>
         <span class="nav-label">언론홍보</span>
@@ -4053,6 +4057,20 @@ img.tt-avatar { object-fit: cover; padding: 0; }
       <div id="cr-empty" class="empty-state" style="display:none;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         <p>등록된 소재가 없습니다.<br><span style="font-size:13px;color:var(--text-muted);">소재를 추가하여 제작 현황을 관리하세요.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 아파트게시판 Section -->
+  <section id="section-apt" class="section">
+    <div class="main-header">
+      <h1>아파트게시판</h1>
+    </div>
+    <div class="main-body" style="padding:28px 32px;">
+      <div style="background:var(--surface);border:1.5px dashed var(--border);border-radius:14px;padding:60px 32px;text-align:center;color:var(--text-muted);">
+        <div style="font-size:48px;margin-bottom:14px;">🏢</div>
+        <div style="font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:6px;">아파트게시판</div>
+        <div style="font-size:13px;line-height:1.6;">곧 추가될 영역입니다.<br>어떤 기능이 필요한지 알려주시면 바로 구현해드릴게요.</div>
       </div>
     </div>
   </section>
@@ -5931,7 +5949,7 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 
 // ===== Navigation =====
 // 유효 섹션 화이트리스트
-const VALID_SECTIONS = ['mediamix', 'calendar', 'pr', 'influencer', 'projects', 'settlement'];
+const VALID_SECTIONS = ['mediamix', 'calendar', 'pr', 'apt', 'influencer', 'projects', 'settlement'];
 
 function navigate(section, opts) {
   if (!VALID_SECTIONS.includes(section)) section = 'mediamix';
