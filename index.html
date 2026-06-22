@@ -10,14 +10,28 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-<!-- 카카오 지도 (아파트게시판) — JavaScript 키 발급: https://developers.kakao.com → 내 애플리케이션 -->
+<!-- 카카오 지도 (아파트게시판) — JavaScript 키 발급: https://developers.kakao.com -->
 <script>window.KAKAO_MAP_KEY = 'ece743d84b481d1e77448bdfa37a3f2b';</script>
 <script>
-  // 키가 설정된 경우만 SDK 로드 (placeholder면 fallback 안내 메시지)
+  window._kakaoMapReady = false;
   if (window.KAKAO_MAP_KEY && window.KAKAO_MAP_KEY !== 'YOUR_KAKAO_JS_KEY') {
     const s = document.createElement('script');
-    s.src = '//dapi.kakao.com/v2/maps/sdk.js?appkey=' + window.KAKAO_MAP_KEY + '&autoload=false';
-    s.onload = () => { if (window.kakao && window.kakao.maps) kakao.maps.load(() => { if (window.currentSection === 'apt' && typeof renderAptBoard === 'function') renderAptBoard(); }); };
+    s.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + window.KAKAO_MAP_KEY + '&autoload=false';
+    s.onload = () => {
+      console.log('[Kakao Maps] SDK script loaded');
+      if (window.kakao && window.kakao.maps) {
+        kakao.maps.load(() => {
+          window._kakaoMapReady = true;
+          console.log('[Kakao Maps] API ready');
+          if (window.currentSection === 'apt' && typeof renderAptBoard === 'function') renderAptBoard();
+        });
+      } else {
+        console.error('[Kakao Maps] kakao.maps 객체 누락 — 키/도메인 확인 필요');
+      }
+    };
+    s.onerror = (e) => {
+      console.error('[Kakao Maps] SDK 로드 실패:', e);
+    };
     document.head.appendChild(s);
   }
 </script>
@@ -6352,18 +6366,26 @@ function renderAptMap(entries) {
   const mapEl = document.getElementById('apt-map');
   if (!mapEl) return;
 
-  // 카카오 지도 SDK 미로드 → 안내 메시지
-  if (typeof kakao === 'undefined' || !kakao.maps || !kakao.maps.Map) {
+  // SDK 아직 로딩 중 → 로딩 안내 + 1초 후 재시도
+  if (!window._kakaoMapReady) {
     mapEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#F8FAFC;border-radius:14px;color:#64748B;text-align:center;padding:30px;flex-direction:column;gap:10px;">
-      <div style="font-size:30px;">🗺️</div>
-      <div style="font-size:14px;font-weight:800;color:#0F172A;">카카오 지도 JavaScript 키가 필요합니다</div>
-      <div style="font-size:12px;line-height:1.7;max-width:480px;text-align:left;">
-        <b>발급 절차 (3분):</b><br>
-        1. <a href="https://developers.kakao.com" target="_blank" rel="noopener" style="color:#0066FF;font-weight:700;">카카오 디벨로퍼스</a> 카카오 계정 로그인<br>
-        2. <b>내 애플리케이션 → 애플리케이션 추가하기</b> (앱 이름 자유)<br>
-        3. <b>앱 키</b> 페이지의 <b>JavaScript 키</b> 복사<br>
-        4. <b>플랫폼 → Web 플랫폼 등록</b>에 사이트 도메인 추가: <code style="background:#F1F5F9;padding:1px 5px;border-radius:3px;">${location.origin}</code><br>
-        5. 받은 키를 알려주시면 바로 활성화해드려요
+      <div style="font-size:30px;">⏳</div>
+      <div style="font-size:14px;font-weight:800;color:#0F172A;">지도 로딩 중...</div>
+      <div style="font-size:11px;color:#94A3B8;">5초 이상 안 뜨면 콘솔(F12)의 빨간 에러 메시지를 알려주세요.<br>도메인 미등록일 가능성 큼.</div>
+    </div>`;
+    // 카카오 SDK가 아직 안 떴으면 잠시 후 재시도
+    setTimeout(() => {
+      if (window._kakaoMapReady && window.currentSection === 'apt') renderAptMap(entries);
+    }, 800);
+    return;
+  }
+  if (typeof kakao === 'undefined' || !kakao.maps || !kakao.maps.Map) {
+    mapEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#FEF2F2;border-radius:14px;color:#B91C1C;text-align:center;padding:30px;flex-direction:column;gap:10px;">
+      <div style="font-size:30px;">🚫</div>
+      <div style="font-size:14px;font-weight:800;">카카오 지도 API 객체 누락</div>
+      <div style="font-size:12px;line-height:1.7;color:#7F1D1D;max-width:440px;">
+        키는 있으나 SDK가 정상 로드되지 못했습니다. <b>카카오 디벨로퍼스 → 앱 → 일반 → 앱 기본 정보 → "앱 대표 도메인"</b>에<br>
+        <code style="background:#FEE2E2;padding:1px 5px;border-radius:3px;">${location.origin}</code> 를 등록 후 다시 시도해주세요.
       </div>
     </div>`;
     return;
