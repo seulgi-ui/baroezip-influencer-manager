@@ -10,9 +10,16 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-<!-- Leaflet (지도) -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- 네이버 지도 (아파트게시판) — Client ID 발급 필요: https://console.ncloud.com → Maps → Application 등록 -->
+<script>window.NAVER_MAP_CLIENT_ID = 'YOUR_NAVER_CLIENT_ID';</script>
+<script>
+  // 키가 설정된 경우만 SDK 로드 (placeholder면 fallback 안내 메시지)
+  if (window.NAVER_MAP_CLIENT_ID && window.NAVER_MAP_CLIENT_ID !== 'YOUR_NAVER_CLIENT_ID') {
+    const s = document.createElement('script');
+    s.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=' + window.NAVER_MAP_CLIENT_ID;
+    document.head.appendChild(s);
+  }
+</script>
 <style>
 /* ===== CSS Variables / Design Tokens ===== */
 :root {
@@ -3113,20 +3120,62 @@ img.tt-avatar { object-fit: cover; padding: 0; }
 }
 
 /* ===== 아파트게시판 ===== */
+.apt-region-group { margin-bottom: 20px; }
+.apt-region-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px 10px;
+  border-bottom: 2px solid #E2E8F0;
+  margin-bottom: 12px;
+}
+.apt-region-icon { font-size: 14px; }
+.apt-region-name { font-size: 14px; font-weight: 900; color: #0F172A; letter-spacing: -0.2px; }
+.apt-region-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9px;
+  background: #F1F5F9;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 800;
+}
+.apt-region-sum {
+  margin-left: auto;
+  font-size: 12.5px;
+  color: #0066FF;
+  font-weight: 800;
+}
+.apt-region-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 10px;
+}
+
 .apt-card {
   background: var(--surface);
   border: 1.5px solid var(--border);
   border-radius: 12px;
-  padding: 14px 18px;
+  padding: 12px 14px;
   box-shadow: 0 1px 3px rgba(15,23,42,0.04);
   transition: box-shadow 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .apt-card:hover { box-shadow: 0 4px 14px rgba(15,23,42,0.08); }
-.apt-card-row1 {
+.apt-card-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 7px;
+}
+.apt-card-total {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 900;
+  color: #0066FF;
+  white-space: nowrap;
 }
 .apt-del {
   width: 22px; height: 22px;
@@ -3144,62 +3193,89 @@ img.tt-avatar { object-fit: cover; padding: 0; }
 .apt-type-chip {
   display: inline-flex;
   align-items: center;
-  padding: 2px 9px;
+  padding: 2px 8px;
   border-radius: 9px;
   background: #E0E7FF;
   color: #4338CA;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 800;
+  flex-shrink: 0;
 }
 .apt-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   color: #0F172A;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.apt-card-controls {
-  margin-left: auto;
+.apt-card-meta {
   display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.apt-mini-sel {
-  padding: 4px 8px;
-  font-size: 11.5px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: #fff;
-  cursor: pointer;
-  outline: none;
-}
-.apt-mini-input {
-  padding: 4px 8px;
-  font-size: 11.5px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: #fff;
-  outline: none;
-}
-.apt-mini-input:focus, .apt-mini-sel:focus { border-color: #0066FF; }
-.apt-card-row2 {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
-  font-size: 12px;
-  color: #64748B;
-}
-.apt-cost-item { white-space: nowrap; }
-.apt-cost-val { color: #0F172A; font-weight: 700; margin-left: 3px; }
-.apt-cost-spacer { flex: 1; }
-.apt-cost-total .apt-cost-val { color: #0066FF; font-weight: 900; font-size: 13px; }
-.apt-card-row3 {
-  margin-top: 8px;
-  padding-top: 8px;
+  flex-direction: column;
+  gap: 5px;
+  padding-top: 6px;
   border-top: 1px dashed var(--border);
+}
+.apt-meta-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  font-size: 11.5px;
 }
+.apt-meta-label { color: #64748B; min-width: 96px; }
+.apt-mini-sel, .apt-mini-input {
+  padding: 4px 8px;
+  font-size: 11.5px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+}
+.apt-mini-sel { cursor: pointer; }
+.apt-mini-input:focus, .apt-mini-sel:focus { border-color: #0066FF; }
+
+/* 촬영본 chip / 업로드 */
+.apt-photo-wrap { display: inline-flex; gap: 4px; align-items: center; }
+.apt-photo-chip {
+  display: inline-flex; align-items: center;
+  padding: 4px 9px;
+  border-radius: 7px;
+  background: #DBEAFE;
+  color: #1D4ED8;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid #BFDBFE;
+  cursor: pointer;
+}
+.apt-photo-chip:hover { background: #BFDBFE; }
+.apt-photo-del {
+  width: 22px; height: 22px;
+  border: 1px solid #FECACA;
+  background: #FEF2F2;
+  color: #DC2626;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px; line-height: 1;
+  padding: 0;
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.12s, visibility 0.12s;
+}
+.apt-photo-wrap:hover .apt-photo-del { opacity: 1; visibility: visible; }
+.apt-photo-upload {
+  display: inline-flex; align-items: center;
+  padding: 4px 9px;
+  border-radius: 7px;
+  background: #F1F5F9;
+  color: #64748B;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px dashed #CBD5E1;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.apt-photo-upload:hover { background: #E0E7FF; border-color: #6366F1; color: #4338CA; }
 .settle-file-upload {
   display: inline-flex;
   align-items: center;
@@ -4177,6 +4253,9 @@ img.tt-avatar { object-fit: cover; padding: 0; }
       </div>
       <div style="display:grid;grid-template-columns:120px 1fr;gap:10px 12px;font-size:12.5px;align-items:center;">
         <label>단지명 *</label><input type="text" id="apt-add-name" class="form-input" placeholder="예: 아크로리버파크 아파트">
+        <label>지역 *</label>
+        <input type="text" id="apt-add-region" class="form-input" placeholder="예: 반포, 압구정, 잠원 등" list="apt-region-list">
+        <datalist id="apt-region-list"><option value="반포"><option value="잠원"><option value="신반포"><option value="압구정"><option value="대치"><option value="개포"><option value="잠실"></datalist>
         <label>구분</label>
         <select id="apt-add-type" class="form-input"><option value="일반">일반</option><option value="특가">특가</option><option value="프리미엄">프리미엄</option></select>
         <label>광고비(원)</label><input type="number" id="apt-add-ad" class="form-input" placeholder="0">
@@ -6266,39 +6345,66 @@ function aptSum(a) {
 
 let _aptMap = null;
 let _aptMarkers = [];
+let _aptInfoWindow = null;
 
 function renderAptMap(entries) {
-  if (typeof L === 'undefined') return;
   const mapEl = document.getElementById('apt-map');
   if (!mapEl) return;
-  // 최초 1회만 지도 인스턴스 생성
+
+  // 네이버 지도 SDK 미로드 → 안내 메시지
+  if (typeof naver === 'undefined' || !naver.maps) {
+    mapEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#F8FAFC;border-radius:14px;color:#64748B;text-align:center;padding:30px;flex-direction:column;gap:10px;">
+      <div style="font-size:30px;">🗺️</div>
+      <div style="font-size:14px;font-weight:800;color:#0F172A;">네이버 지도 API 키가 필요합니다</div>
+      <div style="font-size:12px;line-height:1.6;max-width:420px;">
+        <a href="https://console.ncloud.com" target="_blank" rel="noopener" style="color:#0066FF;font-weight:700;">네이버 클라우드 플랫폼</a>에서 Maps Application 등록 후 <b>Client ID</b>를 발급받고,<br>코드 상단 <code style="background:#F1F5F9;padding:1px 5px;border-radius:3px;">window.NAVER_MAP_CLIENT_ID</code> 값에 입력해주세요.<br>
+        <span style="color:#94A3B8;">서비스 환경: 웹 / URL: ${location.origin}</span>
+      </div>
+    </div>`;
+    return;
+  }
+
+  // 최초 1회만 지도 인스턴스
   if (!_aptMap) {
-    _aptMap = L.map('apt-map', { zoomControl: true, attributionControl: false })
-      .setView([37.515, 127.015], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(_aptMap);
-    // 사이즈 보정 (탭 진입 시 width:0 상태였을 수 있음)
-    setTimeout(() => _aptMap.invalidateSize(), 100);
-  } else {
-    setTimeout(() => _aptMap.invalidateSize(), 50);
+    _aptMap = new naver.maps.Map(mapEl, {
+      center: new naver.maps.LatLng(37.515, 127.015),
+      zoom: 13,
+      zoomControl: true,
+    });
+    _aptInfoWindow = new naver.maps.InfoWindow({ content: '', borderWidth: 0, anchorSize: new naver.maps.Size(10, 10), pixelOffset: new naver.maps.Point(0, -6) });
   }
   // 기존 마커 제거
-  _aptMarkers.forEach(m => _aptMap.removeLayer(m));
+  _aptMarkers.forEach(m => m.setMap(null));
   _aptMarkers = [];
+
   const coords = [];
   entries.forEach(([id, a]) => {
     if (!a.lat || !a.lng) return;
-    const m = L.marker([a.lat, a.lng])
-      .addTo(_aptMap)
-      .bindPopup(`<b>${a.name}</b><br>${a.type || '일반'} · ${fmtKRW2(aptSum(a))}<br><span style="color:#64748B;font-size:11px;">${a.liveDate ? '계획: ' + a.liveDate : '계획일 미정'}</span>`);
-    _aptMarkers.push(m);
-    coords.push([a.lat, a.lng]);
+    const pos = new naver.maps.LatLng(a.lat, a.lng);
+    const marker = new naver.maps.Marker({ position: pos, map: _aptMap, title: a.name });
+    naver.maps.Event.addListener(marker, 'click', () => {
+      _aptInfoWindow.setContent(`<div style="padding:10px 14px;min-width:180px;font-family:inherit;">
+        <div style="font-size:13px;font-weight:800;color:#0F172A;margin-bottom:4px;">${escapeHtml(a.name)}</div>
+        <div style="font-size:11.5px;color:#64748B;line-height:1.6;">
+          ${escapeHtml(a.region || '')} · ${escapeHtml(a.type || '일반')}<br>
+          합계 <b style="color:#0066FF;">${fmtKRW2(aptSum(a))}</b><br>
+          ${a.liveDate ? '📅 ' + a.liveDate : '계획일 미정'}
+        </div>
+      </div>`);
+      _aptInfoWindow.open(_aptMap, marker);
+    });
+    _aptMarkers.push(marker);
+    coords.push(pos);
   });
-  // 마커들 다 보이도록 자동 줌
+  // 모든 마커 보이도록 자동 fitBounds
   if (coords.length) {
-    const bounds = L.latLngBounds(coords);
-    _aptMap.fitBounds(bounds.pad(0.2), { maxZoom: 15 });
+    const bounds = new naver.maps.LatLngBounds(coords[0], coords[0]);
+    coords.forEach(p => bounds.extend(p));
+    _aptMap.fitBounds(bounds, 60);
   }
 }
+
+const REGION_ORDER = ['반포', '잠원', '신반포', '압구정'];
 
 function renderAptBoard() {
   const list = document.getElementById('apt-board-list');
@@ -6312,46 +6418,71 @@ function renderAptBoard() {
   const totalSum = entries.reduce((s, [_, a]) => s + aptSum(a), 0);
   document.getElementById('apt-total-summary').textContent = `총 ${entries.length}개 단지 · 합계 ${fmtKRW2(totalSum)}`;
 
+  // 지역별 그룹핑
+  const groups = {};
+  entries.forEach(([id, a]) => {
+    const region = a.region || '기타';
+    if (!groups[region]) groups[region] = [];
+    groups[region].push([id, a]);
+  });
+  const regionKeys = Object.keys(groups).sort((a, b) => {
+    const ai = REGION_ORDER.indexOf(a), bi = REGION_ORDER.indexOf(b);
+    if (ai === -1 && bi === -1) return a.localeCompare(b);
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
+
   if (!entries.length) {
     list.innerHTML = `<div style="text-align:center;padding:60px 20px;color:#94A3B8;font-size:13px;background:var(--surface);border-radius:14px;border:1.5px dashed var(--border);">등록된 단지가 없습니다.<br><button onclick="openAptAddModal()" class="btn btn-primary btn-sm" style="margin-top:14px;">+ 단지 추가</button></div>`;
     return;
   }
 
-  list.innerHTML = entries.map(([id, a]) => {
+  const renderCard = ([id, a]) => {
     const sum = aptSum(a);
+    const photoCell = a.photoUrl
+      ? `<div class="apt-photo-wrap">
+          <button type="button" class="apt-photo-chip" onclick="openAptPhoto('${id}')" title="${escapeHtml(a.photoFileName || '촬영본')}">🖼️ 촬영본</button>
+          <button type="button" class="apt-photo-del" onclick="deleteAptPhoto('${id}')" title="삭제">×</button>
+        </div>`
+      : `<label class="apt-photo-upload" title="촬영본 이미지 업로드 (JPG/PNG, 5MB↓)">📎 업로드
+          <input type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" style="display:none;" onchange="uploadAptPhoto('${id}', this)">
+         </label>`;
     return `<div class="apt-card">
-      <div class="apt-card-row1">
+      <div class="apt-card-head">
         <button class="apt-del" onclick="deleteApt('${id}')" title="삭제">×</button>
         <span class="apt-type-chip">${escapeHtml(a.type || '일반')}</span>
         <span class="apt-name">${escapeHtml(a.name)}</span>
-        <div class="apt-card-controls">
-          <span style="font-size:11px;color:#64748B;">사진촬영</span>
-          <select class="apt-mini-sel" onchange="updateApt('${id}','photoOption',this.value)">
-            <option value="shoot" ${a.photoOption==='shoot'?'selected':''}>사진 촬영</option>
-            <option value="self"  ${a.photoOption==='self' ?'selected':''}>자체 제공</option>
-          </select>
-          <span style="font-size:11px;color:#64748B;margin-left:8px;">기간</span>
+        <span class="apt-card-total">${fmtKRW2(sum)}</span>
+      </div>
+      <div class="apt-card-meta">
+        <div class="apt-meta-row"><span class="apt-meta-label">촬영본</span>${photoCell}</div>
+        <div class="apt-meta-row"><span class="apt-meta-label">기간</span>
           <select class="apt-mini-sel" onchange="updateApt('${id}','durationDays',Number(this.value))">
             <option value="7"  ${a.durationDays===7 ?'selected':''}>7일</option>
             <option value="14" ${a.durationDays===14?'selected':''}>14일</option>
             <option value="30" ${a.durationDays===30?'selected':''}>30일</option>
           </select>
         </div>
+        <div class="apt-meta-row"><span class="apt-meta-label">📅 실제 라이브일</span>
+          <input type="date" value="${a.liveDate||''}" onchange="updateApt('${id}','liveDate',this.value)" class="apt-mini-input">
+        </div>
       </div>
-      <div class="apt-card-row2">
-        <div class="apt-cost-item">광고비 <span class="apt-cost-val">${fmtKRW2(a.adCost)}</span></div>
-        <div class="apt-cost-item">접수비 <span class="apt-cost-val">${fmtKRW2(a.receiptCost)}</span></div>
-        <div class="apt-cost-item">부착비 <span class="apt-cost-val">${fmtKRW2(a.attachCost)}</span></div>
-        <div class="apt-cost-item">촬영비 <span class="apt-cost-val">${fmtKRW2(a.shootCost)}</span></div>
-        <div class="apt-cost-item">대행수수료 <span class="apt-cost-val">${fmtKRW2(a.agencyCost)}</span></div>
-        <div class="apt-cost-spacer"></div>
-        <div class="apt-cost-item apt-cost-total">합계 <span class="apt-cost-val">${fmtKRW2(sum)}</span></div>
+    </div>`;
+  };
+
+  list.innerHTML = regionKeys.map(region => {
+    const cards = groups[region];
+    const regionSum = cards.reduce((s, [, a]) => s + aptSum(a), 0);
+    return `<div class="apt-region-group">
+      <div class="apt-region-header">
+        <span class="apt-region-icon">📍</span>
+        <span class="apt-region-name">${escapeHtml(region)}</span>
+        <span class="apt-region-count">${cards.length}단지</span>
+        <span class="apt-region-sum">합계 ${fmtKRW2(regionSum)}</span>
       </div>
-      <div class="apt-card-row3">
-        <span style="color:#64748B;font-size:11px;">📅 라이브 계획일</span>
-        <input type="date" value="${a.liveDate||''}" onchange="updateApt('${id}','liveDate',this.value)" class="apt-mini-input">
-        <span style="color:#64748B;font-size:11px;margin-left:14px;">실제 라이브 주차</span>
-        <input type="text" value="${escapeHtml(a.liveWeek||'')}" placeholder="예: 7월 2주차" onchange="updateApt('${id}','liveWeek',this.value)" class="apt-mini-input" style="width:120px;">
+      <div class="apt-region-grid">
+        ${cards.map(renderCard).join('')}
       </div>
     </div>`;
   }).join('');
@@ -6364,6 +6495,84 @@ function updateApt(id, field, value) {
   }
 }
 
+// 촬영본 이미지 업로드 (base64 RTDB 저장 — settlement 패턴과 동일)
+async function uploadAptPhoto(id, inputEl) {
+  const file = inputEl.files && inputEl.files[0];
+  if (!file) return;
+  if (!/^image\/(jpeg|png)$/.test(file.type) && !/\.(jpe?g|png)$/i.test(file.name)) {
+    alert('JPG / JPEG / PNG 만 업로드 가능합니다.'); inputEl.value = ''; return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    alert('파일이 너무 큽니다. 5MB 이하만 업로드 가능합니다.'); inputEl.value = ''; return;
+  }
+  const label = inputEl.closest('label');
+  const setProg = pct => {
+    if (!label) return;
+    Array.from(label.childNodes).forEach(n => { if (n.nodeType === Node.TEXT_NODE) n.remove(); });
+    label.insertBefore(document.createTextNode(`⏳ ${pct}% `), label.firstChild);
+    label.style.pointerEvents = 'none';
+  };
+  setProg(0);
+  try {
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onprogress = ev => {
+        if (ev.lengthComputable) setProg(Math.min(99, Math.round((ev.loaded / ev.total) * 100)));
+      };
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error || new Error('FileReader failed'));
+      reader.readAsDataURL(file);
+    });
+    setProg(100);
+    const updates = {
+      photoUrl: dataUrl,
+      photoFileName: file.name,
+      photoMime: file.type,
+      photoSize: file.size,
+      updatedAt: Date.now(),
+    };
+    if (firebaseReady && db) {
+      await db.ref('campaign/apt-board/' + id).update(updates);
+    }
+    showToast('촬영본 업로드 완료');
+  } catch (e) {
+    console.error('apt photo upload failed', e);
+    alert('업로드 실패: ' + (e.message || e));
+  } finally {
+    inputEl.value = '';
+  }
+}
+
+function openAptPhoto(id) {
+  const a = aptBoardData[id];
+  if (!a || !a.photoUrl) return;
+  const url = a.photoUrl;
+  const name = a.photoFileName || '촬영본';
+  if (url.startsWith('data:')) {
+    fetch(url).then(r => r.blob()).then(blob => {
+      const blobUrl = URL.createObjectURL(blob);
+      const win = window.open(blobUrl, '_blank', 'noopener');
+      if (!win) {
+        const link = document.createElement('a');
+        link.href = blobUrl; link.download = name;
+        document.body.appendChild(link); link.click(); link.remove();
+      }
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+    }).catch(e => alert('파일 열기 실패: ' + (e.message || e)));
+  } else {
+    window.open(url, '_blank', 'noopener');
+  }
+}
+
+function deleteAptPhoto(id) {
+  if (!confirm('촬영본을 삭제할까요?')) return;
+  if (firebaseReady && db) {
+    db.ref('campaign/apt-board/' + id).update({
+      photoUrl: '', photoFileName: '', photoMime: '', photoSize: 0, updatedAt: Date.now()
+    });
+  }
+}
+
 function deleteApt(id) {
   const a = aptBoardData[id];
   if (!a) return;
@@ -6373,7 +6582,7 @@ function deleteApt(id) {
 
 function openAptAddModal() {
   document.getElementById('apt-add-modal').style.display = 'flex';
-  ['name','ad','attach','agency','lat','lng'].forEach(k => document.getElementById('apt-add-' + k).value = '');
+  ['name','region','ad','attach','agency','lat','lng'].forEach(k => document.getElementById('apt-add-' + k).value = '');
   document.getElementById('apt-add-type').value = '일반';
   document.getElementById('apt-add-receipt').value = '0';
   document.getElementById('apt-add-shoot').value = '0';
@@ -6383,11 +6592,14 @@ function closeAptAddModal() {
 }
 function saveAptAdd() {
   const name = document.getElementById('apt-add-name').value.trim();
+  const region = document.getElementById('apt-add-region').value.trim();
   if (!name) { alert('단지명을 입력해주세요.'); return; }
+  if (!region) { alert('지역을 입력해주세요.'); return; }
   const orders = Object.values(aptBoardData).map(a => Number(a.order)||0);
   const nextOrder = orders.length ? Math.max(...orders) + 1 : 1;
   const payload = {
     name,
+    region,
     type: document.getElementById('apt-add-type').value,
     adCost:      Number(document.getElementById('apt-add-ad').value)      || 0,
     receiptCost: Number(document.getElementById('apt-add-receipt').value) || 0,
