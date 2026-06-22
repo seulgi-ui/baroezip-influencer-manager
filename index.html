@@ -10,13 +10,14 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-<!-- 네이버 지도 (아파트게시판) — Client ID 발급 필요: https://console.ncloud.com → Maps → Application 등록 -->
-<script>window.NAVER_MAP_CLIENT_ID = 'YOUR_NAVER_CLIENT_ID';</script>
+<!-- 카카오 지도 (아파트게시판) — JavaScript 키 발급: https://developers.kakao.com → 내 애플리케이션 -->
+<script>window.KAKAO_MAP_KEY = 'YOUR_KAKAO_JS_KEY';</script>
 <script>
   // 키가 설정된 경우만 SDK 로드 (placeholder면 fallback 안내 메시지)
-  if (window.NAVER_MAP_CLIENT_ID && window.NAVER_MAP_CLIENT_ID !== 'YOUR_NAVER_CLIENT_ID') {
+  if (window.KAKAO_MAP_KEY && window.KAKAO_MAP_KEY !== 'YOUR_KAKAO_JS_KEY') {
     const s = document.createElement('script');
-    s.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=' + window.NAVER_MAP_CLIENT_ID;
+    s.src = '//dapi.kakao.com/v2/maps/sdk.js?appkey=' + window.KAKAO_MAP_KEY + '&autoload=false';
+    s.onload = () => { if (window.kakao && window.kakao.maps) kakao.maps.load(() => { if (window.currentSection === 'apt' && typeof renderAptBoard === 'function') renderAptBoard(); }); };
     document.head.appendChild(s);
   }
 </script>
@@ -6351,14 +6352,18 @@ function renderAptMap(entries) {
   const mapEl = document.getElementById('apt-map');
   if (!mapEl) return;
 
-  // 네이버 지도 SDK 미로드 → 안내 메시지
-  if (typeof naver === 'undefined' || !naver.maps) {
+  // 카카오 지도 SDK 미로드 → 안내 메시지
+  if (typeof kakao === 'undefined' || !kakao.maps || !kakao.maps.Map) {
     mapEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#F8FAFC;border-radius:14px;color:#64748B;text-align:center;padding:30px;flex-direction:column;gap:10px;">
       <div style="font-size:30px;">🗺️</div>
-      <div style="font-size:14px;font-weight:800;color:#0F172A;">네이버 지도 API 키가 필요합니다</div>
-      <div style="font-size:12px;line-height:1.6;max-width:420px;">
-        <a href="https://console.ncloud.com" target="_blank" rel="noopener" style="color:#0066FF;font-weight:700;">네이버 클라우드 플랫폼</a>에서 Maps Application 등록 후 <b>Client ID</b>를 발급받고,<br>코드 상단 <code style="background:#F1F5F9;padding:1px 5px;border-radius:3px;">window.NAVER_MAP_CLIENT_ID</code> 값에 입력해주세요.<br>
-        <span style="color:#94A3B8;">서비스 환경: 웹 / URL: ${location.origin}</span>
+      <div style="font-size:14px;font-weight:800;color:#0F172A;">카카오 지도 JavaScript 키가 필요합니다</div>
+      <div style="font-size:12px;line-height:1.7;max-width:480px;text-align:left;">
+        <b>발급 절차 (3분):</b><br>
+        1. <a href="https://developers.kakao.com" target="_blank" rel="noopener" style="color:#0066FF;font-weight:700;">카카오 디벨로퍼스</a> 카카오 계정 로그인<br>
+        2. <b>내 애플리케이션 → 애플리케이션 추가하기</b> (앱 이름 자유)<br>
+        3. <b>앱 키</b> 페이지의 <b>JavaScript 키</b> 복사<br>
+        4. <b>플랫폼 → Web 플랫폼 등록</b>에 사이트 도메인 추가: <code style="background:#F1F5F9;padding:1px 5px;border-radius:3px;">${location.origin}</code><br>
+        5. 받은 키를 알려주시면 바로 활성화해드려요
       </div>
     </div>`;
     return;
@@ -6366,41 +6371,47 @@ function renderAptMap(entries) {
 
   // 최초 1회만 지도 인스턴스
   if (!_aptMap) {
-    _aptMap = new naver.maps.Map(mapEl, {
-      center: new naver.maps.LatLng(37.515, 127.015),
-      zoom: 13,
-      zoomControl: true,
+    _aptMap = new kakao.maps.Map(mapEl, {
+      center: new kakao.maps.LatLng(37.515, 127.015),
+      level: 6,
     });
-    _aptInfoWindow = new naver.maps.InfoWindow({ content: '', borderWidth: 0, anchorSize: new naver.maps.Size(10, 10), pixelOffset: new naver.maps.Point(0, -6) });
+    _aptMap.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
+  } else {
+    _aptMap.relayout();
   }
-  // 기존 마커 제거
+  // 기존 마커/인포윈도우 정리
   _aptMarkers.forEach(m => m.setMap(null));
   _aptMarkers = [];
+  if (_aptInfoWindow) _aptInfoWindow.close();
 
   const coords = [];
   entries.forEach(([id, a]) => {
     if (!a.lat || !a.lng) return;
-    const pos = new naver.maps.LatLng(a.lat, a.lng);
-    const marker = new naver.maps.Marker({ position: pos, map: _aptMap, title: a.name });
-    naver.maps.Event.addListener(marker, 'click', () => {
-      _aptInfoWindow.setContent(`<div style="padding:10px 14px;min-width:180px;font-family:inherit;">
-        <div style="font-size:13px;font-weight:800;color:#0F172A;margin-bottom:4px;">${escapeHtml(a.name)}</div>
-        <div style="font-size:11.5px;color:#64748B;line-height:1.6;">
-          ${escapeHtml(a.region || '')} · ${escapeHtml(a.type || '일반')}<br>
-          합계 <b style="color:#0066FF;">${fmtKRW2(aptSum(a))}</b><br>
-          ${a.liveDate ? '📅 ' + a.liveDate : '계획일 미정'}
-        </div>
-      </div>`);
+    const pos = new kakao.maps.LatLng(a.lat, a.lng);
+    const marker = new kakao.maps.Marker({ position: pos, map: _aptMap, title: a.name });
+    kakao.maps.event.addListener(marker, 'click', () => {
+      if (_aptInfoWindow) _aptInfoWindow.close();
+      _aptInfoWindow = new kakao.maps.InfoWindow({
+        content: `<div style="padding:10px 14px;min-width:180px;font-family:inherit;">
+          <div style="font-size:13px;font-weight:800;color:#0F172A;margin-bottom:4px;">${escapeHtml(a.name)}</div>
+          <div style="font-size:11.5px;color:#64748B;line-height:1.6;">
+            ${escapeHtml(a.region || '')} · ${escapeHtml(a.type || '일반')}<br>
+            합계 <b style="color:#0066FF;">${fmtKRW2(aptSum(a))}</b><br>
+            ${a.liveDate ? '📅 ' + a.liveDate : '라이브일 미정'}
+          </div>
+        </div>`,
+        removable: true,
+      });
       _aptInfoWindow.open(_aptMap, marker);
     });
     _aptMarkers.push(marker);
     coords.push(pos);
   });
-  // 모든 마커 보이도록 자동 fitBounds
+  // 모든 마커 보이도록 자동 영역 설정
   if (coords.length) {
-    const bounds = new naver.maps.LatLngBounds(coords[0], coords[0]);
+    const bounds = new kakao.maps.LatLngBounds();
     coords.forEach(p => bounds.extend(p));
-    _aptMap.fitBounds(bounds, 60);
+    _aptMap.setBounds(bounds, 40);
   }
 }
 
