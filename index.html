@@ -10,6 +10,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+<!-- Leaflet (지도) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 /* ===== CSS Variables / Design Tokens ===== */
 :root {
@@ -4160,6 +4163,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
       </div>
     </div>
     <div class="main-body" style="padding:22px 28px;">
+      <div id="apt-map" style="width:100%;height:380px;border-radius:14px;border:1.5px solid var(--border);margin-bottom:18px;background:#F1F5F9;"></div>
       <div id="apt-board-list" style="display:flex;flex-direction:column;gap:10px;"></div>
     </div>
   </section>
@@ -6260,12 +6264,50 @@ function aptSum(a) {
   return (Number(a.adCost)||0) + (Number(a.receiptCost)||0) + (Number(a.attachCost)||0) + (Number(a.shootCost)||0) + (Number(a.agencyCost)||0);
 }
 
+let _aptMap = null;
+let _aptMarkers = [];
+
+function renderAptMap(entries) {
+  if (typeof L === 'undefined') return;
+  const mapEl = document.getElementById('apt-map');
+  if (!mapEl) return;
+  // 최초 1회만 지도 인스턴스 생성
+  if (!_aptMap) {
+    _aptMap = L.map('apt-map', { zoomControl: true, attributionControl: false })
+      .setView([37.515, 127.015], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(_aptMap);
+    // 사이즈 보정 (탭 진입 시 width:0 상태였을 수 있음)
+    setTimeout(() => _aptMap.invalidateSize(), 100);
+  } else {
+    setTimeout(() => _aptMap.invalidateSize(), 50);
+  }
+  // 기존 마커 제거
+  _aptMarkers.forEach(m => _aptMap.removeLayer(m));
+  _aptMarkers = [];
+  const coords = [];
+  entries.forEach(([id, a]) => {
+    if (!a.lat || !a.lng) return;
+    const m = L.marker([a.lat, a.lng])
+      .addTo(_aptMap)
+      .bindPopup(`<b>${a.name}</b><br>${a.type || '일반'} · ${fmtKRW2(aptSum(a))}<br><span style="color:#64748B;font-size:11px;">${a.liveDate ? '계획: ' + a.liveDate : '계획일 미정'}</span>`);
+    _aptMarkers.push(m);
+    coords.push([a.lat, a.lng]);
+  });
+  // 마커들 다 보이도록 자동 줌
+  if (coords.length) {
+    const bounds = L.latLngBounds(coords);
+    _aptMap.fitBounds(bounds.pad(0.2), { maxZoom: 15 });
+  }
+}
+
 function renderAptBoard() {
   const list = document.getElementById('apt-board-list');
   if (!list) return;
   const entries = Object.entries(aptBoardData)
     .filter(([id, a]) => a && a.name)
     .sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
+
+  renderAptMap(entries);
 
   const totalSum = entries.reduce((s, [_, a]) => s + aptSum(a), 0);
   document.getElementById('apt-total-summary').textContent = `총 ${entries.length}개 단지 · 합계 ${fmtKRW2(totalSum)}`;
