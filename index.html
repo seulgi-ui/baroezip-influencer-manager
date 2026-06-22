@@ -10,31 +10,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-<!-- 카카오 지도 (아파트게시판) — JavaScript 키 발급: https://developers.kakao.com -->
-<script>window.KAKAO_MAP_KEY = '37fc0aa6fb04ea6b69678b47785f065f';</script>
-<script>
-  window._kakaoMapReady = false;
-  if (window.KAKAO_MAP_KEY && window.KAKAO_MAP_KEY !== 'YOUR_KAKAO_JS_KEY') {
-    const s = document.createElement('script');
-    s.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + window.KAKAO_MAP_KEY + '&autoload=false';
-    s.onload = () => {
-      console.log('[Kakao Maps] SDK script loaded');
-      if (window.kakao && window.kakao.maps) {
-        kakao.maps.load(() => {
-          window._kakaoMapReady = true;
-          console.log('[Kakao Maps] API ready');
-          if (window.currentSection === 'apt' && typeof renderAptBoard === 'function') renderAptBoard();
-        });
-      } else {
-        console.error('[Kakao Maps] kakao.maps 객체 누락 — 키/도메인 확인 필요');
-      }
-    };
-    s.onerror = (e) => {
-      console.error('[Kakao Maps] SDK 로드 실패:', e);
-    };
-    document.head.appendChild(s);
-  }
-</script>
+<!-- Leaflet 지도 (아파트게시판) — API 키 불필요, OpenStreetMap + CartoDB Voyager 타일 -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 /* ===== CSS Variables / Design Tokens ===== */
 :root {
@@ -6360,80 +6338,49 @@ function aptSum(a) {
 
 let _aptMap = null;
 let _aptMarkers = [];
-let _aptInfoWindow = null;
 
 function renderAptMap(entries) {
+  if (typeof L === 'undefined') return;
   const mapEl = document.getElementById('apt-map');
   if (!mapEl) return;
 
-  // SDK 아직 로딩 중 → 로딩 안내 + 1초 후 재시도
-  if (!window._kakaoMapReady) {
-    mapEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#F8FAFC;border-radius:14px;color:#64748B;text-align:center;padding:30px;flex-direction:column;gap:10px;">
-      <div style="font-size:30px;">⏳</div>
-      <div style="font-size:14px;font-weight:800;color:#0F172A;">지도 로딩 중...</div>
-      <div style="font-size:11px;color:#94A3B8;">5초 이상 안 뜨면 콘솔(F12)의 빨간 에러 메시지를 알려주세요.<br>도메인 미등록일 가능성 큼.</div>
-    </div>`;
-    // 카카오 SDK가 아직 안 떴으면 잠시 후 재시도
-    setTimeout(() => {
-      if (window._kakaoMapReady && window.currentSection === 'apt') renderAptMap(entries);
-    }, 800);
-    return;
-  }
-  if (typeof kakao === 'undefined' || !kakao.maps || !kakao.maps.Map) {
-    mapEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#FEF2F2;border-radius:14px;color:#B91C1C;text-align:center;padding:30px;flex-direction:column;gap:10px;">
-      <div style="font-size:30px;">🚫</div>
-      <div style="font-size:14px;font-weight:800;">카카오 지도 API 객체 누락</div>
-      <div style="font-size:12px;line-height:1.7;color:#7F1D1D;max-width:440px;">
-        키는 있으나 SDK가 정상 로드되지 못했습니다. <b>카카오 디벨로퍼스 → 앱 → 일반 → 앱 기본 정보 → "앱 대표 도메인"</b>에<br>
-        <code style="background:#FEE2E2;padding:1px 5px;border-radius:3px;">${location.origin}</code> 를 등록 후 다시 시도해주세요.
-      </div>
-    </div>`;
-    return;
+  // 최초 1회만 지도 인스턴스 생성 (Leaflet + CartoDB Voyager 타일)
+  if (!_aptMap) {
+    _aptMap = L.map('apt-map', { zoomControl: true, attributionControl: false })
+      .setView([37.515, 127.015], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd',
+      maxZoom: 20,
+    }).addTo(_aptMap);
+    setTimeout(() => _aptMap.invalidateSize(), 100);
+  } else {
+    setTimeout(() => _aptMap.invalidateSize(), 50);
   }
 
-  // 최초 1회만 지도 인스턴스
-  if (!_aptMap) {
-    _aptMap = new kakao.maps.Map(mapEl, {
-      center: new kakao.maps.LatLng(37.515, 127.015),
-      level: 6,
-    });
-    _aptMap.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
-  } else {
-    _aptMap.relayout();
-  }
-  // 기존 마커/인포윈도우 정리
-  _aptMarkers.forEach(m => m.setMap(null));
+  // 기존 마커 제거
+  _aptMarkers.forEach(m => _aptMap.removeLayer(m));
   _aptMarkers = [];
-  if (_aptInfoWindow) _aptInfoWindow.close();
 
   const coords = [];
   entries.forEach(([id, a]) => {
     if (!a.lat || !a.lng) return;
-    const pos = new kakao.maps.LatLng(a.lat, a.lng);
-    const marker = new kakao.maps.Marker({ position: pos, map: _aptMap, title: a.name });
-    kakao.maps.event.addListener(marker, 'click', () => {
-      if (_aptInfoWindow) _aptInfoWindow.close();
-      _aptInfoWindow = new kakao.maps.InfoWindow({
-        content: `<div style="padding:10px 14px;min-width:180px;font-family:inherit;">
-          <div style="font-size:13px;font-weight:800;color:#0F172A;margin-bottom:4px;">${escapeHtml(a.name)}</div>
-          <div style="font-size:11.5px;color:#64748B;line-height:1.6;">
-            ${escapeHtml(a.region || '')} · ${escapeHtml(a.type || '일반')}<br>
-            합계 <b style="color:#0066FF;">${fmtKRW2(aptSum(a))}</b><br>
-            ${a.liveDate ? '📅 ' + a.liveDate : '라이브일 미정'}
-          </div>
-        </div>`,
-        removable: true,
-      });
-      _aptInfoWindow.open(_aptMap, marker);
-    });
-    _aptMarkers.push(marker);
-    coords.push(pos);
+    const m = L.marker([a.lat, a.lng])
+      .addTo(_aptMap)
+      .bindPopup(`<div style="font-family:inherit;min-width:160px;">
+        <div style="font-size:13px;font-weight:800;color:#0F172A;margin-bottom:4px;">${escapeHtml(a.name)}</div>
+        <div style="font-size:11.5px;color:#64748B;line-height:1.6;">
+          ${escapeHtml(a.region || '')} · ${escapeHtml(a.type || '일반')}<br>
+          합계 <b style="color:#0066FF;">${fmtKRW2(aptSum(a))}</b><br>
+          ${a.liveDate ? '📅 ' + a.liveDate : '라이브일 미정'}
+        </div>
+      </div>`);
+    _aptMarkers.push(m);
+    coords.push([a.lat, a.lng]);
   });
-  // 모든 마커 보이도록 자동 영역 설정
+
   if (coords.length) {
-    const bounds = new kakao.maps.LatLngBounds();
-    coords.forEach(p => bounds.extend(p));
-    _aptMap.setBounds(bounds, 40);
+    const bounds = L.latLngBounds(coords);
+    _aptMap.fitBounds(bounds.pad(0.2), { maxZoom: 15 });
   }
 }
 
