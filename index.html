@@ -467,6 +467,42 @@ table { border-collapse: collapse; width: 100%; }
 }
 .nav-item svg { display: none; }
 .nav-item .nav-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* 그룹 부모 — 인플루언서 */
+.nav-parent .nav-chevron {
+  margin-left: auto;
+  font-size: 9px;
+  opacity: 0.5;
+  transition: transform 0.2s;
+}
+.nav-parent.active .nav-chevron { opacity: 0.9; }
+/* 하위 메뉴 (프로젝트/캘린더/비용 정산) */
+.nav-sub {
+  padding-left: 30px;
+  font-size: 12.5px;
+  position: relative;
+  margin-bottom: 2px;
+}
+.nav-sub .nav-sub-bar {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.18);
+  flex-shrink: 0;
+}
+.nav-sub.active .nav-sub-bar { background: #A855F7; box-shadow: 0 0 6px rgba(168,85,247,0.6); }
+.nav-sub::before {
+  content: '';
+  position: absolute;
+  left: 21px; top: 0; bottom: 0;
+  width: 1px;
+  background: rgba(255,255,255,0.08);
+}
+/* 같은 부모(인플루언서) 그룹의 마지막 sub-item — 선 짧게 */
+.nav-sub:last-of-type::before { bottom: 50%; }
 .nav-section-label {
   font-size: 9px;
   font-weight: 600;
@@ -3958,20 +3994,21 @@ img.tt-avatar { object-fit: cover; padding: 0; }
         <div class="nav-dot"></div>
         <span class="nav-label">언론홍보</span>
       </div>
-      <div class="nav-item" data-section="influencer" onclick="navigate('influencer')">
+      <div class="nav-item nav-parent" data-section="influencer" onclick="navigate('influencer')">
         <div class="nav-dot"></div>
         <span class="nav-label">인플루언서</span>
+        <span class="nav-chevron">▾</span>
       </div>
-      <div class="nav-item" data-section="projects" onclick="navigate('projects')">
-        <div class="nav-dot"></div>
+      <div class="nav-item nav-sub" data-section="projects" onclick="navigate('projects')">
+        <span class="nav-sub-bar"></span>
         <span class="nav-label">프로젝트</span>
       </div>
-      <div class="nav-item" data-section="calendar" onclick="navigate('calendar')">
-        <div class="nav-dot"></div>
+      <div class="nav-item nav-sub" data-section="calendar" onclick="navigate('calendar')">
+        <span class="nav-sub-bar"></span>
         <span class="nav-label">캘린더</span>
       </div>
-      <div class="nav-item" data-section="settlement" onclick="navigate('settlement')">
-        <div class="nav-dot"></div>
+      <div class="nav-item nav-sub" data-section="settlement" onclick="navigate('settlement')">
+        <span class="nav-sub-bar"></span>
         <span class="nav-label">비용 정산</span>
       </div>
     </nav>
