@@ -4253,12 +4253,9 @@ img.tt-avatar { object-fit: cover; padding: 0; }
         <label>구분</label>
         <select id="apt-add-type" class="form-input"><option value="일반">일반</option><option value="특가">특가</option><option value="프리미엄">프리미엄</option></select>
         <label>광고비(원)</label><input type="number" id="apt-add-ad" class="form-input" placeholder="0">
-        <label>접수비(원)</label><input type="number" id="apt-add-receipt" class="form-input" placeholder="0" value="0">
-        <label>부착비(원)</label><input type="number" id="apt-add-attach" class="form-input" placeholder="0">
-        <label>촬영비(원)</label><input type="number" id="apt-add-shoot" class="form-input" placeholder="0" value="0">
-        <label>대행수수료(원)</label><input type="number" id="apt-add-agency" class="form-input" placeholder="0">
-        <label>위도</label><input type="number" id="apt-add-lat" class="form-input" placeholder="37.51" step="0.0001">
-        <label>경도</label><input type="number" id="apt-add-lng" class="form-input" placeholder="127.00" step="0.0001">
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--text-muted);background:#F8FAFC;padding:8px 12px;border-radius:8px;line-height:1.6;">
+        📍 위치(위도/경도)는 <b>단지명·지역</b>을 기반으로 자동 매칭됩니다. (OpenStreetMap)
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px;">
         <button type="button" onclick="closeAptAddModal()" class="btn btn-secondary btn-sm">취소</button>
@@ -6563,42 +6560,76 @@ function deleteApt(id) {
 
 function openAptAddModal() {
   document.getElementById('apt-add-modal').style.display = 'flex';
-  ['name','region','ad','attach','agency','lat','lng'].forEach(k => document.getElementById('apt-add-' + k).value = '');
+  ['name','region','ad'].forEach(k => document.getElementById('apt-add-' + k).value = '');
   document.getElementById('apt-add-type').value = '일반';
-  document.getElementById('apt-add-receipt').value = '0';
-  document.getElementById('apt-add-shoot').value = '0';
 }
 function closeAptAddModal() {
   document.getElementById('apt-add-modal').style.display = 'none';
 }
-function saveAptAdd() {
+
+// 단지명·지역으로 좌표 자동 매칭 (OpenStreetMap Nominatim — 키 불필요)
+async function geocodeApt(name, region) {
+  try {
+    // 우선순위 1: "서울 {지역} {단지명}"
+    const candidates = [
+      `서울 ${region} ${name}`,
+      `${region} ${name}`,
+      `${region} ${name.replace(/ ?아파트$/, '')} 아파트`,
+      name,
+    ];
+    for (const q of candidates) {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=kr&accept-language=ko`;
+      const r = await fetch(url, { headers: { 'Accept': 'application/json' }});
+      const data = await r.json();
+      if (Array.isArray(data) && data.length) {
+        return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+      }
+      // Nominatim rate limit: 1초당 1요청
+      await new Promise(rs => setTimeout(rs, 600));
+    }
+  } catch (e) { console.warn('geocode failed:', e); }
+  return null;
+}
+
+async function saveAptAdd() {
   const name = document.getElementById('apt-add-name').value.trim();
   const region = document.getElementById('apt-add-region').value.trim();
   if (!name) { alert('단지명을 입력해주세요.'); return; }
   if (!region) { alert('지역을 입력해주세요.'); return; }
+
+  const saveBtn = event && event.target;
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '⏳ 위치 매칭 중...'; }
+
+  // 좌표 자동 매칭
+  const geo = await geocodeApt(name, region);
+
   const orders = Object.values(aptBoardData).map(a => Number(a.order)||0);
   const nextOrder = orders.length ? Math.max(...orders) + 1 : 1;
   const payload = {
     name,
     region,
     type: document.getElementById('apt-add-type').value,
-    adCost:      Number(document.getElementById('apt-add-ad').value)      || 0,
-    receiptCost: Number(document.getElementById('apt-add-receipt').value) || 0,
-    attachCost:  Number(document.getElementById('apt-add-attach').value)  || 0,
-    shootCost:   Number(document.getElementById('apt-add-shoot').value)   || 0,
-    agencyCost:  Number(document.getElementById('apt-add-agency').value)  || 0,
+    adCost:      Number(document.getElementById('apt-add-ad').value) || 0,
+    receiptCost: 0,
+    attachCost:  0,
+    shootCost:   0,
+    agencyCost:  0,
     durationDays: 7,
     photoOption: 'shoot',
     liveDate: '',
     liveWeek: '',
-    lat: Number(document.getElementById('apt-add-lat').value) || null,
-    lng: Number(document.getElementById('apt-add-lng').value) || null,
+    lat: geo ? geo.lat : null,
+    lng: geo ? geo.lng : null,
     order: nextOrder,
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };
   if (firebaseReady && db) {
-    db.ref('campaign/apt-board').push(payload).then(() => { closeAptAddModal(); });
+    db.ref('campaign/apt-board').push(payload).then(() => {
+      closeAptAddModal();
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '저장'; }
+      showToast(geo ? `'${name}' 추가됨 (지도 위치 매칭 완료)` : `'${name}' 추가됨 (지도 위치 매칭 실패 — 단지명을 확인해주세요)`);
+    });
   }
 }
 
