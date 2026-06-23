@@ -467,14 +467,6 @@ table { border-collapse: collapse; width: 100%; }
 }
 .nav-item svg { display: none; }
 .nav-item .nav-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* 그룹 부모 — 인플루언서 */
-.nav-parent .nav-chevron {
-  margin-left: auto;
-  font-size: 9px;
-  opacity: 0.5;
-  transition: transform 0.2s;
-}
-.nav-parent.active .nav-chevron { opacity: 0.9; }
 /* 하위 메뉴 (프로젝트/캘린더/비용 정산) */
 .nav-sub {
   padding-left: 30px;
@@ -3997,7 +3989,6 @@ img.tt-avatar { object-fit: cover; padding: 0; }
       <div class="nav-item nav-parent" data-section="influencer" onclick="navigate('influencer')">
         <div class="nav-dot"></div>
         <span class="nav-label">인플루언서</span>
-        <span class="nav-chevron">▾</span>
       </div>
       <div class="nav-item nav-sub" data-section="projects" onclick="navigate('projects')">
         <span class="nav-sub-bar"></span>
