@@ -3113,6 +3113,44 @@ img.tt-avatar { object-fit: cover; padding: 0; }
 }
 
 /* ===== 아파트게시판 ===== */
+.apt-kpi-hero {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.apt-kpi-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 22px;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.04);
+  position: relative;
+  overflow: hidden;
+}
+.apt-kpi-card.k-primary {
+  background: linear-gradient(135deg, #0066FF, #4F46E5);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 10px 28px rgba(0,102,255,0.22);
+}
+.apt-kpi-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.apt-kpi-card:not(.k-primary) .apt-kpi-label { color: var(--text-muted); opacity: 1; }
+.apt-kpi-value {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.6px;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.apt-kpi-card:not(.k-primary) .apt-kpi-value { color: var(--text-primary); }
+.apt-kpi-sub { font-size: 11px; margin-top: 3px; font-weight: 600; opacity: 0.75; }
 .apt-region-group { margin-bottom: 20px; }
 .apt-region-header {
   display: flex;
@@ -4233,6 +4271,8 @@ img.tt-avatar { object-fit: cover; padding: 0; }
       </div>
     </div>
     <div class="main-body" style="padding:22px 28px;">
+      <!-- 합계 KPI 박스 -->
+      <div id="apt-kpi" class="apt-kpi-hero"></div>
       <div id="apt-map" style="width:100%;height:380px;border-radius:14px;border:1.5px solid var(--border);margin-bottom:18px;background:#F1F5F9;"></div>
       <div id="apt-board-list" style="display:flex;flex-direction:column;gap:10px;"></div>
     </div>
@@ -6395,6 +6435,33 @@ function renderAptBoard() {
 
   const totalSum = entries.reduce((s, [_, a]) => s + aptSum(a), 0);
   document.getElementById('apt-total-summary').textContent = `총 ${entries.length}개 단지 · 합계 ${fmtKRW2(totalSum)}`;
+
+  // KPI 박스
+  const regionSet = new Set(entries.map(([_, a]) => a.region || '기타'));
+  const liveCnt = entries.filter(([_, a]) => a.liveDate).length;
+  const photoCnt = entries.filter(([_, a]) => a.photoUrl).length;
+  document.getElementById('apt-kpi').innerHTML = `
+    <div class="apt-kpi-card k-primary">
+      <div class="apt-kpi-label">💰 총 광고 견적</div>
+      <div class="apt-kpi-value">${fmtKRW2(totalSum)}</div>
+      <div class="apt-kpi-sub">전 단지 합산 · VAT 별도</div>
+    </div>
+    <div class="apt-kpi-card">
+      <div class="apt-kpi-label">🏢 총 단지</div>
+      <div class="apt-kpi-value">${entries.length}<span style="font-size:14px;color:var(--text-muted);font-weight:700;margin-left:3px;">개</span></div>
+      <div class="apt-kpi-sub">${regionSet.size}개 지역</div>
+    </div>
+    <div class="apt-kpi-card">
+      <div class="apt-kpi-label">📅 라이브 진행</div>
+      <div class="apt-kpi-value">${liveCnt}<span style="font-size:14px;color:var(--text-muted);font-weight:700;margin-left:3px;">/${entries.length}</span></div>
+      <div class="apt-kpi-sub">${entries.length ? Math.round(liveCnt/entries.length*100) : 0}% 진행</div>
+    </div>
+    <div class="apt-kpi-card">
+      <div class="apt-kpi-label">📸 촬영본 업로드</div>
+      <div class="apt-kpi-value">${photoCnt}<span style="font-size:14px;color:var(--text-muted);font-weight:700;margin-left:3px;">/${entries.length}</span></div>
+      <div class="apt-kpi-sub">${entries.length ? Math.round(photoCnt/entries.length*100) : 0}% 완료</div>
+    </div>
+  `;
 
   // 지역별 그룹핑
   const groups = {};
