@@ -7867,21 +7867,29 @@ function deleteProject(id) {
 function renderProjects() {
   const grid = document.getElementById('project-grid');
   const items = Object.entries(allProjects).map(([id, p]) => ({ id, ...p }));
-  items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  // 시작일 빠른 순(오름차순) — 6월 → 7월 → 8월 → 9월. 빈 시작일은 뒤로.
+  items.sort((a, b) => {
+    const ad = a.startDate || '';
+    const bd = b.startDate || '';
+    if (!ad && !bd) return 0;
+    if (!ad) return 1;
+    if (!bd) return -1;
+    return ad.localeCompare(bd);
+  });
 
   document.getElementById('proj-empty').style.display = items.length ? 'none' : 'flex';
+
+  // 진행률 분모 = "확정된 인플" (섭외완료 이상 단계)
+  const CONFIRMED_STATUSES = new Set(['recruited', 'guide', 'producing', 'confirmed', 'scheduled', 'done']);
 
   grid.innerHTML = items.map(p => {
     const assigns = allAssignments[p.id] || {};
     const allEntries = Object.values(assigns);
-    // 제외된 인플루언서는 분모에서 빼서 진행률 계산
-    const activeEntries = allEntries.filter(a => a.status !== 'excluded');
     const assignCount = allEntries.length;
-    const activeCount = activeEntries.length;
-    const statusCounts = {};
-    allEntries.forEach(a => { const s = a.status || 'recruiting'; statusCounts[s] = (statusCounts[s] || 0) + 1; });
-    const doneCount = statusCounts['done'] || 0;
-    const progressPct = activeCount ? Math.round(doneCount / activeCount * 100) : 0;
+    const confirmedEntries = allEntries.filter(a => CONFIRMED_STATUSES.has(a.status));
+    const confirmedCount = confirmedEntries.length;
+    const doneCount = confirmedEntries.filter(a => a.status === 'done').length;
+    const progressPct = confirmedCount ? Math.round(doneCount / confirmedCount * 100) : 0;
 
     // 단가는 '섭외완료 이후' 상태만 집계
     const COST_INC = new Set(['recruited', 'guide', 'producing', 'confirmed', 'scheduled', 'done']);
@@ -7902,9 +7910,9 @@ function renderProjects() {
         </div>
       </div>
       ${p.goal ? `<div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;">🎯 ${p.goal}</div>` : ''}
-      ${assignCount ? `<div style="margin-top:8px;">
+      ${confirmedCount ? `<div style="margin-top:8px;">
         <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px;">
-          <span>진행률</span><span>${progressPct}% (${doneCount}/${assignCount})</span>
+          <span>진행률 <span style="font-size:10px;opacity:0.7;">(확정 인플 기준)</span></span><span>${progressPct}% (${doneCount}/${confirmedCount})</span>
         </div>
         <div style="height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden;">
           <div style="height:100%;width:${progressPct}%;background:linear-gradient(90deg,#A855F7,#6366F1);border-radius:3px;transition:width 0.3s;"></div>
