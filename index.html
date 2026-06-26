@@ -4127,7 +4127,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
     <div class="main-header">
       <h1>캠페인 프로덕션 타임라인</h1>
       <div style="display:flex;gap:8px;align-items:center;">
-        <select id="tl-project-select" class="form-input" style="font-size:13px;padding:6px 10px;width:auto;min-width:160px;" onchange="renderTimeline()"></select>
+        <select id="tl-project-select" class="form-input" style="display:none;" onchange="renderTimeline()"></select>
         <button class="btn btn-secondary btn-sm" onclick="tlPrev()">◀</button>
         <span id="tl-month-label" style="font-weight:700;font-size:15px;min-width:110px;text-align:center;"></span>
         <button class="btn btn-secondary btn-sm" onclick="tlNext()">▶</button>
@@ -11900,16 +11900,7 @@ let _tlPopoverCtx = { infId: null, dateStr: null };
 function renderTimeline() {
   // 헤더 라벨
   document.getElementById('tl-month-label').textContent = calYear + '년 ' + (calMonth + 1) + '월';
-
-  // 프로젝트 셀렉트 갱신
-  const sel = document.getElementById('tl-project-select');
-  const prevVal = sel.value || currentProjectId || Object.keys(allProjects)[0] || '';
-  const projOpts = Object.entries(allProjects)
-    .sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0))
-    .map(([id, p]) => `<option value="${id}" ${id === prevVal ? 'selected' : ''}>${escapeHtml(p.name || '(이름없음)')}</option>`)
-    .join('');
-  sel.innerHTML = projOpts || '<option value="">(프로젝트 없음)</option>';
-  const tlProjId = sel.value;
+  // (프로젝트 셀렉트는 숨김 처리 — 전체 프로젝트 통합 보기)
 
   // 범례 — 단계 순서대로 한 줄, 색은 방향별 2색만
   const legendEl = document.getElementById('tl-legend');
@@ -11934,18 +11925,22 @@ function renderTimeline() {
     </div>
   `;
 
-  // 데이터: '섭외완료 이상' 상태만 표시 (recruited/guide/producing/confirmed/scheduled/done)
+  // 데이터: 모든 프로젝트의 '섭외완료 이상' 상태 인플 통합
   const TIMELINE_STATUSES = new Set(['recruited', 'guide', 'producing', 'confirmed', 'scheduled', 'done']);
-  const assigns = (allAssignments[tlProjId] || {});
-  const infsAll = Object.entries(assigns)
-    .filter(([_, a]) => a && TIMELINE_STATUSES.has(a.status))
-    .map(([infId, a]) => {
+  const infsAll = [];
+  const seen = new Set();
+  for (const [projId, projAssigns] of Object.entries(allAssignments || {})) {
+    for (const [infId, a] of Object.entries(projAssigns || {})) {
+      if (!a || !TIMELINE_STATUSES.has(a.status)) continue;
+      if (seen.has(infId)) continue;   // 같은 인플이 여러 프로젝트에 있으면 첫 발견만 (중복 row 방지)
       const inf = allInfluencers[infId] || {};
+      if (!inf.name) continue;
       const chans = inf.channels || [];
       const channel = chans.includes('youtube') ? 'youtube' : (chans.includes('instagram') ? 'instagram' : 'youtube');
-      return { infId, assign: a, inf, channel };
-    })
-    .filter(x => x.inf.name);
+      infsAll.push({ infId, projId, assign: a, inf, channel });
+      seen.add(infId);
+    }
+  }
 
   // 채널별 그룹 + 각 그룹 내 '최종 업로드 일정' 빠른 순 (없으면 구독자 많은 순으로 폴백)
   function uploadKey(x) {
@@ -12028,7 +12023,7 @@ function renderTimeline() {
     // 접힌 완료 그룹은 행 자체를 안 그림 (sticky grid 정합성 유지)
     if (isCompletedGroup && completedCollapsed) return groupHtml;
 
-    for (const { infId, assign, inf } of items) {
+    for (const { infId, projId, assign, inf } of items) {
       const initial = (inf.name || '?')[0];
       const avatar = inf.profileImage
         ? `<img class="tl-name-avatar" src="${inf.profileImage}" alt="">`
@@ -12078,7 +12073,7 @@ function renderTimeline() {
         const markerHtml = markers.map(m =>
           `<span class="tl-marker dir-${m.dir} ${m.key === 'upload' ? 'is-upload' : ''} ${m.key === 'payment' ? 'is-payment' : ''}"
                  draggable="true"
-                 ondragstart="startMarkerDrag(event, '${infId}', '${m.key}', '${dateStr}')"
+                 ondragstart="startMarkerDrag(event, '${infId}', '${m.key}', '${dateStr}', '${projId}')"
                  ondragend="endMarkerDrag(event)"
                  onclick="event.stopPropagation();"
                  title="${escapeHtml(m.label)} (${m.dir === 'out' ? '바로이집→인플루언서' : '인플루언서→바로이집'}) — 드래그로 이동">
@@ -12088,8 +12083,8 @@ function renderTimeline() {
         groupHtml += `<div class="tl-cell ${cls}"
             ondragover="allowDrop(event)"
             ondragleave="leaveDrop(event)"
-            ondrop="dropMarker(event, '${infId}', '${dateStr}')"
-            onclick="openTimelinePopover(event, '${infId}', '${dateStr}')">${markerHtml}</div>`;
+            ondrop="dropMarker(event, '${infId}', '${dateStr}', '${projId}')"
+            onclick="openTimelinePopover(event, '${infId}', '${dateStr}', '${projId}')">${markerHtml}</div>`;
       }
     }
     return groupHtml;
@@ -12126,9 +12121,9 @@ function toggleTimelineCompletedGroup() {
 }
 
 // 셀 클릭 → 팝오버 열기
-function openTimelinePopover(ev, infId, dateStr) {
+function openTimelinePopover(ev, infId, dateStr, projId) {
   ev.stopPropagation();
-  const tlProjId = document.getElementById('tl-project-select').value;
+  const tlProjId = projId || document.getElementById('tl-project-select').value;
   const assign = (allAssignments[tlProjId] || {})[infId] || {};
   const schedule = assign.schedule || {};
   const inf = allInfluencers[infId] || {};
@@ -12208,9 +12203,9 @@ function toggleMilestoneOnDate(milestoneKey) {
 }
 
 // ===== 마커 드래그 & 드롭 =====
-function startMarkerDrag(ev, infId, milestoneKey, oldDate) {
+function startMarkerDrag(ev, infId, milestoneKey, oldDate, projId) {
   ev.stopPropagation();
-  const payload = JSON.stringify({ infId, milestoneKey, oldDate });
+  const payload = JSON.stringify({ infId, milestoneKey, oldDate, projId: projId || '' });
   ev.dataTransfer.setData('text/plain', payload);
   ev.dataTransfer.effectAllowed = 'move';
   ev.currentTarget.classList.add('dragging');
@@ -12233,7 +12228,7 @@ function leaveDrop(ev) {
   }
 }
 
-function dropMarker(ev, newInfId, newDate) {
+function dropMarker(ev, newInfId, newDate, newProjId) {
   ev.preventDefault();
   ev.stopPropagation();
   ev.currentTarget.classList.remove('drag-over');
@@ -12250,7 +12245,7 @@ function dropMarker(ev, newInfId, newDate) {
   }
   if (data.oldDate === newDate) return;
 
-  const projId = document.getElementById('tl-project-select').value;
+  const projId = data.projId || newProjId || document.getElementById('tl-project-select').value;
   const cur = (allAssignments[projId] || {})[newInfId] || {};
   const schedule = { ...(cur.schedule || {}) };
   schedule[data.milestoneKey] = newDate;
