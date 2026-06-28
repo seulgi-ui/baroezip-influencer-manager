@@ -8262,7 +8262,9 @@ function renderTrackTable() {
             </div>`;
           }
           // 영상 2개 이상 — 모달 진입 chip
-          return `<button type="button" class="upload-link-open" onclick="event.stopPropagation();openUploadsModal('${e.infId}')" title="${withUrl.length}개 영상 관리" style="background:#FEF3C7;color:#B45309;border-color:#FDE68A;">▶ ${withUrl.length}개</button>`;
+          return `<div class="upload-link-cell" style="justify-content:center;">
+            <button type="button" class="upload-link-open" onclick="event.stopPropagation();openUploadsModal('${e.infId}')" title="${withUrl.length}개 영상 관리" style="background:#FEF3C7;color:#B45309;border-color:#FDE68A;">▶ ${withUrl.length}개</button>
+          </div>`;
         })()}</td>
         ${(() => {
           // 영상 다중 업로드: 2개 이상이면 합산값을 readonly 표시 (모달에서 영상별 편집)
