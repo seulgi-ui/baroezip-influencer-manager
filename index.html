@@ -2897,20 +2897,24 @@ img.tt-avatar { object-fit: cover; padding: 0; }
 .upload-link-cell:hover .upload-link-edit { opacity: 1; visibility: visible; }
 .upload-link-edit:hover { background: #F1F5F9; color: #0F172A; }
 /* 영상 추가/관리 — 항상 보이는 ⊕ 버튼 */
+.upload-link-cell { display: inline-flex; align-items: center; gap: 4px; }
 .upload-link-multi {
-  width: 24px; height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
   border: 1.5px solid #BFDBFE;
   background: #DBEAFE;
   color: #1D4ED8;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 900;
   line-height: 1;
   padding: 0;
   flex-shrink: 0;
 }
-.upload-link-multi:hover { background: #BFDBFE; color: #1E3A8A; }
+.upload-link-multi:hover { background: #BFDBFE; color: #1E3A8A; transform: scale(1.05); }
 .upload-link-add {
   padding: 4px 9px;
   border-radius: 6px;
@@ -4858,7 +4862,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
                 <th style="width:80px;">기획안<div class="th-resizer"></div></th>
                 <th style="width:80px;">원링크<div class="th-resizer"></div></th>
                 <th style="width:90px;">최종본<div class="th-resizer"></div></th>
-                <th style="width:60px;text-align:center;">업로드<div class="th-resizer"></div></th>
+                <th style="width:100px;text-align:center;">업로드<div class="th-resizer"></div></th>
                 <th style="width:80px;cursor:pointer;user-select:none;" data-sort-key="views" title="조회수순 정렬"><span id="track-views-sort-label">조회수</span><div class="th-resizer"></div></th>
                 <th style="width:70px;cursor:pointer;user-select:none;" data-sort-key="likes" title="좋아요순 정렬"><span id="track-likes-sort-label">좋아요</span><div class="th-resizer"></div></th>
                 <th style="width:60px;cursor:pointer;user-select:none;" data-sort-key="comments" title="댓글순 정렬"><span id="track-comments-sort-label">댓글</span><div class="th-resizer"></div></th>
