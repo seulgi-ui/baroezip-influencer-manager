@@ -8225,29 +8225,57 @@ function renderTrackTable() {
         <td>${renderProposalCell(e)}</td>
         <td>${renderTrackingUrlCell(e)}</td>
         <td>${renderFinalCell(e)}</td>
-        <td style="text-align:center;">${e.uploadUrl
-          ? `<div class="upload-link-cell">
-              <a class="upload-link-open" href="${escapeHtml(e.uploadUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation();" title="${escapeHtml(e.uploadUrl)}">▶ 열기</a>
-              <button type="button" class="upload-link-edit" onclick="event.stopPropagation();editUploadUrl('${e.infId}')" title="URL 편집">✎</button>
-            </div>`
-          : `<button type="button" class="upload-link-add" onclick="event.stopPropagation();editUploadUrl('${e.infId}')" title="URL 입력">+ URL</button>`}</td>
-        <td><input type="text" inputmode="numeric" class="stat-input" value="${e.views ? Number(e.views).toLocaleString('ko-KR') : ''}" placeholder="0"
-          onclick="event.stopPropagation();this.select();"
-          onfocus="this.value=this.value.replace(/[^0-9]/g,'');"
-          onblur="const v=Number(this.value.replace(/[^0-9]/g,''))||0;this.value=v?v.toLocaleString('ko-KR'):'';saveTrackField('${currentProjectId}','${e.infId}','views',v);"></td>
-        <td><input type="text" inputmode="numeric" class="stat-input" value="${e.likes ? Number(e.likes).toLocaleString('ko-KR') : ''}" placeholder="0"
-          onclick="event.stopPropagation();this.select();"
-          onfocus="this.value=this.value.replace(/[^0-9]/g,'');"
-          onblur="const v=Number(this.value.replace(/[^0-9]/g,''))||0;this.value=v?v.toLocaleString('ko-KR'):'';saveTrackField('${currentProjectId}','${e.infId}','likes',v);"></td>
-        <td><input type="text" inputmode="numeric" class="stat-input" value="${e.comments ? Number(e.comments).toLocaleString('ko-KR') : ''}" placeholder="0"
-          onclick="event.stopPropagation();this.select();"
-          onfocus="this.value=this.value.replace(/[^0-9]/g,'');"
-          onblur="const v=Number(this.value.replace(/[^0-9]/g,''))||0;this.value=v?v.toLocaleString('ko-KR'):'';saveTrackField('${currentProjectId}','${e.infId}','comments',v);"></td>
+        <td style="text-align:center;">${(() => {
+          const all = getAllUploadsOf(e);
+          const withUrl = all.filter(u => u.url);
+          if (!withUrl.length) {
+            return `<button type="button" class="upload-link-add" onclick="event.stopPropagation();openUploadsModal('${e.infId}')" title="영상 추가">+ URL</button>`;
+          }
+          if (withUrl.length === 1) {
+            const u = withUrl[0];
+            return `<div class="upload-link-cell">
+              <a class="upload-link-open" href="${escapeHtml(u.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation();" title="${escapeHtml(u.url)}">▶ 열기</a>
+              <button type="button" class="upload-link-edit" onclick="event.stopPropagation();openUploadsModal('${e.infId}')" title="영상 관리 (+추가)">✎</button>
+            </div>`;
+          }
+          // 영상 2개 이상 — 모달 진입 chip
+          return `<button type="button" class="upload-link-open" onclick="event.stopPropagation();openUploadsModal('${e.infId}')" title="${withUrl.length}개 영상 관리" style="background:#FEF3C7;color:#B45309;border-color:#FDE68A;">▶ ${withUrl.length}개</button>`;
+        })()}</td>
         ${(() => {
+          // 영상 다중 업로드: 2개 이상이면 합산값을 readonly 표시 (모달에서 영상별 편집)
+          const _all = getAllUploadsOf(e).filter(u => u.url || u.views || u.likes || u.comments);
+          const _multi = _all.length > 1;
+          if (_multi) {
+            const s = sumUploads(e);
+            const tip = `${s.count}개 영상 합산 — 영상별 편집은 업로드 셀 클릭`;
+            return `
+              <td><div class="stat-input" style="text-align:right;padding:4px 6px;color:#0F172A;font-weight:700;font-variant-numeric:tabular-nums;cursor:pointer;" onclick="event.stopPropagation();openUploadsModal('${e.infId}')" title="${tip}">${s.views.toLocaleString('ko-KR')}<span style="font-size:9px;color:#94A3B8;font-weight:600;display:block;">합산 ${s.count}건</span></div></td>
+              <td><div class="stat-input" style="text-align:right;padding:4px 6px;color:#0F172A;font-weight:700;font-variant-numeric:tabular-nums;cursor:pointer;" onclick="event.stopPropagation();openUploadsModal('${e.infId}')" title="${tip}">${s.likes.toLocaleString('ko-KR')}</div></td>
+              <td><div class="stat-input" style="text-align:right;padding:4px 6px;color:#0F172A;font-weight:700;font-variant-numeric:tabular-nums;cursor:pointer;" onclick="event.stopPropagation();openUploadsModal('${e.infId}')" title="${tip}">${s.comments.toLocaleString('ko-KR')}</div></td>`;
+          }
+          return `
+            <td><input type="text" inputmode="numeric" class="stat-input" value="${e.views ? Number(e.views).toLocaleString('ko-KR') : ''}" placeholder="0"
+              onclick="event.stopPropagation();this.select();"
+              onfocus="this.value=this.value.replace(/[^0-9]/g,'');"
+              onblur="const v=Number(this.value.replace(/[^0-9]/g,''))||0;this.value=v?v.toLocaleString('ko-KR'):'';saveTrackField('${currentProjectId}','${e.infId}','views',v);"></td>
+            <td><input type="text" inputmode="numeric" class="stat-input" value="${e.likes ? Number(e.likes).toLocaleString('ko-KR') : ''}" placeholder="0"
+              onclick="event.stopPropagation();this.select();"
+              onfocus="this.value=this.value.replace(/[^0-9]/g,'');"
+              onblur="const v=Number(this.value.replace(/[^0-9]/g,''))||0;this.value=v?v.toLocaleString('ko-KR'):'';saveTrackField('${currentProjectId}','${e.infId}','likes',v);"></td>
+            <td><input type="text" inputmode="numeric" class="stat-input" value="${e.comments ? Number(e.comments).toLocaleString('ko-KR') : ''}" placeholder="0"
+              onclick="event.stopPropagation();this.select();"
+              onfocus="this.value=this.value.replace(/[^0-9]/g,'');"
+              onblur="const v=Number(this.value.replace(/[^0-9]/g,''))||0;this.value=v?v.toLocaleString('ko-KR'):'';saveTrackField('${currentProjectId}','${e.infId}','comments',v);"></td>`;
+        })()}
+        ${(() => {
+          // CPV/ER도 영상 합산값으로 계산 (multi일 때)
+          const _all = getAllUploadsOf(e).filter(u => u.url || u.views || u.likes || u.comments);
+          const _multi = _all.length > 1;
+          const _s = _multi ? sumUploads(e) : null;
           const costWon = (Number(e.cost) || 0) * 10000;
-          const views   = Number(e.views) || 0;
-          const likes   = Number(e.likes) || 0;
-          const cmts    = Number(e.comments) || 0;
+          const views   = _multi ? _s.views : (Number(e.views) || 0);
+          const likes   = _multi ? _s.likes : (Number(e.likes) || 0);
+          const cmts    = _multi ? _s.comments : (Number(e.comments) || 0);
           // CPV (원/뷰) — 낮을수록 좋음
           let cpvHtml = '<td class="num" style="color:#CBD5E1;">-</td>';
           if (costWon > 0 && views > 0) {
@@ -9817,6 +9845,194 @@ async function analyzePaidAds(infId, contentType) {
   } catch (e) {
     console.error('analyzePaidAds error', e);
     alert('분석 실패: ' + (e.message || e));
+  }
+}
+
+// ============================================================
+// 영상 다중 업로드 관리 — 한 인플에 PPL 영상이 2개 이상일 때
+// ============================================================
+//  · 메인 영상: assignment.uploadUrl / uploadDate / views / likes / comments (기존 호환)
+//  · 추가 영상: assignment.extraUploads = [{ id, url, uploadDate, views, likes, comments, lastCrawled }, ...]
+
+function getAllUploadsOf(a) {
+  if (!a) return [];
+  const main = (a.uploadUrl || a.views || a.likes || a.comments || a.uploadDate)
+    ? [{ id: 'main', main: true, url: a.uploadUrl || '', uploadDate: a.uploadDate || '', views: Number(a.views)||0, likes: Number(a.likes)||0, comments: Number(a.comments)||0, lastCrawled: a.lastCrawled || 0 }]
+    : [{ id: 'main', main: true, url: '', uploadDate: '', views: 0, likes: 0, comments: 0, lastCrawled: 0 }];
+  const extra = Array.isArray(a.extraUploads) ? a.extraUploads
+    : (a.extraUploads && typeof a.extraUploads === 'object') ? Object.values(a.extraUploads) : [];
+  return main.concat(extra);
+}
+
+function sumUploads(a) {
+  const all = getAllUploadsOf(a).filter(u => u.url || u.views || u.likes || u.comments);
+  return all.reduce((acc, u) => ({
+    count: acc.count + 1,
+    views: acc.views + (Number(u.views)||0),
+    likes: acc.likes + (Number(u.likes)||0),
+    comments: acc.comments + (Number(u.comments)||0),
+  }), { count: 0, views: 0, likes: 0, comments: 0 });
+}
+
+let _uploadsCtx = null;
+
+function openUploadsModal(infId) {
+  if (!currentProjectId) return;
+  const a = (allAssignments[currentProjectId] || {})[infId] || {};
+  const inf = allInfluencers[infId] || {};
+  _uploadsCtx = { infId, projId: currentProjectId };
+  document.getElementById('uploads-modal-title').textContent = `${inf.name || ''} — 업로드 영상 관리`;
+  document.getElementById('uploads-modal-sub').textContent = '여러 PPL 영상을 한 인플에 등록할 수 있습니다 (각 영상별 조회수/좋아요/댓글 분리)';
+  document.getElementById('uploads-add-btn').onclick = () => addUploadSlot(infId);
+  renderUploadsModal();
+  document.getElementById('uploads-modal').style.display = 'flex';
+}
+
+function closeUploadsModal() {
+  document.getElementById('uploads-modal').style.display = 'none';
+  _uploadsCtx = null;
+}
+
+function renderUploadsModal() {
+  if (!_uploadsCtx) return;
+  const { projId, infId } = _uploadsCtx;
+  const a = (allAssignments[projId] || {})[infId] || {};
+  const uploads = getAllUploadsOf(a);
+  const body = document.getElementById('uploads-modal-body');
+  body.innerHTML = uploads.map((u, i) => {
+    const isMain = u.main;
+    const dateOnly = (u.uploadDate || '').split('T')[0];
+    const timePart = (u.uploadDate || '').includes('T') ? (u.uploadDate.split('T')[1] || '').slice(0,5) : '';
+    return `<div style="border:1.5px solid var(--border);border-radius:12px;padding:14px;background:${isMain ? '#FAFAFC' : '#fff'};">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="display:inline-flex;align-items:center;padding:2px 9px;border-radius:9px;background:${isMain?'#DBEAFE':'#FEF3C7'};color:${isMain?'#1D4ED8':'#B45309'};font-size:11px;font-weight:800;">${isMain ? '메인 영상' : `추가 영상 #${i}`}</span>
+        <span style="font-size:11px;color:var(--text-muted);">${u.lastCrawled ? '최근 수집: ' + new Date(u.lastCrawled).toLocaleString('ko-KR') : ''}</span>
+        <div style="margin-left:auto;display:flex;gap:6px;">
+          <button onclick="crawlUpload('${u.id}')" class="btn btn-secondary btn-sm" style="font-size:11px;padding:5px 10px;" ${u.url?'':'disabled style=opacity:0.4;'}>📊 수집</button>
+          ${!isMain ? `<button onclick="removeUploadSlot('${u.id}')" class="btn btn-ghost btn-sm" style="font-size:11px;padding:5px 10px;color:#DC2626;">삭제</button>` : ''}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:12px;">
+        <label style="grid-column:1/-1;">
+          <div style="color:#64748B;font-size:11px;margin-bottom:3px;font-weight:600;">YouTube URL</div>
+          <input type="text" class="form-input" placeholder="https://www.youtube.com/watch?v=..." value="${escapeHtml(u.url)}" onchange="updateUpload('${u.id}','url',this.value.trim())">
+        </label>
+        <label>
+          <div style="color:#64748B;font-size:11px;margin-bottom:3px;font-weight:600;">업로드 일시</div>
+          <input type="datetime-local" class="form-input" value="${u.uploadDate || ''}" onchange="updateUpload('${u.id}','uploadDate',this.value)">
+        </label>
+        <label>
+          <div style="color:#64748B;font-size:11px;margin-bottom:3px;font-weight:600;">조회수</div>
+          <input type="text" inputmode="numeric" class="form-input" value="${(Number(u.views)||0).toLocaleString('ko-KR')}" placeholder="0"
+            onfocus="this.value=this.value.replace(/[^0-9]/g,'')"
+            onblur="this.value=(Number(this.value.replace(/[^0-9]/g,''))||0).toLocaleString('ko-KR')"
+            onchange="updateUpload('${u.id}','views',Number(this.value.replace(/[^0-9]/g,''))||0)">
+        </label>
+        <label>
+          <div style="color:#64748B;font-size:11px;margin-bottom:3px;font-weight:600;">좋아요</div>
+          <input type="text" inputmode="numeric" class="form-input" value="${(Number(u.likes)||0).toLocaleString('ko-KR')}" placeholder="0"
+            onfocus="this.value=this.value.replace(/[^0-9]/g,'')"
+            onblur="this.value=(Number(this.value.replace(/[^0-9]/g,''))||0).toLocaleString('ko-KR')"
+            onchange="updateUpload('${u.id}','likes',Number(this.value.replace(/[^0-9]/g,''))||0)">
+        </label>
+        <label>
+          <div style="color:#64748B;font-size:11px;margin-bottom:3px;font-weight:600;">댓글</div>
+          <input type="text" inputmode="numeric" class="form-input" value="${(Number(u.comments)||0).toLocaleString('ko-KR')}" placeholder="0"
+            onfocus="this.value=this.value.replace(/[^0-9]/g,'')"
+            onblur="this.value=(Number(this.value.replace(/[^0-9]/g,''))||0).toLocaleString('ko-KR')"
+            onchange="updateUpload('${u.id}','comments',Number(this.value.replace(/[^0-9]/g,''))||0)">
+        </label>
+      </div>
+    </div>`;
+  }).join('');
+  // 합산 요약
+  const s = sumUploads(a);
+  const summary = document.createElement('div');
+  summary.style.cssText = 'padding:12px 14px;background:linear-gradient(135deg,#EFF6FF,#FAFAFC);border-radius:10px;border:1.5px solid #BFDBFE;display:flex;gap:18px;font-size:12px;';
+  summary.innerHTML = `<div><span style="color:#64748B;font-weight:600;">총 영상</span> <b style="color:#0F172A;margin-left:4px;">${s.count}개</b></div>
+    <div><span style="color:#64748B;font-weight:600;">합산 조회수</span> <b style="color:#0066FF;margin-left:4px;">${s.views.toLocaleString('ko-KR')}</b></div>
+    <div><span style="color:#64748B;font-weight:600;">합산 좋아요</span> <b style="color:#0F172A;margin-left:4px;">${s.likes.toLocaleString('ko-KR')}</b></div>
+    <div><span style="color:#64748B;font-weight:600;">합산 댓글</span> <b style="color:#0F172A;margin-left:4px;">${s.comments.toLocaleString('ko-KR')}</b></div>`;
+  body.appendChild(summary);
+}
+
+function updateUpload(slotId, field, value) {
+  if (!_uploadsCtx) return;
+  const { projId, infId } = _uploadsCtx;
+  const a = (allAssignments[projId] || {})[infId] || {};
+  if (slotId === 'main') {
+    // 메인 영상은 기존 필드 직접 업데이트
+    saveTrackField(projId, infId, field, value);
+    return;
+  }
+  // 추가 영상 — extraUploads 배열에서 해당 id 찾아 업데이트
+  const extra = Array.isArray(a.extraUploads) ? a.extraUploads.slice()
+    : (a.extraUploads && typeof a.extraUploads === 'object') ? Object.values(a.extraUploads) : [];
+  const idx = extra.findIndex(x => x.id === slotId);
+  if (idx === -1) return;
+  extra[idx] = { ...extra[idx], [field]: value };
+  saveTrackField(projId, infId, 'extraUploads', extra);
+}
+
+function addUploadSlot(infId) {
+  if (!currentProjectId) return;
+  const a = (allAssignments[currentProjectId] || {})[infId] || {};
+  const extra = Array.isArray(a.extraUploads) ? a.extraUploads.slice()
+    : (a.extraUploads && typeof a.extraUploads === 'object') ? Object.values(a.extraUploads) : [];
+  extra.push({
+    id: 'ex_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+    url: '', uploadDate: '', views: 0, likes: 0, comments: 0, lastCrawled: 0,
+  });
+  saveTrackField(currentProjectId, infId, 'extraUploads', extra);
+  setTimeout(renderUploadsModal, 200);
+}
+
+function removeUploadSlot(slotId) {
+  if (!confirm('이 영상 슬롯을 삭제할까요? (영상 데이터도 함께 제거됩니다)')) return;
+  if (!_uploadsCtx) return;
+  const { projId, infId } = _uploadsCtx;
+  const a = (allAssignments[projId] || {})[infId] || {};
+  const extra = (Array.isArray(a.extraUploads) ? a.extraUploads : Object.values(a.extraUploads || {})).filter(x => x.id !== slotId);
+  saveTrackField(projId, infId, 'extraUploads', extra);
+  setTimeout(renderUploadsModal, 200);
+}
+
+async function crawlUpload(slotId) {
+  if (!_uploadsCtx) return;
+  const { projId, infId } = _uploadsCtx;
+  const a = (allAssignments[projId] || {})[infId] || {};
+  if (slotId === 'main') {
+    await crawlUploadUrl(projId, infId);
+    setTimeout(renderUploadsModal, 500);
+    return;
+  }
+  // 추가 영상 수집 — URL에서 video id 추출 → API 호출
+  const extra = (Array.isArray(a.extraUploads) ? a.extraUploads : Object.values(a.extraUploads || {})).slice();
+  const idx = extra.findIndex(x => x.id === slotId);
+  if (idx === -1) return;
+  const url = extra[idx].url;
+  if (!url) return;
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/);
+  if (!m) { alert('YouTube 영상 URL이 올바르지 않습니다.'); return; }
+  const vid = m[1];
+  try {
+    const r = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${vid}&key=${YOUTUBE_API_KEY}`);
+    const data = await r.json();
+    const stats = data.items && data.items[0] && data.items[0].statistics;
+    if (!stats) { alert('영상 통계 조회 실패'); return; }
+    extra[idx] = {
+      ...extra[idx],
+      views: Number(stats.viewCount) || 0,
+      likes: Number(stats.likeCount) || 0,
+      comments: Number(stats.commentCount) || 0,
+      lastCrawled: Date.now(),
+    };
+    saveTrackField(projId, infId, 'extraUploads', extra);
+    showToast('수집 완료');
+    setTimeout(renderUploadsModal, 300);
+  } catch (e) {
+    console.error('crawl extra upload failed', e);
+    alert('수집 실패: ' + (e.message || e));
   }
 }
 
@@ -13263,6 +13479,23 @@ window.addEventListener('beforeunload', (e) => {
 </script>
 
 <!-- 유료광고 분석 상세 모달 -->
+<!-- 영상 다중 업로드 관리 모달 -->
+<div id="uploads-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:0;width:720px;max-width:94vw;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 16px 40px rgba(15,23,42,0.22);overflow:hidden;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid #E2E8F0;background:linear-gradient(135deg,#FAFAFA,#EFF6FF);">
+      <div>
+        <h3 id="uploads-modal-title" style="font-size:15px;font-weight:800;margin:0 0 2px;">업로드 영상 관리</h3>
+        <div id="uploads-modal-sub" style="font-size:11.5px;color:#64748B;font-weight:600;"></div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button type="button" id="uploads-add-btn" class="btn btn-primary btn-sm" style="font-size:11.5px;padding:6px 12px;">+ 영상 추가</button>
+        <button type="button" onclick="closeUploadsModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94A3B8;line-height:1;padding:0 4px;">×</button>
+      </div>
+    </div>
+    <div id="uploads-modal-body" style="padding:16px 22px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px;"></div>
+  </div>
+</div>
+
 <div id="paidad-detail-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:9999;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:14px;padding:0;width:680px;max-width:94vw;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 16px 40px rgba(15,23,42,0.22);overflow:hidden;">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid #E2E8F0;background:linear-gradient(135deg,#FAFAFA,#F5F3FF);">
