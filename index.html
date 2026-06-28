@@ -2859,6 +2859,107 @@ img.cli-avatar { display: block; padding: 0; }
 }
 img.tt-avatar { object-fit: cover; padding: 0; }
 
+/* ===== 엘리베이터TV ===== */
+.elev-hero {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.elev-hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+.elev-tags { display: flex; gap: 6px; align-items: center; margin-bottom: 10px; }
+.elev-tag {
+  display: inline-flex; align-items: center;
+  padding: 3px 9px; border-radius: 6px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.2px;
+}
+.elev-tag-premium { background: #111827; color: #FBBF24; }
+.elev-tag-status {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+.elev-tag-status::before {
+  content: ''; display: inline-block;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--primary); margin-right: 5px;
+}
+.elev-dday {
+  font-size: 12px; font-weight: 700; color: var(--text-muted);
+  padding: 6px 11px; border: 1px solid var(--border); border-radius: 8px;
+  white-space: nowrap;
+}
+.elev-dday-soon {
+  color: var(--primary-dark);
+  border-color: #DDD6FE;
+  background: var(--primary-light);
+}
+.elev-hero-name { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; color: var(--text-primary); }
+.elev-hero-period { color: var(--text-secondary); font-size: 13px; font-weight: 500; }
+.elev-hero-period b { color: var(--text-primary); font-weight: 700; }
+.elev-hero-divider { height: 1px; background: var(--border); margin: 24px 0; }
+.elev-amount-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.elev-amount-label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+.elev-amount {
+  font-size: 36px; font-weight: 800; letter-spacing: -1px;
+  color: var(--primary); font-variant-numeric: tabular-nums;
+}
+.elev-amount-sub { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+.elev-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+  margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border);
+}
+.elev-stat { padding: 0 20px; border-left: 1px solid var(--border); }
+.elev-stat:first-child { border-left: none; padding-left: 0; }
+.elev-stat-label { font-size: 11.5px; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; }
+.elev-stat-value { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; font-variant-numeric: tabular-nums; color: var(--text-primary); }
+.elev-stat-unit { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-left: 2px; }
+
+.elev-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.elev-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+.elev-card-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.elev-card-title { font-size: 14px; font-weight: 800; letter-spacing: -0.2px; color: var(--text-primary); }
+.elev-card-sub { font-size: 11.5px; color: var(--text-muted); font-weight: 500; }
+
+.elev-weeks { display: flex; flex-direction: column; gap: 10px; }
+.elev-week-row {
+  display: grid; grid-template-columns: 28px 1fr 100px; gap: 14px; align-items: center;
+  padding: 11px 14px; border-radius: 10px; border: 1px solid var(--border);
+  transition: all 0.15s;
+}
+.elev-week-row.active {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+.elev-week-num {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface-2); color: var(--text-secondary); font-size: 12px; font-weight: 800;
+}
+.elev-week-row.active .elev-week-num { background: var(--primary); color: #fff; }
+.elev-week-date { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.elev-week-date-sub { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: 1px; }
+.elev-week-imp { font-size: 12.5px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+
+.elev-regions { display: flex; flex-direction: column; gap: 14px; }
+.elev-region-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.elev-region-name { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.elev-region-stat { display: flex; align-items: baseline; gap: 6px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
+.elev-region-cnt { font-size: 14px; font-weight: 800; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.elev-region-bar { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+.elev-region-fill { height: 100%; border-radius: 3px; }
+.elev-region-fill.c1 { background: var(--primary); }
+.elev-region-fill.c2 { background: var(--accent); }
+.elev-region-fill.c3 { background: #8B5CF6; }
+.elev-region-fill.c4 { background: var(--text-muted); }
+
 /* 업로드 링크 셀 — 버튼식 컴팩트화 */
 .upload-link-cell {
   display: inline-flex;
@@ -4008,6 +4109,10 @@ img.tt-avatar { object-fit: cover; padding: 0; }
         <span class="nav-label">미디어믹스</span>
       </div>
       <div class="nav-section-label" style="margin-top:12px;">바이럴</div>
+      <div class="nav-item" data-section="elevator" onclick="navigate('elevator')">
+        <div class="nav-dot"></div>
+        <span class="nav-label">엘리베이터TV</span>
+      </div>
       <div class="nav-item" data-section="apt" onclick="navigate('apt')">
         <div class="nav-dot"></div>
         <span class="nav-label">아파트게시판</span>
@@ -4277,6 +4382,24 @@ img.tt-avatar { object-fit: cover; padding: 0; }
       <div id="cr-empty" class="empty-state" style="display:none;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         <p>등록된 소재가 없습니다.<br><span style="font-size:13px;color:var(--text-muted);">소재를 추가하여 제작 현황을 관리하세요.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 엘리베이터TV Section -->
+  <section id="section-elevator" class="section">
+    <div class="main-header">
+      <h1>엘리베이터TV</h1>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span id="elev-subtitle" style="font-size:12px;color:var(--text-muted);font-weight:600;">포커스미디어 프리미엄 · 63단지 · 약 12.8만명 시청</span>
+        <button class="btn btn-primary btn-sm" onclick="alert('캠페인 추가 — 추후 모달 구현')">+ 캠페인 추가</button>
+      </div>
+    </div>
+    <div class="main-body" style="padding:28px 32px;">
+      <div id="elev-hero" class="elev-hero"></div>
+      <div class="elev-bottom">
+        <div class="elev-card" id="elev-weeks-card"></div>
+        <div class="elev-card" id="elev-regions-card"></div>
       </div>
     </div>
   </section>
@@ -6198,7 +6321,7 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 
 // ===== Navigation =====
 // 유효 섹션 화이트리스트
-const VALID_SECTIONS = ['mediamix', 'calendar', 'pr', 'apt', 'influencer', 'projects', 'settlement'];
+const VALID_SECTIONS = ['mediamix', 'calendar', 'pr', 'elevator', 'apt', 'influencer', 'projects', 'settlement'];
 
 function navigate(section, opts) {
   if (!VALID_SECTIONS.includes(section)) section = 'mediamix';
@@ -6214,6 +6337,7 @@ function navigate(section, opts) {
   if (section === 'pr') renderPrPlan();
   if (section === 'settlement') renderSettlement();
   if (section === 'apt') renderAptBoard();
+  if (section === 'elevator') renderElevatorTV();
 
   // URL hash 동기화 (hashchange 이벤트 무한루프 방지 위해 옵션으로 분기)
   if (!opts || !opts.fromHash) {
@@ -6381,6 +6505,160 @@ function initRealtimeListeners() {
     aptBoardData = snap.val() || {};
     if (currentSection === 'apt') renderAptBoard();
   });
+
+  // 엘리베이터TV
+  db.ref('campaign/elevator-tv').on('value', snap => {
+    elevatorTvData = snap.val() || {};
+    if (currentSection === 'elevator') renderElevatorTV();
+  });
+}
+
+// ============================================================
+// ===== 엘리베이터TV =====
+// ============================================================
+let elevatorTvData = {};
+const ELEV_REGIONS = [
+  { name: '서초·송파',         cnt: 537, pct: 46, cls: 'c1' },
+  { name: '강남',               cnt: 368, pct: 31, cls: 'c2' },
+  { name: '마포·용산·성동',    cnt: 180, pct: 15, cls: 'c3' },
+  { name: '그 외 (영등포·광진·양천·분당)', cnt: 83, pct: 7, cls: 'c4' },
+];
+
+function ddayBetween(today, target) {
+  const t = new Date(today + 'T00:00:00');
+  const x = new Date(target + 'T00:00:00');
+  return Math.round((x - t) / (1000 * 60 * 60 * 24));
+}
+function fmtDate(d) {
+  if (!d) return '';
+  const [y, m, dd] = d.split('-');
+  return `${y}. ${m}. ${dd}`;
+}
+function addDays(d, n) {
+  const dt = new Date(d + 'T00:00:00');
+  dt.setDate(dt.getDate() + n);
+  return dt.toISOString().slice(0, 10);
+}
+
+function renderElevatorTV() {
+  const hero = document.getElementById('elev-hero');
+  if (!hero) return;
+  const entries = Object.entries(elevatorTvData)
+    .filter(([_, c]) => c && c.name)
+    .sort((a, b) => (a[1].startDate || '').localeCompare(b[1].startDate || ''));
+  if (!entries.length) {
+    hero.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--text-muted);font-size:13px;">
+      등록된 캠페인이 없습니다.<br><button class="btn btn-primary btn-sm" style="margin-top:14px;" onclick="alert('캠페인 추가 — 추후 모달 구현')">+ 캠페인 추가</button>
+    </div>`;
+    document.getElementById('elev-weeks-card').innerHTML = '';
+    document.getElementById('elev-regions-card').innerHTML = '';
+    return;
+  }
+
+  const [campId, c] = entries[0];   // 첫 번째 활성 캠페인 (단일 캠페인 가정 — 추후 multi 지원)
+  const today = new Date().toISOString().slice(0, 10);
+  const dday = c.startDate ? ddayBetween(today, c.startDate) : null;
+  const statusText = dday == null ? '대기'
+    : dday > 0 ? `라이브까지 D-${dday}`
+    : dday === 0 ? '오늘 라이브 🎬'
+    : ddayBetween(today, c.endDate) >= 0 ? `송출 중 D+${-dday}`
+    : '송출 종료';
+  const statusLabel = dday == null ? '대기'
+    : (dday > 0 ? '송출 예정' : (ddayBetween(today, c.endDate) >= 0 ? '송출 중' : '송출 종료'));
+  const ddaySoon = dday > 0;
+
+  const pkgLabel = c.packageType === 'premium-highend' ? 'PREMIUM + HIGH-END' : 'PREMIUM';
+  const slotsCnt = Number(c.slots) || 1;
+  const slotDevices = slotsCnt * 1000;
+  // 노출 — 15초 일 180회 / 30초 일 90회 / 4주 = 28일
+  const dailyImp = c.durationSec === 30 ? 90 : 180;
+  const totalImp = dailyImp * 28 * slotsCnt;
+  const reachViewers = 128000 * slotsCnt;
+
+  hero.innerHTML = `
+    <div class="elev-hero-top">
+      <div>
+        <div class="elev-tags">
+          <span class="elev-tag elev-tag-premium">${escapeHtml(pkgLabel)}</span>
+          <span class="elev-tag elev-tag-status">${escapeHtml(statusLabel)}</span>
+        </div>
+        <div class="elev-hero-name">${escapeHtml(c.name)}</div>
+        <div class="elev-hero-period">
+          <b>${fmtDate(c.startDate)} (월) 라이브</b> · ${c.weeks || 4}주 운영 · 종료 ${fmtDate(c.endDate)}
+        </div>
+      </div>
+      <div class="elev-dday ${ddaySoon ? 'elev-dday-soon' : ''}">${escapeHtml(statusText)}</div>
+    </div>
+
+    <div class="elev-amount-row">
+      <span class="elev-amount-label">최종 견적 (VAT 포함)</span>
+      <span class="elev-amount">₩${(Number(c.finalPrice) || 0).toLocaleString('ko-KR')}</span>
+      <span class="elev-amount-sub">단가 ₩${(Number(c.subtotal) || 0).toLocaleString('ko-KR')} + VAT ₩${(Number(c.vat) || 0).toLocaleString('ko-KR')}</span>
+    </div>
+
+    <div class="elev-stats">
+      <div class="elev-stat">
+        <div class="elev-stat-label">송출 패키지</div>
+        <div class="elev-stat-value">${slotDevices.toLocaleString('ko-KR')}<span class="elev-stat-unit">대 풀패키지</span></div>
+      </div>
+      <div class="elev-stat">
+        <div class="elev-stat-label">예상 누적 노출</div>
+        <div class="elev-stat-value">${totalImp.toLocaleString('ko-KR')}<span class="elev-stat-unit">회</span></div>
+      </div>
+      <div class="elev-stat">
+        <div class="elev-stat-label">예상 도달 시청자</div>
+        <div class="elev-stat-value">${reachViewers.toLocaleString('ko-KR')}<span class="elev-stat-unit">명</span></div>
+      </div>
+    </div>
+  `;
+
+  // 4주 스케줄 — startDate 기반 자동 계산
+  const weeksCard = document.getElementById('elev-weeks-card');
+  if (c.startDate && c.weeks) {
+    const weeklyImp = Math.round(totalImp / c.weeks);
+    let weeksHtml = '';
+    for (let i = 0; i < c.weeks; i++) {
+      const ws = addDays(c.startDate, i * 7);
+      const we = addDays(c.startDate, i * 7 + 6);
+      const isActive = (ws <= today && today <= we);
+      const subLabel = i === 0 ? '송출 시작' : i === c.weeks - 1 ? '송출 종료' : `${i + 1}주차`;
+      weeksHtml += `<div class="elev-week-row ${isActive ? 'active' : ''}">
+        <div class="elev-week-num">${i + 1}</div>
+        <div>
+          <div class="elev-week-date">${fmtDate(ws)} — ${we.slice(5).replace('-', '. ')}</div>
+          <div class="elev-week-date-sub">${subLabel}</div>
+        </div>
+        <div class="elev-week-imp">${weeklyImp.toLocaleString('ko-KR')}회</div>
+      </div>`;
+    }
+    weeksCard.innerHTML = `
+      <div class="elev-card-h">
+        <div class="elev-card-title">${c.weeks}주 송출 스케줄</div>
+        <div class="elev-card-sub">매주 월요일 송출 · 06:00 — 24:00</div>
+      </div>
+      <div class="elev-weeks">${weeksHtml}</div>`;
+  }
+
+  // 지역 분포 — 정적 데이터 (포커스미디어 PDF 기반)
+  const regionsCard = document.getElementById('elev-regions-card');
+  regionsCard.innerHTML = `
+    <div class="elev-card-h">
+      <div class="elev-card-title">지역별 단지 분포</div>
+      <div class="elev-card-sub">총 63단지 · 1,168대</div>
+    </div>
+    <div class="elev-regions">
+      ${ELEV_REGIONS.map(r => `<div class="elev-region-item">
+        <div class="elev-region-top">
+          <div class="elev-region-name">${escapeHtml(r.name)}</div>
+          <div class="elev-region-stat">
+            <span class="elev-region-cnt">${r.cnt}대</span>
+            <span>${r.pct}%</span>
+          </div>
+        </div>
+        <div class="elev-region-bar"><div class="elev-region-fill ${r.cls}" style="width:${r.pct}%;"></div></div>
+      </div>`).join('')}
+    </div>
+  `;
 }
 
 // ============================================================
