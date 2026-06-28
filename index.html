@@ -2899,7 +2899,7 @@ img.tt-avatar { object-fit: cover; padding: 0; }
 /* 영상 추가/관리 — row 호버 시에만 보이는 ⊕ 버튼 */
 .upload-link-cell { display: inline-flex; align-items: center; gap: 4px; }
 .upload-link-multi {
-  display: inline-flex;
+  display: none;  /* 공간도 차지하지 않게 — 다른 row의 ▶ 열기 정렬 흐트러짐 방지 */
   align-items: center;
   justify-content: center;
   width: 24px; height: 24px;
@@ -2913,11 +2913,8 @@ img.tt-avatar { object-fit: cover; padding: 0; }
   line-height: 1;
   padding: 0;
   flex-shrink: 0;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.12s, visibility 0.12s;
 }
-.track-table tbody tr:hover .upload-link-multi { opacity: 1; visibility: visible; }
+.track-table tbody tr:hover .upload-link-multi { display: inline-flex; }
 .upload-link-multi:hover { background: #BFDBFE; color: #1E3A8A; }
 .upload-link-add {
   padding: 4px 9px;
