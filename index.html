@@ -2896,6 +2896,21 @@ img.tt-avatar { object-fit: cover; padding: 0; }
 }
 .upload-link-cell:hover .upload-link-edit { opacity: 1; visibility: visible; }
 .upload-link-edit:hover { background: #F1F5F9; color: #0F172A; }
+/* 영상 추가/관리 — 항상 보이는 ⊕ 버튼 */
+.upload-link-multi {
+  width: 24px; height: 24px;
+  border: 1.5px solid #BFDBFE;
+  background: #DBEAFE;
+  color: #1D4ED8;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+}
+.upload-link-multi:hover { background: #BFDBFE; color: #1E3A8A; }
 .upload-link-add {
   padding: 4px 9px;
   border-radius: 6px;
@@ -8235,7 +8250,7 @@ function renderTrackTable() {
             const u = withUrl[0];
             return `<div class="upload-link-cell">
               <a class="upload-link-open" href="${escapeHtml(u.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation();" title="${escapeHtml(u.url)}">▶ 열기</a>
-              <button type="button" class="upload-link-edit" onclick="event.stopPropagation();openUploadsModal('${e.infId}')" title="영상 관리 (+추가)">✎</button>
+              <button type="button" class="upload-link-multi" onclick="event.stopPropagation();openUploadsModal('${e.infId}')" title="영상 추가 / 관리">⊕</button>
             </div>`;
           }
           // 영상 2개 이상 — 모달 진입 chip
