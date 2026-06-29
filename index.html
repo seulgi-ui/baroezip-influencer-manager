@@ -3475,63 +3475,40 @@ img.tt-avatar { object-fit: cover; padding: 0; }
 .apt-gallery-close:hover { background: rgba(255,255,255,0.18); }
 
 .apt-gallery-main {
-  flex: 1; display: flex; align-items: center; justify-content: center;
-  position: relative; min-height: 0; gap: 14px;
+  flex: 1; display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 14px;
+  min-height: 0;
+  width: 100%;
+  max-width: min(1400px, 100%);
+  margin: 0 auto;
 }
-.apt-gallery-img-wrap {
-  flex: 1; height: 100%; display: flex; align-items: center; justify-content: center;
-}
-.apt-gallery-img {
-  max-width: 100%; max-height: 100%; object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.55);
-}
-.apt-gallery-arrow {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  width: 52px; height: 52px;
-  background: rgba(0,0,0,0.5); color: #fff;
-  border: 1px solid rgba(255,255,255,0.15); border-radius: 50%;
-  font-size: 22px; cursor: pointer; font-weight: 700;
+.apt-gallery-cell {
   display: flex; align-items: center; justify-content: center;
-  transition: background 0.12s;
-  z-index: 2;
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  min-height: 0;
 }
-.apt-gallery-arrow:hover { background: rgba(0,0,0,0.85); }
-.apt-gallery-arrow:disabled { opacity: 0.25; cursor: not-allowed; }
-.apt-gallery-prev { left: 12px; }
-.apt-gallery-next { right: 12px; }
-
-.apt-gallery-strip {
-  display: flex; gap: 6px; padding: 14px 0 0;
-  overflow-x: auto;
-  justify-content: center;
-  flex-wrap: nowrap;
-  flex-shrink: 0;
-  scrollbar-width: thin;
-  scrollbar-color: #475569 transparent;
+.apt-gallery-cell.empty {
+  border: 1.5px dashed rgba(255,255,255,0.15);
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+  background: transparent;
 }
-.apt-gallery-strip::-webkit-scrollbar { height: 6px; }
-.apt-gallery-strip::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
-.apt-gallery-strip-item {
-  width: 62px; height: 62px;
-  border-radius: 6px;
-  border: 2px solid transparent;
-  background-size: cover; background-position: center;
-  background-color: #1E293B;
-  cursor: pointer;
-  flex-shrink: 0;
-  opacity: 0.55;
-  transition: opacity 0.12s, border-color 0.12s, transform 0.12s;
-  padding: 0;
+.apt-gallery-cell img {
+  max-width: 100%; max-height: 100%; object-fit: contain;
+  display: block;
 }
-.apt-gallery-strip-item:hover { opacity: 0.85; transform: translateY(-2px); }
-.apt-gallery-strip-item.active {
-  opacity: 1;
-  border-color: #60A5FA;
-  box-shadow: 0 0 0 2px rgba(96,165,250,0.4);
-}
-.apt-gallery-empty {
-  color: #94A3B8; font-size: 14px; text-align: center; padding: 60px 20px;
+.apt-gallery-cell .apt-gallery-cell-idx {
+  position: absolute; top: 10px; left: 10px;
+  background: rgba(0,0,0,0.65); color: #fff;
+  font-size: 11px; font-weight: 800;
+  padding: 4px 9px; border-radius: 12px;
+  letter-spacing: 0.5px;
 }
 .settle-file-upload {
   display: inline-flex;
@@ -4552,23 +4529,16 @@ img.tt-avatar { object-fit: cover; padding: 0; }
     </div>
   </div>
 
-  <!-- 아파트게시판 촬영본 갤러리 모달 -->
+  <!-- 아파트게시판 촬영본 갤러리 모달 (2×2 그리드) -->
   <div id="apt-gallery-modal" class="apt-gallery-backdrop" onclick="if(event.target===this)closeAptGallery()">
     <div class="apt-gallery-head">
       <div class="apt-gallery-titles">
         <span class="apt-gallery-title" id="apt-gallery-title">단지명</span>
-        <span class="apt-gallery-counter" id="apt-gallery-counter">1 / 1</span>
+        <span class="apt-gallery-counter" id="apt-gallery-counter">0장</span>
       </div>
       <button type="button" class="apt-gallery-close" onclick="closeAptGallery()" title="닫기 (ESC)">×</button>
     </div>
-    <div class="apt-gallery-main">
-      <button type="button" class="apt-gallery-arrow apt-gallery-prev" id="apt-gallery-prev" onclick="aptGalleryPrev()" title="이전 (←)">‹</button>
-      <div class="apt-gallery-img-wrap">
-        <img id="apt-gallery-img" class="apt-gallery-img" alt="">
-      </div>
-      <button type="button" class="apt-gallery-arrow apt-gallery-next" id="apt-gallery-next" onclick="aptGalleryNext()" title="다음 (→)">›</button>
-    </div>
-    <div class="apt-gallery-strip" id="apt-gallery-strip"></div>
+    <div class="apt-gallery-main" id="apt-gallery-main"></div>
   </div>
 
   <!-- PR Section -->
@@ -6908,6 +6878,7 @@ function renderAptBoard() {
   const renderCard = ([id, a]) => {
     const sum = aptSum(a);
     const photos = getAptPhotos(a);
+    const canAdd = photos.length < 4;
     const photoCell = `<div class="apt-photo-wrap">
         ${photos.map((p, i) => `
           <div class="apt-photo-item">
@@ -6917,9 +6888,9 @@ function renderAptBoard() {
             <button type="button" class="apt-photo-del" onclick="deleteAptPhoto('${id}',${i})" title="삭제">×</button>
           </div>
         `).join('')}
-        <label class="apt-photo-upload ${photos.length ? '' : 'empty'}" title="촬영본 추가 (JPG/PNG, 5MB↓ · 여러 장 선택 가능)">${photos.length ? '＋' : '📎 업로드'}
+        ${canAdd ? `<label class="apt-photo-upload ${photos.length ? '' : 'empty'}" title="촬영본 추가 (JPG/PNG, 5MB↓ · 최대 4장)">${photos.length ? '＋' : '📎 업로드'}
           <input type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" multiple style="display:none;" onchange="uploadAptPhoto('${id}', this)">
-        </label>
+        </label>` : ''}
       </div>`;
     return `<div class="apt-card">
       <div class="apt-card-head">
@@ -6983,10 +6954,19 @@ function getAptPhotos(a) {
   return [];
 }
 
-// 촬영본 이미지 다중 업로드 (base64 RTDB 저장)
+// 촬영본 이미지 다중 업로드 (base64 RTDB 저장, 단지당 최대 4장)
 async function uploadAptPhoto(id, inputEl) {
   const files = Array.from(inputEl.files || []);
   if (!files.length) return;
+  const current = getAptPhotos(aptBoardData[id] || {});
+  const remain = 4 - current.length;
+  if (remain <= 0) {
+    alert('한 단지당 최대 4장까지만 업로드할 수 있습니다.'); inputEl.value = ''; return;
+  }
+  if (files.length > remain) {
+    alert(`현재 ${current.length}장 / 최대 4장 — ${remain}장만 추가할 수 있습니다.`);
+    inputEl.value = ''; return;
+  }
   for (const f of files) {
     if (!/^image\/(jpeg|png)$/.test(f.type) && !/\.(jpe?g|png)$/i.test(f.name)) {
       alert(`${f.name}: JPG / JPEG / PNG 만 업로드 가능합니다.`); inputEl.value = ''; return;
@@ -7003,7 +6983,6 @@ async function uploadAptPhoto(id, inputEl) {
     label.style.pointerEvents = 'none';
   };
   try {
-    const current = getAptPhotos(aptBoardData[id] || {});
     const newOnes = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -7039,64 +7018,40 @@ async function uploadAptPhoto(id, inputEl) {
   }
 }
 
-// 갤러리 상태
-let aptGalleryState = { id: null, index: 0 };
-
-function openAptPhoto(id, index) {
+// 갤러리 — 2×2 그리드로 한 화면에 4장 표시
+function openAptPhoto(id) {
   const a = aptBoardData[id];
   const photos = getAptPhotos(a || {});
   if (!photos.length) return;
-  aptGalleryState.id = id;
-  aptGalleryState.index = Math.max(0, Math.min(index || 0, photos.length - 1));
   document.getElementById('apt-gallery-title').textContent = (a && a.name) || '촬영본';
-  renderAptGallery();
+  document.getElementById('apt-gallery-counter').textContent = `${photos.length}장`;
+  const main = document.getElementById('apt-gallery-main');
+  const cells = [];
+  for (let i = 0; i < 4; i++) {
+    const p = photos[i];
+    if (p) {
+      cells.push(`<div class="apt-gallery-cell">
+        <span class="apt-gallery-cell-idx">${i+1}</span>
+        <img src="${p.url}" alt="${escapeHtml(p.fileName || '')}">
+      </div>`);
+    } else {
+      cells.push(`<div class="apt-gallery-cell empty">빈 슬롯</div>`);
+    }
+  }
+  main.innerHTML = cells.join('');
   document.getElementById('apt-gallery-modal').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
 
-function renderAptGallery() {
-  const { id, index } = aptGalleryState;
-  const photos = getAptPhotos(aptBoardData[id] || {});
-  if (!photos.length) { closeAptGallery(); return; }
-  const safeIndex = Math.max(0, Math.min(index, photos.length - 1));
-  aptGalleryState.index = safeIndex;
-  const p = photos[safeIndex];
-  const imgEl = document.getElementById('apt-gallery-img');
-  imgEl.src = p.url;
-  imgEl.alt = p.fileName || '';
-  document.getElementById('apt-gallery-counter').textContent = `${safeIndex + 1} / ${photos.length}`;
-  document.getElementById('apt-gallery-prev').disabled = safeIndex <= 0;
-  document.getElementById('apt-gallery-next').disabled = safeIndex >= photos.length - 1;
-  const strip = document.getElementById('apt-gallery-strip');
-  strip.innerHTML = photos.map((ph, i) =>
-    `<button type="button" class="apt-gallery-strip-item ${i === safeIndex ? 'active' : ''}" style="background-image:url('${ph.url}');" onclick="aptGalleryGoTo(${i})" title="${escapeHtml(ph.fileName || '')}"></button>`
-  ).join('');
-  const active = strip.querySelector('.active');
-  if (active && active.scrollIntoView) {
-    active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  }
-}
-
-function aptGalleryGoTo(i) { aptGalleryState.index = i; renderAptGallery(); }
-function aptGalleryPrev() {
-  if (aptGalleryState.index > 0) { aptGalleryState.index--; renderAptGallery(); }
-}
-function aptGalleryNext() {
-  const photos = getAptPhotos(aptBoardData[aptGalleryState.id] || {});
-  if (aptGalleryState.index < photos.length - 1) { aptGalleryState.index++; renderAptGallery(); }
-}
 function closeAptGallery() {
   document.getElementById('apt-gallery-modal').classList.remove('show');
   document.body.style.overflow = '';
-  aptGalleryState.id = null;
 }
 
 document.addEventListener('keydown', e => {
   const modal = document.getElementById('apt-gallery-modal');
   if (!modal || !modal.classList.contains('show')) return;
   if (e.key === 'Escape') { e.preventDefault(); closeAptGallery(); }
-  else if (e.key === 'ArrowLeft') { e.preventDefault(); aptGalleryPrev(); }
-  else if (e.key === 'ArrowRight') { e.preventDefault(); aptGalleryNext(); }
 });
 
 function deleteAptPhoto(id, index) {
