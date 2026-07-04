@@ -8523,8 +8523,13 @@ function renderTrackTable() {
     return;
   }
 
-  // Show crawl-all button if any has upload URL
-  document.getElementById('btn-crawl-all').style.display = allEntries.some(e => e.uploadUrl && ((e.inf.channels || []).includes('youtube'))) ? 'inline-flex' : 'none';
+  // Show crawl-all button if any has upload URL (메인 or 추가 영상)
+  document.getElementById('btn-crawl-all').style.display = allEntries.some(e => {
+    if (!((e.inf.channels || []).includes('youtube'))) return false;
+    if (e.uploadUrl) return true;
+    const extras = Array.isArray(e.extraUploads) ? e.extraUploads : (e.extraUploads ? Object.values(e.extraUploads) : []);
+    return extras.some(x => x && x.url);
+  }) ? 'inline-flex' : 'none';
 
   // 현황 필터 적용
   const entries = trackStatusFilter.size === 0
@@ -10437,8 +10442,10 @@ function updateUpload(slotId, field, value) {
   const { projId, infId } = _uploadsCtx;
   const a = (allAssignments[projId] || {})[infId] || {};
   if (slotId === 'main') {
-    // 메인 영상은 기존 필드 직접 업데이트
-    saveTrackField(projId, infId, field, value);
+    // 메인 영상 필드 매핑 — 슬롯 필드명 → assignment 필드명
+    const mainFieldMap = { url: 'uploadUrl', uploadDate: 'uploadDate', views: 'views', likes: 'likes', comments: 'comments' };
+    const realField = mainFieldMap[field] || field;
+    saveTrackField(projId, infId, realField, value);
     return;
   }
   // 추가 영상 — extraUploads 배열에서 해당 id 찾아 업데이트
@@ -10539,14 +10546,26 @@ async function crawlAllUploads() {
   if (!currentProjectId) return;
   const assigns = allAssignments[currentProjectId] || {};
   let count = 0, skipped = 0;
+  const prevCtx = _uploadsCtx;
   for (const [infId, a] of Object.entries(assigns)) {
-    if (!a.uploadUrl) continue;
-    // 유튜브만 수집 — 인스타는 자동 수집 의미 없음
     const chans = (allInfluencers[infId] || {}).channels || [];
     if (!chans.includes('youtube')) { skipped++; continue; }
-    await crawlUploadUrl(currentProjectId, infId);
-    count++;
+    // 메인 영상 수집
+    if (a.uploadUrl) {
+      await crawlUploadUrl(currentProjectId, infId);
+      count++;
+    }
+    // 추가 영상 수집
+    const extras = Array.isArray(a.extraUploads) ? a.extraUploads : (a.extraUploads ? Object.values(a.extraUploads) : []);
+    const extraWithUrl = extras.filter(x => x && x.url);
+    if (extraWithUrl.length) {
+      _uploadsCtx = { projId: currentProjectId, infId };
+      for (const ex of extraWithUrl) {
+        try { await crawlUpload(ex.id); count++; } catch (e) { console.error('extra crawl failed', e); }
+      }
+    }
   }
+  _uploadsCtx = prevCtx;
   showToast(`유튜브 ${count}개 수집 완료${skipped ? ` (인스타 ${skipped}건 제외)` : ''}`);
 }
 
