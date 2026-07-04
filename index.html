@@ -10390,8 +10390,8 @@ function renderUploadsModal() {
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:12px;">
         <label style="grid-column:1/-1;">
-          <div style="color:#64748B;font-size:11px;margin-bottom:3px;font-weight:600;">YouTube URL</div>
-          <input type="text" class="form-input" placeholder="https://www.youtube.com/watch?v=..." value="${escapeHtml(u.url)}" onchange="updateUpload('${u.id}','url',this.value.trim())">
+          <div style="color:#64748B;font-size:11px;margin-bottom:3px;font-weight:600;">YouTube URL <span style="color:#94A3B8;font-weight:500;">— 입력하면 조회수·좋아요·댓글 자동 수집</span></div>
+          <input type="text" class="form-input" placeholder="https://www.youtube.com/watch?v=..." value="${escapeHtml(u.url)}" onchange="onUploadUrlChangeAuto('${u.id}',this.value.trim())">
         </label>
         <label>
           <div style="color:#64748B;font-size:11px;margin-bottom:3px;font-weight:600;">업로드 일시</div>
@@ -10471,6 +10471,20 @@ function removeUploadSlot(slotId) {
   const extra = (Array.isArray(a.extraUploads) ? a.extraUploads : Object.values(a.extraUploads || {})).filter(x => x.id !== slotId);
   saveTrackField(projId, infId, 'extraUploads', extra);
   setTimeout(renderUploadsModal, 200);
+}
+
+// URL 입력 시 자동 수집 (수동 버튼 대신)
+async function onUploadUrlChangeAuto(slotId, url) {
+  updateUpload(slotId, 'url', url);
+  if (!url) return;
+  if (!/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)[\w-]{11}/.test(url)) {
+    showToast('YouTube URL 형식이 올바르지 않습니다');
+    return;
+  }
+  showToast('조회수 자동 수집 중...');
+  await new Promise(r => setTimeout(r, 400));
+  try { await crawlUpload(slotId); }
+  catch (e) { console.error('auto crawl failed', e); }
 }
 
 async function crawlUpload(slotId) {
